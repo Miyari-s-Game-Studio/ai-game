@@ -1,9 +1,10 @@
 'use client';
 import React, { useState, useEffect, useTransition } from 'react';
-import type { GameState, LogEntry, Situation, Track, GameRules } from '@/types/game';
+import type { GameState, LogEntry, Situation, GameRules } from '@/types/game';
 import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateNarrative } from '@/ai/flows/narrative-generation';
+import { generateIntroduction } from '@/ai/flows/generate-introduction';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,6 +15,7 @@ import TrackDisplay from './TrackDisplay';
 import CountersDisplay from './CountersDisplay';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
+import { Skeleton } from '../ui/skeleton';
 
 const getInitialState = (rules: GameRules): GameState => {
   return {
@@ -21,26 +23,57 @@ const getInitialState = (rules: GameRules): GameState => {
     counters: { ...rules.initial.counters },
     tracks: JSON.parse(JSON.stringify(rules.tracks)),
     knownTargets: [],
-    log: [
-      {
-        id: 0,
-        type: 'narrative',
-        message: 'A new environmental case has been opened. Your mission is to investigate the pollution, manage the crisis, and restore ecological balance.',
-      },
-      {
-        id: 1,
-        type: 'procedural',
-        message: 'You are at the initial stage: 场域摸底 (Field Investigation). Assess the area to begin.',
-      }
-    ],
+    log: [], // Log starts empty, will be populated by AI
   };
 };
 
 export function GameUI() {
   const [rules, setRules] = useState<GameRules>(defaultGameRules);
   const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
+  const [isGeneratingIntro, setIsGeneratingIntro] = useState(true);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchIntroduction = async () => {
+      try {
+        const intro = await generateIntroduction({
+          title: rules.title,
+          description: rules.description,
+          initialSituation: rules.situations[rules.initial.situation].label,
+        });
+
+        const initialLogs: LogEntry[] = [
+          {
+            id: Date.now(),
+            type: 'narrative',
+            message: intro.introduction,
+          },
+          {
+            id: Date.now() + 1,
+            type: 'procedural',
+            message: intro.firstStep,
+          },
+        ];
+        setGameState(prevState => ({...prevState, log: initialLogs}));
+      } catch (error) {
+         console.error('Failed to generate introduction:', error);
+         toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not generate the game introduction.',
+         });
+         // Fallback to a simple log
+         setGameState(prevState => ({
+            ...prevState,
+            log: [{ id: 0, type: 'error', message: 'Failed to load introduction.'}]
+         }));
+      } finally {
+        setIsGeneratingIntro(false);
+      }
+    };
+    fetchIntroduction();
+  }, [rules, toast]);
 
   const currentSituation: Situation | undefined = rules.situations[gameState.situation];
   
@@ -122,7 +155,15 @@ export function GameUI() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-             <NarrativeLog log={gameState.log} />
+             {isGeneratingIntro ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-8 w-1/2" />
+                </div>
+              ) : (
+                <NarrativeLog log={gameState.log} />
+              )}
           </CardContent>
         </Card>
         <Card>
@@ -130,10 +171,12 @@ export function GameUI() {
                 <CardTitle className="text-2xl font-headline">Take Action</CardTitle>
             </CardHeader>
             <CardContent>
-                {isPending ? (
+                {isPending || isGeneratingIntro ? (
                     <div className="flex items-center justify-center p-8">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="ml-4 text-lg">AI is crafting the next part of your story...</p>
+                        <p className="ml-4 text-lg">
+                          {isGeneratingIntro ? 'Generating introduction...' : 'AI is crafting the next part of your story...'}
+                        </p>
                     </div>
                 ) : (
                     <ActionPanel

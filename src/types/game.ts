@@ -40,6 +40,7 @@ export type GameRules = {
   version: number;
   id: string;
   title: string;
+  description: string;
   initial: {
     situation: string;
     counters: Record<string, number | boolean>;
