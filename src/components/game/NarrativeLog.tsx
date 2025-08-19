@@ -1,41 +1,89 @@
 import React, { useRef, useEffect } from 'react';
-import type { LogEntry } from '@/types/game';
+import type { LogEntry, ActionRule } from '@/types/game';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Terminal, Bot, User, AlertCircle } from 'lucide-react';
+import { Terminal, Bot, User, AlertCircle, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 
 interface NarrativeLogProps {
   log: LogEntry[];
+  knownTargets: string[];
+  actionRules: ActionRule[];
+  onTargetClick: (actionId: string, target: string) => void;
 }
 
 const logTypeDetails = {
-  action: {
-    icon: User,
-    color: 'text-accent',
-    bgColor: 'bg-accent/10',
-    label: 'Player Action',
-  },
-  procedural: {
-    icon: Terminal,
-    color: 'text-muted-foreground',
-    bgColor: 'bg-muted/20',
-    label: 'System Log',
-  },
-  narrative: {
-    icon: Bot,
-    color: 'text-primary',
-    bgColor: 'bg-primary/10',
-    label: 'Narrative',
-  },
-  error: {
-    icon: AlertCircle,
-    color: 'text-destructive',
-    bgColor: 'bg-destructive/10',
-    label: 'Error',
-  },
+  action: { icon: User, color: 'text-accent', bgColor: 'bg-accent/10', label: 'Player Action' },
+  procedural: { icon: Terminal, color: 'text-muted-foreground', bgColor: 'bg-muted/20', label: 'System Log' },
+  narrative: { icon: Bot, color: 'text-primary', bgColor: 'bg-primary/10', label: 'Narrative' },
+  error: { icon: AlertCircle, color: 'text-destructive', bgColor: 'bg-destructive/10', label: 'Error' },
 };
 
-const NarrativeLog: React.FC<NarrativeLogProps> = ({ log }) => {
+const HighlightableText: React.FC<{
+  text: string;
+  targets: string[];
+  rules: ActionRule[];
+  onTargetClick: (actionId: string, target: string) => void;
+}> = ({ text, targets, rules, onTargetClick }) => {
+    if (targets.length === 0) {
+      return <>{text}</>;
+    }
+
+  // Create a regex to find all targets
+  const regex = new RegExp(`(${targets.join('|')})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
+        if (isTarget) {
+          const validActions = rules.filter(rule => {
+            if (!rule.when.targetPattern) return false;
+            const targetRegex = new RegExp(rule.when.targetPattern, 'i');
+            return targetRegex.test(part);
+          });
+
+          if (validActions.length === 0) {
+            return <span key={index}>{part}</span>;
+          }
+
+          return (
+            <Popover key={index}>
+              <PopoverTrigger asChild>
+                <span className="bg-accent/30 text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:bg-accent/50">
+                  {part}
+                </span>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2">
+                <div className="flex flex-col gap-1">
+                  {validActions.map(rule => (
+                    <Button
+                      key={rule.when.actionId}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onTargetClick(rule.when.actionId, part)}
+                      className="justify-start"
+                    >
+                      <ChevronRight className="w-4 h-4 mr-2" />
+                      <span>
+                        {rule.when.actionId}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </>
+  );
+};
+
+const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, onTargetClick }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -69,7 +117,18 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log }) => {
                 <p className={cn('font-bold text-sm mb-1', details.color)}>
                   {details.label}
                 </p>
-                <p className="text-foreground/90 whitespace-pre-wrap">{entry.message}</p>
+                <p className="text-foreground/90 whitespace-pre-wrap">
+                   {entry.type === 'narrative' ? (
+                    <HighlightableText
+                      text={entry.message}
+                      targets={knownTargets}
+                      rules={actionRules}
+                      onTargetClick={onTargetClick}
+                    />
+                  ) : (
+                    entry.message
+                  )}
+                </p>
               </div>
             </div>
           );

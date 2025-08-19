@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,6 +26,7 @@ interface ActionPanelProps {
   allowedActions: string[];
   onAction: (actionId: string, target?: string) => void;
   disabled: boolean;
+  actionTarget?: { actionId: string, target: string };
 }
 
 const actionDetails: { [key: string]: { icon: React.ElementType, description: string, requiresTarget?: boolean } } = {
@@ -42,8 +43,14 @@ const actionDetails: { [key: string]: { icon: React.ElementType, description: st
     celebrate: { icon: PartyPopper, description: 'Celebrate the resolution of the crisis.' },
 };
 
-const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, onAction, disabled }) => {
+const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, onAction, disabled, actionTarget }) => {
   const [targets, setTargets] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (actionTarget) {
+      handleTargetChange(actionTarget.actionId, actionTarget.target);
+    }
+  }, [actionTarget]);
 
   const handleTargetChange = (actionId: string, value: string) => {
     setTargets(prev => ({ ...prev, [actionId]: value }));

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useTransition } from 'react';
-import type { GameState, LogEntry, Situation, GameRules } from '@/types/game';
+import type { GameState, LogEntry, Situation, GameRules, ActionRule } from '@/types/game';
 import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateNarrative } from '@/ai/flows/narrative-generation';
@@ -31,6 +31,7 @@ export function GameUI() {
   const [rules, setRules] = useState<GameRules>(defaultGameRules);
   const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
   const [isGeneratingIntro, setIsGeneratingIntro] = useState(true);
+  const [actionTarget, setActionTarget] = useState<{actionId: string, target: string}>();
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -88,7 +89,7 @@ export function GameUI() {
           <p>Please check your rules configuration.</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   const handleAction = (actionId: string, target?: string) => {
@@ -145,6 +146,10 @@ export function GameUI() {
     });
   };
 
+  const handleTargetClick = (actionId: string, target: string) => {
+    setActionTarget({ actionId, target });
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div className="lg:col-span-2 space-y-6">
@@ -162,7 +167,12 @@ export function GameUI() {
                   <Skeleton className="h-8 w-1/2" />
                 </div>
               ) : (
-                <NarrativeLog log={gameState.log} />
+                <NarrativeLog
+                  log={gameState.log}
+                  knownTargets={gameState.knownTargets}
+                  actionRules={rules.situations[gameState.situation].on_action}
+                  onTargetClick={handleTargetClick}
+                />
               )}
           </CardContent>
         </Card>
@@ -183,6 +193,7 @@ export function GameUI() {
                         allowedActions={currentSituation.allowed_actions}
                         onAction={handleAction}
                         disabled={isPending}
+                        actionTarget={actionTarget}
                     />
                 )}
             </CardContent>
