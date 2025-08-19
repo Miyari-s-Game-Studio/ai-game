@@ -1,5 +1,6 @@
+// src/lib/game-engine.ts
 'use server';
-import type { GameState, LogEntry } from '@/types/game';
+import type { GameState, GameRules, LogEntry } from '@/types/game';
 import { ecoPollutionRules } from './eco-rules';
 import { produce } from 'immer';
 
@@ -15,6 +16,7 @@ function evaluateCondition(condition: string, state: GameState): boolean {
 }
 
 export async function processAction(
+  rules: GameRules,
   currentState: GameState,
   actionId: string,
   target?: string
@@ -23,7 +25,7 @@ export async function processAction(
   const proceduralLogs: LogEntry[] = [];
   
   const newState = produce(currentState, (draft) => {
-    const situation = ecoPollutionRules.situations[draft.situation];
+    const situation = rules.situations[draft.situation];
     if (!situation) return;
 
     const actionRules = situation.on_action;
@@ -127,7 +129,7 @@ export async function processAction(
       break; 
     }
 
-    if(draft.next_situation && ecoPollutionRules.situations[draft.next_situation]) {
+    if(draft.next_situation && rules.situations[draft.next_situation]) {
         draft.situation = draft.next_situation;
         delete draft.next_situation;
     }

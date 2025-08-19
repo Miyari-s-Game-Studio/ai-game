@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useTransition } from 'react';
-import type { GameState, LogEntry, Situation, Track } from '@/types/game';
+import type { GameState, LogEntry, Situation, Track, GameRules } from '@/types/game';
 import { ecoPollutionRules } from '@/lib/eco-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateNarrative } from '@/ai/flows/narrative-generation';
@@ -15,11 +15,11 @@ import CountersDisplay from './CountersDisplay';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 
-const getInitialState = (): GameState => {
+const getInitialState = (rules: GameRules): GameState => {
   return {
-    situation: ecoPollutionRules.initial.situation,
-    counters: { ...ecoPollutionRules.initial.counters },
-    tracks: JSON.parse(JSON.stringify(ecoPollutionRules.tracks)),
+    situation: rules.initial.situation,
+    counters: { ...rules.initial.counters },
+    tracks: JSON.parse(JSON.stringify(rules.tracks)),
     knownTargets: [],
     log: [
       {
@@ -37,12 +37,27 @@ const getInitialState = (): GameState => {
 };
 
 export function GameUI() {
-  const [gameState, setGameState] = useState<GameState>(getInitialState);
+  const [rules, setRules] = useState<GameRules>(ecoPollutionRules);
+  const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const currentSituation: Situation = ecoPollutionRules.situations[gameState.situation];
+  const currentSituation: Situation | undefined = rules.situations[gameState.situation];
   
+  if (!currentSituation) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>The current situation `({gameState.situation})` is not defined in the game rules.</p>
+          <p>Please check your rules configuration.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   const handleAction = (actionId: string, target?: string) => {
     startTransition(async () => {
       try {
@@ -53,20 +68,22 @@ export function GameUI() {
         };
 
         const { newState: proceduralState, proceduralLogs } = await processAction(
+          rules,
           gameState,
           actionId,
           target
         );
         
+        const environmentalTracks: Record<string, number> = {};
+        for(const trackId in proceduralState.tracks) {
+          environmentalTracks[trackId.replace(/\./g, '_')] = proceduralState.tracks[trackId].value;
+        }
+
         const narrativeInput = {
           situation: currentSituation.label,
           allowedActions: currentSituation.allowed_actions,
           actionTaken: `${actionId} ${target || ''}`.trim(),
-          environmentalTracks: {
-            eco_pollution: proceduralState.tracks['eco.pollution'].value,
-            eco_governance: proceduralState.tracks['eco.governance'].value,
-            eco_media: proceduralState.tracks['eco.media'].value,
-          },
+          environmentalTracks: environmentalTracks,
           counters: proceduralState.counters,
           gameLog: [...proceduralState.log, actionLog, ...proceduralLogs].map(l => l.message),
         };

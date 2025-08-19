@@ -15,7 +15,7 @@ const GenerateNarrativeInputSchema = z.object({
   situation: z.string().describe('The current game situation.'),
   allowedActions: z.array(z.string()).describe('The list of allowed actions in the current situation.'),
   actionTaken: z.string().describe('The action the player took.'),
-  environmentalTracks: z.record(z.number()).describe('The current state of the environmental tracks (pollution, governance, media).'),
+  environmentalTracks: z.record(z.number()).describe('The current state of the environmental tracks (e.g. pollution, governance, media). The keys can be arbitrary and are defined by the game rules.'),
   counters: z.record(z.boolean().or(z.number())).describe('The current state of the counters.'),
   gameLog: z.array(z.string()).describe('Array of previous game log entries'),
 });
@@ -34,7 +34,7 @@ const prompt = ai.definePrompt({
   name: 'generateNarrativePrompt',
   input: {schema: GenerateNarrativeInputSchema},
   output: {schema: GenerateNarrativeOutputSchema},
-  prompt: `You are a game master for EcoTrouble, an environmental crisis game. Generate a narrative based on the player's action and the current game state.\n\nCurrent Situation: {{{situation}}}\nAllowed Actions: {{#each allowedActions}}{{{this}}}, {{/each}}\nAction Taken: {{{actionTaken}}}\nEnvironmental Tracks: Pollution: {{{environmentalTracks.eco_pollution}}}, Governance: {{{environmentalTracks.eco_governance}}}, Media: {{{environmentalTracks.eco_media}}}\nCounters: {{#each counters}}{{{@key}}}: {{{this}}}, {{/each}}\nGame Log: {{#each gameLog}}{{{this}}}\n{{/each}}\n\nNarrative:`,
+  prompt: `You are a game master for an interactive narrative game. Generate a compelling narrative based on the player's action and the current game state.\n\nCurrent Situation: {{{situation}}}\nAllowed Actions: {{#each allowedActions}}{{{this}}}, {{/each}}\nAction Taken: {{{actionTaken}}}\nGame State Tracks: {{#each environmentalTracks}}{{@key}}: {{{this}}}, {{/each}}\nCounters: {{#each counters}}{{{@key}}}: {{{this}}}, {{/each}}\nGame Log: {{#each gameLog}}{{{this}}}\n{{/each}}\n\nNarrative:`,
 });
 
 const generateNarrativeFlow = ai.defineFlow(
