@@ -4,6 +4,32 @@ export const ecoPollutionRules: GameRules = {
   version: 1,
   id: 'eco_pollution',
   title: '生态污染事件',
+  ui: {
+    counterIcons: {
+      clues: 'FileText',
+      samples: 'Beaker',
+      testimony: 'Handshake',
+      shutdown_ok: 'CheckCircle2',
+      default: 'Star',
+    },
+    trackStyles: {
+      'eco.pollution': {
+        icon: 'AlertTriangle',
+        color: 'text-rose-500',
+        progressColor: '[&>div]:bg-rose-500',
+      },
+      'eco.governance': {
+        icon: 'Shield',
+        color: 'text-emerald-500',
+        progressColor: '[&>div]:bg-emerald-500',
+      },
+      'eco.media': {
+        icon: 'Megaphone',
+        color: 'text-sky-500',
+        progressColor: '[&>div]:bg-sky-500',
+      }
+    }
+  },
   initial: {
     situation: 'investigate_area',
     counters: {

@@ -152,11 +152,11 @@ export function GameUI() {
           </CardHeader>
           <CardContent className="space-y-4">
             {Object.entries(gameState.tracks).map(([id, track]) => (
-              <TrackDisplay key={id} trackId={id} track={track} />
+              <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
             ))}
           </CardContent>
         </Card>
-        <CountersDisplay counters={gameState.counters} />
+        <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} />
       </div>
     </div>
   );

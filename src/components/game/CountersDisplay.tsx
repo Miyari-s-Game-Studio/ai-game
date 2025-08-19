@@ -1,40 +1,38 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Beaker, FileText, CheckCircle2, XCircle, Handshake, Key, Star } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 
 interface CountersDisplayProps {
   counters: Record<string, number | boolean>;
+  iconMap?: Record<string, string>;
 }
 
-// A more generic mapping of keywords to icons.
-const counterIcons: { [key: string]: React.ElementType } = {
-    clues: FileText,
-    clue: FileText,
-    notes: FileText,
-    samples: Beaker,
-    sample: Beaker,
-    testimony: Handshake,
-    agreement: Handshake,
-    key: Key,
-    item: Star,
-    shutdown_ok: CheckCircle2,
+const getDynamicIcon = (iconName: string): React.ElementType => {
+    if (LucideIcons[iconName as keyof typeof LucideIcons]) {
+        return LucideIcons[iconName as keyof typeof LucideIcons];
+    }
+    return LucideIcons.Star; // Default icon
 };
 
+
 // Function to find an icon based on keywords in the counter's name
-const getIconForCounter = (label: string): React.ElementType => {
+const getIconForCounter = (label: string, iconMap?: Record<string, string>): React.ElementType => {
+    if (!iconMap) return LucideIcons.Star;
     const lowerLabel = label.toLowerCase();
-    for (const keyword in counterIcons) {
+    for (const keyword in iconMap) {
         if (lowerLabel.includes(keyword)) {
-            return counterIcons[keyword];
+            const iconName = iconMap[keyword];
+            return getDynamicIcon(iconName);
         }
     }
-    return Star; // Default icon
+    return getDynamicIcon(iconMap.default || 'Star');
 }
 
 
-const CounterItem: React.FC<{ label: string; value: number | boolean }> = ({ label, value }) => {
-    const Icon = getIconForCounter(label);
+const CounterItem: React.FC<{ label: string; value: number | boolean; iconMap?: Record<string, string> }> = ({ label, value, iconMap }) => {
+    const Icon = getIconForCounter(label, iconMap);
 
     return (
         <div className="flex items-center justify-between p-2 rounded-lg bg-background/70">
@@ -54,7 +52,7 @@ const CounterItem: React.FC<{ label: string; value: number | boolean }> = ({ lab
     );
 };
 
-const CountersDisplay: React.FC<CountersDisplayProps> = ({ counters }) => {
+const CountersDisplay: React.FC<CountersDisplayProps> = ({ counters, iconMap }) => {
   return (
     <Card>
       <CardHeader>
@@ -62,7 +60,7 @@ const CountersDisplay: React.FC<CountersDisplayProps> = ({ counters }) => {
       </CardHeader>
       <CardContent className="space-y-2">
         {Object.entries(counters).map(([key, value]) => (
-          <CounterItem key={key} label={key} value={value} />
+          <CounterItem key={key} label={key} value={value} iconMap={iconMap} />
         ))}
       </CardContent>
     </Card>

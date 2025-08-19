@@ -1,14 +1,15 @@
 import React from 'react';
 import type { Track } from '@/types/game';
 import { Progress } from '@/components/ui/progress';
-import { Leaf, Shield, Megaphone, AlertTriangle, TrendingUp, Zap } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 
 interface TrackDisplayProps {
   trackId: string;
   track: Track;
+  style?: { icon: string; color: string; progressColor: string; };
 }
 
-const genericIcons = [TrendingUp, Zap, Shield, Megaphone, AlertTriangle, Leaf];
+const genericIcons = ['TrendingUp', 'Zap', 'Shield', 'Megaphone', 'AlertTriangle', 'Leaf'];
 const genericColors = [
     'text-sky-500',
     'text-amber-500',
@@ -37,11 +38,21 @@ const simpleHash = (s: string) => {
     return Math.abs(hash);
 };
 
-const TrackDisplay: React.FC<TrackDisplayProps> = ({ trackId, track }) => {
+const getDynamicIcon = (iconName?: string) => {
+    if (iconName && LucideIcons[iconName as keyof typeof LucideIcons]) {
+        return LucideIcons[iconName as keyof typeof LucideIcons];
+    }
+    return LucideIcons.TrendingUp;
+};
+
+
+const TrackDisplay: React.FC<TrackDisplayProps> = ({ trackId, track, style }) => {
   const hash = simpleHash(trackId);
-  const Icon = genericIcons[hash % genericIcons.length];
-  const colorClass = genericColors[hash % genericColors.length];
-  const progressColorClass = genericProgressColors[hash % genericProgressColors.length];
+  
+  const Icon = getDynamicIcon(style?.icon || genericIcons[hash % genericIcons.length]);
+  const colorClass = style?.color || genericColors[hash % genericColors.length];
+  const progressColorClass = style?.progressColor || genericProgressColors[hash % genericProgressColors.length];
+  
   const progressValue = (track.value / track.max) * 100;
 
   return (
