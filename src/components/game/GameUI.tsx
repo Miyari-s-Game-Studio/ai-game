@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect, useTransition } from 'react';
 import type { GameState, LogEntry, Situation, GameRules, ActionRule } from '@/types/game';
@@ -108,7 +109,14 @@ export function GameUI() {
       if (key && key.startsWith(SAVE_PREFIX)) {
         try {
           const state: GameState = JSON.parse(localStorage.getItem(key) || '{}');
-          const [_prefix, ruleId, timestamp] = key.split('_');
+          
+          const keyWithoutPrefix = key.substring(SAVE_PREFIX.length);
+          const lastUnderscoreIndex = keyWithoutPrefix.lastIndexOf('_');
+          
+          if (lastUnderscoreIndex === -1) continue; // Invalid format
+
+          const ruleId = keyWithoutPrefix.substring(0, lastUnderscoreIndex);
+          const timestamp = keyWithoutPrefix.substring(lastUnderscoreIndex + 1);
           
           // A bit of a hack: find the title from the loaded rules.
           // In a more complex app, the title might be saved in the state itself.
