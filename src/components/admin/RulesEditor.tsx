@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { saveRules } from '@/lib/rules-actions';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, Edit, Eye } from 'lucide-react';
+import { JsonTreeView } from './JsonTreeView';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 interface RulesEditorProps {
   initialRules: string;
@@ -17,6 +20,13 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  let parsedRules: any;
+  try {
+    parsedRules = JSON.parse(rules);
+  } catch {
+    parsedRules = { error: "Invalid JSON structure" };
+  }
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -38,8 +48,8 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
 
   const handleExport = () => {
     try {
-        const parsedRules = JSON.parse(rules);
-        const blob = new Blob([JSON.stringify(parsedRules, null, 2)], { type: 'application/json' });
+        const parsed = JSON.parse(rules);
+        const blob = new Blob([JSON.stringify(parsed, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -78,7 +88,7 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
+       <div className="flex justify-end gap-2">
         <Button onClick={handleImportClick} variant="outline">
           <Upload className="mr-2 h-4 w-4" /> Import JSON
         </Button>
@@ -96,15 +106,27 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
           {isSaving ? 'Saving...' : 'Save Rules'}
         </Button>
       </div>
-      <Textarea
-        value={rules}
-        onChange={(e) => setRules(e.target.value)}
-        rows={30}
-        className="font-mono text-sm bg-background/50"
-        placeholder="Enter game rules as JSON..."
-      />
-       <p className="text-sm text-muted-foreground">
-        Note: For now, editing here modifies the `game-rules.ts` file. Be careful with the structure.
+
+      <Tabs defaultValue="view" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="view"><Eye className="mr-2"/>Tree View</TabsTrigger>
+            <TabsTrigger value="edit"><Edit className="mr-2"/>Raw JSON</TabsTrigger>
+        </TabsList>
+        <TabsContent value="view" className="p-4 border rounded-md bg-background/50 min-h-[500px]">
+            <JsonTreeView data={parsedRules} />
+        </TabsContent>
+        <TabsContent value="edit">
+            <Textarea
+                value={rules}
+                onChange={(e) => setRules(e.target.value)}
+                rows={30}
+                className="font-mono text-sm bg-background/50"
+                placeholder="Enter game rules as JSON..."
+            />
+        </TabsContent>
+      </Tabs>
+      <p className="text-sm text-muted-foreground">
+        Note: Modifying the Raw JSON will update the `game-rules.ts` file upon saving. Be careful with the structure.
       </p>
     </div>
   );
