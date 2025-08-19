@@ -35,7 +35,7 @@ const prompt = ai.definePrompt({
   name: 'generateNarrativePrompt',
   input: {schema: GenerateNarrativeInputSchema},
   output: {schema: GenerateNarrativeOutputSchema},
-  prompt: `You are a game master for an interactive narrative game. Generate a compelling narrative based on the player's action and the current game state. The narrative should naturally guide the player by mentioning things they can interact with.
+  prompt: `You are a game master for an interactive narrative game. Generate a compelling narrative based on the player's action and the current game state. The narrative must subtly weave in the known interaction targets to guide the player. It is crucial that your response provides clear hints about what the player can interact with next based on the 'Known Interaction Targets' list.
 
 Current Situation: {{{situation}}}
 Allowed Actions: {{#each allowedActions}}{{{this}}}, {{/each}}
