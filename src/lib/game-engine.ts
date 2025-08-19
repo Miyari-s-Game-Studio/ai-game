@@ -24,7 +24,7 @@ export async function processAction(
   
   const proceduralLogs: LogEntry[] = [];
   
-  const newState = produce(currentState, (draft) => {
+  let newState = produce(currentState, (draft) => {
     const situation = rules.situations[draft.situation];
     if (!situation) return;
 
@@ -128,12 +128,15 @@ export async function processAction(
       // Break after the first matching rule is processed
       break; 
     }
-
-    if(draft.next_situation && rules.situations[draft.next_situation]) {
-        draft.situation = draft.next_situation;
-        delete draft.next_situation;
-    }
   });
+
+  // After processing, check if a situation transition is pending and apply it.
+  if (newState.next_situation && rules.situations[newState.next_situation]) {
+    newState = produce(newState, draft => {
+        draft.situation = draft.next_situation!;
+        delete draft.next_situation;
+    });
+  }
 
   return { newState, proceduralLogs };
 }
