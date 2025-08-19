@@ -85,6 +85,7 @@ export function GameUI() {
           actionTaken: `${actionId} ${target || ''}`.trim(),
           environmentalTracks: environmentalTracks,
           counters: proceduralState.counters,
+          knownTargets: proceduralState.knownTargets,
           gameLog: [...proceduralState.log, actionLog, ...proceduralLogs].map(l => l.message),
         };
 

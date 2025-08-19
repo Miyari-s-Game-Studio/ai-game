@@ -28,14 +28,14 @@ interface ActionPanelProps {
   disabled: boolean;
 }
 
-const actionDetails: { [key: string]: { icon: React.ElementType, description: string, requiresTarget?: boolean, placeholder?: string } } = {
+const actionDetails: { [key: string]: { icon: React.ElementType, description: string, requiresTarget?: boolean } } = {
     observe: { icon: Eye, description: 'Scan the area for general clues and environmental signs.' },
-    investigate: { icon: Search, description: 'Focus on a specific point of interest.', requiresTarget: true, placeholder: 'e.g., upstream factory, dead fish' },
-    sample: { icon: FlaskConical, description: 'Take a sample for analysis.', requiresTarget: true, placeholder: 'e.g., river water, sediment' },
-    talk: { icon: MessageSquare, description: 'Interview a person of interest.', requiresTarget: true, placeholder: 'e.g., fisherman, factory manager' },
+    investigate: { icon: Search, description: 'Focus on a specific point of interest.', requiresTarget: true },
+    sample: { icon: FlaskConical, description: 'Take a sample for analysis.', requiresTarget: true },
+    talk: { icon: MessageSquare, description: 'Interview a person of interest.', requiresTarget: true },
     announce: { icon: Megaphone, description: 'Hold a press conference or issue a public statement.' },
-    declare: { icon: Flag, description: 'Officially declare your strategic approach.', requiresTarget: true, placeholder: 'e.g., Engineering, Enforcement, PR' },
-    negotiate: { icon: Handshake, description: 'Negotiate with stakeholders.', requiresTarget: true, placeholder: 'e.g., shutdown, compensation' },
+    declare: { icon: Flag, description: 'Officially declare your strategic approach.', requiresTarget: true },
+    negotiate: { icon: Handshake, description: 'Negotiate with stakeholders.', requiresTarget: true },
     build: { icon: Building, description: 'Construct environmental remediation facilities.' },
     clean: { icon: Wrench, description: 'Perform cleanup operations.' },
     reflect: { icon: Archive, description: 'Review the case and archive findings.' },
@@ -86,7 +86,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, onAction, dis
               {details.requiresTarget && (
                 <Input
                   type="text"
-                  placeholder={details.placeholder || 'Specify target...'}
+                  placeholder={'Specify target...'}
                   value={targets[actionId] || ''}
                   onChange={(e) => handleTargetChange(actionId, e.target.value)}
                   disabled={disabled}
