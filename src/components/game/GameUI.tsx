@@ -7,8 +7,6 @@ import { generateNarrative } from '@/ai/flows/narrative-generation';
 import { generateIntroduction } from '@/ai/flows/generate-introduction';
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, FolderOpen } from 'lucide-react';
 import TrackDisplay from './TrackDisplay';
@@ -17,6 +15,7 @@ import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
+import { LoadGameDialog, type SaveFile } from './LoadGameDialog';
 
 const getInitialState = (rules: GameRules): GameState => {
   return {
@@ -28,7 +27,7 @@ const getInitialState = (rules: GameRules): GameState => {
   };
 };
 
-const SAVE_KEY = 'narrativeGameState';
+const SAVE_PREFIX = 'narrativeGameSave_';
 
 export function GameUI() {
   const [rules, setRules] = useState<GameRules>(defaultGameRules);
@@ -36,33 +35,17 @@ export function GameUI() {
   const [isGeneratingIntro, setIsGeneratingIntro] = useState(true);
   const [actionTarget, setActionTarget] = useState<{actionId: string, target: string}>();
   const [isPending, startTransition] = useTransition();
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedState = localStorage.getItem(SAVE_KEY);
-    if (savedState) {
-        try {
-            const loadedState = JSON.parse(savedState);
-            // Basic validation
-            if (loadedState.situation && loadedState.log) {
-                setGameState(loadedState);
-                setIsGeneratingIntro(false);
-                 toast({
-                    title: 'Game Loaded',
-                    description: 'Your saved progress has been restored.',
-                });
-            }
-        } catch (error) {
-            console.error("Failed to parse saved state:", error);
-            localStorage.removeItem(SAVE_KEY);
-            fetchIntroduction();
-        }
-    } else {
-        fetchIntroduction();
-    }
-  }, [rules, toast]);
+    fetchIntroduction();
+  }, [rules]);
 
   const fetchIntroduction = async () => {
+    setIsGeneratingIntro(true);
+    setGameState(getInitialState(rules));
       try {
         const intro = await generateIntroduction({
           title: rules.title,
@@ -103,10 +86,11 @@ export function GameUI() {
 
   const handleSaveGame = () => {
     try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+        const saveKey = `${SAVE_PREFIX}${rules.id}_${new Date().toISOString()}`;
+        localStorage.setItem(saveKey, JSON.stringify(gameState));
         toast({
             title: 'Game Saved',
-            description: 'Your progress has been saved successfully.',
+            description: `Saved as ${rules.title} - ${new Date().toLocaleString()}`,
         });
     } catch (error) {
         toast({
@@ -117,33 +101,51 @@ export function GameUI() {
     }
   }
 
-  const handleLoadGame = () => {
-      const savedState = localStorage.getItem(SAVE_KEY);
-      if (savedState) {
+  const findSaveFiles = () => {
+    const saves: SaveFile[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(SAVE_PREFIX)) {
         try {
-            const loadedState = JSON.parse(savedState);
-            if (loadedState.situation && loadedState.log) {
-                setGameState(loadedState);
-                toast({
-                    title: 'Game Loaded',
-                    description: 'Your saved progress has been restored.',
-                });
-            }
-        } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: 'Load Failed',
-                description: 'Could not load the saved game data. The data may be corrupted.',
-            });
+          const state: GameState = JSON.parse(localStorage.getItem(key) || '{}');
+          const [_prefix, ruleId, timestamp] = key.split('_');
+          
+          // A bit of a hack: find the title from the loaded rules.
+          // In a more complex app, the title might be saved in the state itself.
+          const title = rules.id === ruleId ? rules.title : ruleId;
+
+          saves.push({ key, title, timestamp, state });
+        } catch {
+            // Ignore corrupted save files
         }
-      } else {
-        toast({
-            variant: 'destructive',
-            title: 'No Saved Game',
-            description: 'No saved game data was found.',
-        });
       }
+    }
+    setSaveFiles(saves.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
   }
+
+  const handleOpenLoadDialog = () => {
+      findSaveFiles();
+      setIsLoadDialogOpen(true);
+  }
+
+  const handleLoadGame = (state: GameState) => {
+    setGameState(state);
+    setIsLoadDialogOpen(false);
+    toast({
+        title: 'Game Loaded',
+        description: 'Your progress has been restored.',
+    });
+  }
+
+  const handleDeleteSave = (key: string) => {
+    localStorage.removeItem(key);
+    findSaveFiles(); // Refresh the list
+    toast({
+        title: 'Save Deleted',
+        description: 'The selected save file has been removed.',
+    });
+  }
+
 
   const currentSituation: Situation | undefined = rules.situations[gameState.situation];
   
@@ -220,6 +222,14 @@ export function GameUI() {
   };
 
   return (
+    <>
+    <LoadGameDialog 
+        isOpen={isLoadDialogOpen} 
+        onOpenChange={setIsLoadDialogOpen}
+        saveFiles={saveFiles}
+        onLoad={handleLoadGame}
+        onDelete={handleDeleteSave}
+    />
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div className="lg:col-span-2 space-y-6">
         <Card>
@@ -267,7 +277,7 @@ export function GameUI() {
                 )}
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
-                <Button onClick={handleLoadGame} variant="outline" disabled={isPending || isGeneratingIntro}>
+                <Button onClick={handleOpenLoadDialog} variant="outline" disabled={isPending || isGeneratingIntro}>
                     <FolderOpen className="mr-2" /> Load Game
                 </Button>
                 <Button onClick={handleSaveGame} disabled={isPending || isGeneratingIntro}>
@@ -291,5 +301,6 @@ export function GameUI() {
         <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} />
       </div>
     </div>
+    </>
   );
 }
