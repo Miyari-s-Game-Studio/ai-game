@@ -6,16 +6,17 @@ import { processAction } from '@/lib/game-engine';
 import { generateNarrative } from '@/ai/flows/narrative-generation';
 import { generateIntroduction } from '@/ai/flows/generate-introduction';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save, FolderOpen } from 'lucide-react';
 import TrackDisplay from './TrackDisplay';
 import CountersDisplay from './CountersDisplay';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import { Skeleton } from '../ui/skeleton';
+import { Button } from '../ui/button';
 
 const getInitialState = (rules: GameRules): GameState => {
   return {
@@ -27,6 +28,8 @@ const getInitialState = (rules: GameRules): GameState => {
   };
 };
 
+const SAVE_KEY = 'narrativeGameState';
+
 export function GameUI() {
   const [rules, setRules] = useState<GameRules>(defaultGameRules);
   const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
@@ -36,7 +39,30 @@ export function GameUI() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchIntroduction = async () => {
+    const savedState = localStorage.getItem(SAVE_KEY);
+    if (savedState) {
+        try {
+            const loadedState = JSON.parse(savedState);
+            // Basic validation
+            if (loadedState.situation && loadedState.log) {
+                setGameState(loadedState);
+                setIsGeneratingIntro(false);
+                 toast({
+                    title: 'Game Loaded',
+                    description: 'Your saved progress has been restored.',
+                });
+            }
+        } catch (error) {
+            console.error("Failed to parse saved state:", error);
+            localStorage.removeItem(SAVE_KEY);
+            fetchIntroduction();
+        }
+    } else {
+        fetchIntroduction();
+    }
+  }, [rules, toast]);
+
+  const fetchIntroduction = async () => {
       try {
         const intro = await generateIntroduction({
           title: rules.title,
@@ -73,8 +99,51 @@ export function GameUI() {
         setIsGeneratingIntro(false);
       }
     };
-    fetchIntroduction();
-  }, [rules, toast]);
+
+
+  const handleSaveGame = () => {
+    try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+        toast({
+            title: 'Game Saved',
+            description: 'Your progress has been saved successfully.',
+        });
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Save Failed',
+            description: 'Could not save your game. The browser may be out of space.',
+        });
+    }
+  }
+
+  const handleLoadGame = () => {
+      const savedState = localStorage.getItem(SAVE_KEY);
+      if (savedState) {
+        try {
+            const loadedState = JSON.parse(savedState);
+            if (loadedState.situation && loadedState.log) {
+                setGameState(loadedState);
+                toast({
+                    title: 'Game Loaded',
+                    description: 'Your saved progress has been restored.',
+                });
+            }
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Load Failed',
+                description: 'Could not load the saved game data. The data may be corrupted.',
+            });
+        }
+      } else {
+        toast({
+            variant: 'destructive',
+            title: 'No Saved Game',
+            description: 'No saved game data was found.',
+        });
+      }
+  }
 
   const currentSituation: Situation | undefined = rules.situations[gameState.situation];
   
@@ -197,6 +266,14 @@ export function GameUI() {
                     />
                 )}
             </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+                <Button onClick={handleLoadGame} variant="outline" disabled={isPending || isGeneratingIntro}>
+                    <FolderOpen className="mr-2" /> Load Game
+                </Button>
+                <Button onClick={handleSaveGame} disabled={isPending || isGeneratingIntro}>
+                    <Save className="mr-2" /> Save Game
+                </Button>
+            </CardFooter>
         </Card>
       </div>
 
