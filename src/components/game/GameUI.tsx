@@ -180,7 +180,7 @@ export function GameUI() {
           message: `Action: ${actionId}` + (target ? ` - Target: ${target}` : ''),
         };
 
-        const { newState: proceduralState, proceduralLogs } = await processAction(
+        const { newState, proceduralLogs } = await processAction(
           rules,
           gameState,
           actionId,
@@ -188,18 +188,20 @@ export function GameUI() {
         );
         
         const environmentalTracks: Record<string, number> = {};
-        for(const trackId in proceduralState.tracks) {
-          environmentalTracks[trackId.replace(/\./g, '_')] = proceduralState.tracks[trackId].value;
+        for(const trackId in newState.tracks) {
+          environmentalTracks[trackId.replace(/\./g, '_')] = newState.tracks[trackId].value;
         }
 
+        const newSituation = rules.situations[newState.situation];
+
         const narrativeInput = {
-          situation: currentSituation.label,
-          allowedActions: currentSituation.allowed_actions,
+          situation: newSituation.label,
+          allowedActions: newSituation.allowed_actions,
           actionTaken: `${actionId} ${target || ''}`.trim(),
           environmentalTracks: environmentalTracks,
-          counters: proceduralState.counters,
-          knownTargets: proceduralState.knownTargets,
-          gameLog: [...proceduralState.log, actionLog, ...proceduralLogs].map(l => l.message),
+          counters: newState.counters,
+          knownTargets: newState.knownTargets,
+          gameLog: [...newState.log, actionLog, ...proceduralLogs].map(l => l.message),
         };
 
         const narrativeOutput = await generateNarrative(narrativeInput);
@@ -210,7 +212,7 @@ export function GameUI() {
         };
         
         setGameState(prevState => ({
-          ...proceduralState,
+          ...newState,
           log: [...prevState.log, actionLog, ...proceduralLogs, narrativeLog],
         }));
 
