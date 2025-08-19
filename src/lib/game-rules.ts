@@ -1,9 +1,10 @@
+
 import type { GameRules } from '@/types/game';
 
-export const ecoPollutionRules: GameRules = {
+export const defaultGameRules: GameRules = {
   version: 1,
   id: 'eco_pollution',
-  title: '生态污染事件',
+  title: 'Environmental Crisis',
   ui: {
     counterIcons: {
       clues: 'FileText',
@@ -41,24 +42,24 @@ export const ecoPollutionRules: GameRules = {
   },
   tracks: {
     'eco.pollution': {
-      name: '生态污染',
+      name: 'Pollution',
       value: 2,
       max: 10,
     },
     'eco.governance': {
-      name: '治理进度',
+      name: 'Governance',
       value: 0,
       max: 8,
     },
     'eco.media': {
-      name: '媒体关注',
+      name: 'Media Attention',
       value: 3,
       max: 10,
     },
   },
   situations: {
     investigate_area: {
-      label: '场域摸底',
+      label: 'Field Investigation',
       allowed_actions: [
         'observe',
         'investigate',
@@ -72,23 +73,23 @@ export const ecoPollutionRules: GameRules = {
           when: { actionId: 'observe' },
           do: [
             { add: 'counters.clues,1', cap: 2 },
-            { log: '你记录下水体颜色、气味与流速，形成基础勘查笔记。' },
+            { log: 'You record the water color, smell, and flow rate, forming a basic survey note.' },
           ],
         },
         {
-          when: { actionId: 'investigate', targetPattern: '(排污口|油污|死鱼)' },
+          when: { actionId: 'investigate', targetPattern: '(outlet|oil|dead fish)' },
           do: [
             { add: 'counters.clues,1' },
-            { addKnownTarget: '排污口' },
-            { log: '你锁定了关键污染迹象，可围绕排污口展开处置。' },
+            { addKnownTarget: 'outlet' },
+            { log: 'You have locked on to key signs of pollution and can now deal with the discharge outlet.' },
           ],
         },
         {
-          when: { actionId: 'investigate', targetPattern: '上游工厂' },
+          when: { actionId: 'investigate', targetPattern: 'upstream factory' },
           do: [
             { add: 'counters.clues,1' },
             { set: 'next_situation,interview_industry', if: 'counters.clues >= 2' },
-            { log: '工厂夜间疑似异常排放；若能拿到证词将更有利。' },
+            { log: 'The factory has suspicious emissions at night; it would be better if you could get testimony.' },
           ],
         },
         {
@@ -97,83 +98,83 @@ export const ecoPollutionRules: GameRules = {
             { add: 'counters.samples,1' },
             { track: 'eco.pollution,1' },
             { set: 'next_situation,technical_ops', if: 'counters.samples >= 2' },
-            { log: '采样搅动底泥，短时污染上升；数据将支持后续治理。' },
+            { log: 'Sampling stirred up the sediment, causing a short-term rise in pollution; the data will support subsequent treatment.' },
           ],
         },
         {
-          when: { actionId: 'talk', targetPattern: '(渔民|居民|保安)' },
+          when: { actionId: 'talk', targetPattern: '(fisherman|resident|guard)' },
           do: [
             { add: 'counters.clues,1' },
-            { log: '当地人对污染怨声载道，但似乎不愿透露更多。' },
+            { log: 'The locals complain about the pollution, but they don\'t seem to want to reveal more.' },
           ],
         },
         {
           when: { actionId: 'announce' },
           do: [
             { track: 'eco.media,-1' },
-            { log: '舆情暂时降温。' },
+            { log: 'Public opinion has temporarily cooled down.' },
             { track: 'eco.media,2', if: "tracks['eco.pollution'].value >= 7" },
-            { log: '外媒质疑数据真实性，舆情反弹。', if: "tracks['eco.pollution'].value >= 7" },
+            { log: 'Foreign media questioned the authenticity of the data, and public opinion rebounded.', if: "tracks['eco.pollution'].value >= 7" },
           ],
         },
         {
-          when: { actionId: 'declare', textRegex: '(工程先行|Engineering)' },
+          when: { actionId: 'declare', textRegex: '(Engineering)' },
           do: [
             { set: 'route,policy.engineering' },
-            { log: '【路线】工程先行：优先建设与技术治理。' },
+            { log: '[Route] Engineering First: Prioritize construction and technical governance.' },
           ],
         },
         {
-          when: { actionId: 'declare', textRegex: '(强制执法|Enforcement)' },
+          when: { actionId: 'declare', textRegex: '(Enforcement)' },
           do: [
             { set: 'route,policy.enforcement' },
-            { log: '【路线】强制执法：优先取证/关停。' },
+            { log: '[Route] Mandatory Enforcement: Prioritize forensics/shutdown.' },
           ],
         },
         {
-          when: { actionId: 'declare', textRegex: '(公关|PR)' },
+          when: { actionId: 'declare', textRegex: '(PR)' },
           do: [
             { set: 'route,policy.pr' },
-            { log: '【路线】公关遮掩：优先维稳舆情。' },
+            { log: '[Route] Public Relations Cover-up: Prioritize stabilizing public opinion.' },
           ],
         },
       ],
     },
     interview_industry: {
-      label: '采访工厂',
+      label: 'Interview Factory',
       allowed_actions: ['talk', 'investigate', 'negotiate', 'sample', 'announce'],
       on_action: [
         {
-          when: { actionId: 'talk', targetPattern: '(厂长|保安|工头)' },
+          when: { actionId: 'talk', targetPattern: '(manager|guard|foreman)' },
           do: [
             { set: 'counters.testimony,true' },
-            { log: '你拿到了书面或录音证词。' },
+            { log: 'You have obtained written or recorded testimony.' },
           ],
         },
         {
           when: {
             actionId: 'negotiate',
-            targetPattern: '(关停|整改|封条|停产)',
+            targetPattern: '(shutdown|rectify|seal|stop production)',
             require: 'counters.testimony == true',
           },
           do: [
             { set: 'counters.shutdown_ok,true' },
             { track: 'eco.pollution,-2' },
             { track: 'eco.governance,1' },
-            { log: '对方签署了停产整改承诺，污染得到缓解。' },
+            { log: 'The other party signed a commitment to stop production for rectification, and the pollution was alleviated.' },
           ],
         },
         {
           when: { actionId: 'investigate' },
           do: [
             { set: 'next_situation,technical_ops', if: 'counters.samples >= 2 && counters.shutdown_ok == false' },
-            { log: '进一步的调查没有发现新的线索。'}
+            { log: 'Further investigation yielded no new clues.'}
           ],
         },
       ],
     },
     technical_ops: {
-      label: '技术治理',
+      label: 'Technical Governance',
       allowed_actions: ['build', 'clean', 'announce', 'investigate'],
       on_action: [
         {
@@ -181,7 +182,7 @@ export const ecoPollutionRules: GameRules = {
           do: [
             { track: 'eco.governance,2' },
             { track: 'eco.media,1' },
-            { log: '工程推进显著，但施工引发关注。' },
+            { log: 'The project is progressing significantly, but the construction has attracted attention.' },
             { set: 'next_situation,wrap_up', if: "tracks['eco.governance'].value >= 8 && tracks['eco.pollution'].value <= 3 && tracks['eco.media'].value <= 5" },
           ],
         },
@@ -190,22 +191,22 @@ export const ecoPollutionRules: GameRules = {
           do: [
             { track: 'eco.pollution,-1' },
             { track: 'eco.governance,1' },
-            { log: '清污作业压低污染并稳步推进治理。' },
+            { log: 'Decontamination operations have reduced pollution and steadily advanced governance.' },
           ],
         },
       ],
     },
     wrap_up: {
-      label: '收尾',
+      label: 'Wrap Up',
       allowed_actions: ['reflect', 'celebrate'],
       on_action: [
         {
           when: { actionId: 'reflect' },
-          do: [{ log: '你整理了全案证据链与治理数据，进入长期监测。' }],
+          do: [{ log: 'You have sorted out the entire evidence chain and governance data and entered a long-term monitoring period.' }],
         },
         {
           when: { actionId: 'celebrate' },
-          do: [{ log: '危机解除，你与团队庆祝胜利，并回访了当地居民，他们对环境的改善表示感谢。' }],
+          do: [{ log: 'The crisis has been resolved. You celebrate with your team and revisit the local residents, who express their gratitude for the environmental improvements.' }],
         },
       ],
     },

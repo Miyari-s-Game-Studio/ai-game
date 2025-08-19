@@ -9,12 +9,12 @@ async function getRules() {
   // In a real app, you might have multiple rule files.
   // For now, we'll just read the default one.
   try {
-    const filePath = path.join(process.cwd(), 'src', 'lib', 'eco-rules.ts');
+    const filePath = path.join(process.cwd(), 'src', 'lib', 'game-rules.ts');
     // This is a simplified way to get the object. We will remove the export and import statements.
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const jsonString = fileContent
       .replace(/import type[^;]+;/g, '')
-      .replace('export const ecoPollutionRules: GameRules = ', '')
+      .replace('export const defaultGameRules: GameRules = ', '')
       .replace(/;$/, '')
       .trim();
     

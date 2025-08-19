@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useTransition } from 'react';
 import type { GameState, LogEntry, Situation, Track, GameRules } from '@/types/game';
-import { ecoPollutionRules } from '@/lib/eco-rules';
+import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateNarrative } from '@/ai/flows/narrative-generation';
 
@@ -37,7 +37,7 @@ const getInitialState = (rules: GameRules): GameState => {
 };
 
 export function GameUI() {
-  const [rules, setRules] = useState<GameRules>(ecoPollutionRules);
+  const [rules, setRules] = useState<GameRules>(defaultGameRules);
   const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();

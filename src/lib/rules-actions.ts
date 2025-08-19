@@ -13,10 +13,10 @@ export async function saveRules(rulesJson: string): Promise<{ success: boolean; 
     const tsContent = `
 import type { GameRules } from '@/types/game';
 
-export const ecoPollutionRules: GameRules = ${JSON.stringify(rulesObject, null, 2)};
+export const defaultGameRules: GameRules = ${JSON.stringify(rulesObject, null, 2)};
 `.trim();
 
-    const filePath = path.join(process.cwd(), 'src', 'lib', 'eco-rules.ts');
+    const filePath = path.join(process.cwd(), 'src', 'lib', 'game-rules.ts');
     await fs.writeFile(filePath, tsContent, 'utf-8');
 
     return { success: true };

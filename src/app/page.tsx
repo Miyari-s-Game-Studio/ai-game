@@ -2,10 +2,10 @@ import { GameUI } from '@/components/game/GameUI';
 import { Leaf, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ecoPollutionRules } from '@/lib/eco-rules';
+import { defaultGameRules } from '@/lib/game-rules';
 
 export default function Home() {
-  const gameTitle = ecoPollutionRules.title || 'Interactive Narrative Game';
+  const gameTitle = defaultGameRules.title || 'Interactive Narrative Game';
 
   return (
     <main className="container mx-auto p-4 md:p-8">

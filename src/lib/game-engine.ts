@@ -1,7 +1,7 @@
 // src/lib/game-engine.ts
 'use server';
 import type { GameState, GameRules, LogEntry } from '@/types/game';
-import { ecoPollutionRules } from './eco-rules';
+import { defaultGameRules } from './game-rules';
 import { produce } from 'immer';
 
 function evaluateCondition(condition: string, state: GameState): boolean {

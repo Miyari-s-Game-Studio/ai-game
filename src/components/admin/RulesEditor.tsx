@@ -43,12 +43,12 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'eco-rules.json';
+        a.download = 'game-rules.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: 'Exported', description: 'Rules exported as eco-rules.json' });
+        toast({ title: 'Exported', description: 'Rules exported as game-rules.json' });
     } catch (e) {
         toast({ variant: 'destructive', title: 'Invalid JSON', description: 'Cannot export invalid JSON.' });
     }
@@ -104,7 +104,7 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
         placeholder="Enter game rules as JSON..."
       />
        <p className="text-sm text-muted-foreground">
-        Note: For now, editing here modifies the `eco-rules.ts` file. Be careful with the structure.
+        Note: For now, editing here modifies the `game-rules.ts` file. Be careful with the structure.
       </p>
     </div>
   );
