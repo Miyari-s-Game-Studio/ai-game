@@ -2,28 +2,14 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { RulesEditor } from '@/components/admin/RulesEditor';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { defaultGameRules } from '@/lib/game-rules';
 
 async function getRules() {
-  // In a real app, you might have multiple rule files.
-  // For now, we'll just read the default one.
+  // We can directly import the object and stringify it to ensure it's valid JSON.
   try {
-    const filePath = path.join(process.cwd(), 'src', 'lib', 'game-rules.ts');
-    // This is a simplified way to get the object. We will remove the export and import statements.
-    const fileContent = await fs.readFile(filePath, 'utf-8');
-    const jsonString = fileContent
-      .replace(/import type[^;]+;/g, '')
-      .replace('export const defaultGameRules: GameRules = ', '')
-      .replace(/;$/, '')
-      .trim();
-    
-    // This is a hacky way to parse a TS object. A better way would be to store rules in JSON from the start.
-    // For now, we will assume it's close enough to JSON.
-    // A more robust solution might involve a bundler or transpiler if the object is complex.
-    return jsonString;
+    return JSON.stringify(defaultGameRules, null, 2);
   } catch (error) {
-    console.error("Failed to read rules:", error);
+    console.error("Failed to stringify rules:", error);
     return "{}";
   }
 }
