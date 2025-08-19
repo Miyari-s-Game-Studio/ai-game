@@ -1,35 +1,47 @@
 import React from 'react';
 import type { Track } from '@/types/game';
 import { Progress } from '@/components/ui/progress';
-import { Leaf, Shield, Megaphone, AlertTriangle } from 'lucide-react';
+import { Leaf, Shield, Megaphone, AlertTriangle, TrendingUp, Zap } from 'lucide-react';
 
 interface TrackDisplayProps {
   trackId: string;
   track: Track;
 }
 
-const icons: { [key: string]: React.ElementType } = {
-  'eco.pollution': AlertTriangle,
-  'eco.governance': Shield,
-  'eco.media': Megaphone,
-};
+const genericIcons = [TrendingUp, Zap, Shield, Megaphone, AlertTriangle, Leaf];
+const genericColors = [
+    'text-sky-500',
+    'text-amber-500',
+    'text-emerald-500',
+    'text-rose-500',
+    'text-violet-500',
+    'text-blue-500',
+];
+const genericProgressColors = [
+    '[&>div]:bg-sky-500',
+    '[&>div]:bg-amber-500',
+    '[&>div]:bg-emerald-500',
+    '[&>div]:bg-rose-500',
+    '[&>div]:bg-violet-500',
+    '[&>div]:bg-blue-500',
+];
 
-const colors: { [key: string]: string } = {
-    'eco.pollution': 'text-destructive',
-    'eco.governance': 'text-blue-500',
-    'eco.media': 'text-yellow-500',
+// Simple hash function to get a consistent index for a given string
+const simpleHash = (s: string) => {
+    let hash = 0;
+    for (let i = 0; i < s.length; i++) {
+        const char = s.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
 };
-
-const progressColors: { [key: string]: string } = {
-    'eco.pollution': '[&>div]:bg-destructive',
-    'eco.governance': '[&>div]:bg-blue-500',
-    'eco.media': '[&>div]:bg-yellow-500',
-}
 
 const TrackDisplay: React.FC<TrackDisplayProps> = ({ trackId, track }) => {
-  const Icon = icons[trackId] || Leaf;
-  const colorClass = colors[trackId] || 'text-primary';
-  const progressColorClass = progressColors[trackId] || '';
+  const hash = simpleHash(trackId);
+  const Icon = genericIcons[hash % genericIcons.length];
+  const colorClass = genericColors[hash % genericColors.length];
+  const progressColorClass = genericProgressColors[hash % genericProgressColors.length];
   const progressValue = (track.value / track.max) * 100;
 
   return (
