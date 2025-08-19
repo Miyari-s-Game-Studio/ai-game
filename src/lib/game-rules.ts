@@ -75,13 +75,14 @@ export const defaultGameRules: GameRules = {
           do: [
             { add: 'counters.clues,1', cap: 2 },
             { log: 'You record the water color, smell, and flow rate, forming a basic survey note.' },
+            { addKnownTarget: 'outlet' },
+            { addKnownTarget: 'upstream factory' },
           ],
         },
         {
           when: { actionId: 'investigate', targetPattern: '(outlet|oil|dead fish)' },
           do: [
             { add: 'counters.clues,1' },
-            { addKnownTarget: 'outlet' },
             { log: 'You have locked on to key signs of pollution and can now deal with the discharge outlet.' },
           ],
         },
