@@ -27,6 +27,7 @@ interface GameUIProps {
         isPending: boolean;
         isGenerating: boolean;
     }) => void;
+    setPlayerStats: (stats: PlayerStats) => void;
 }
 
 
@@ -42,7 +43,7 @@ const getInitialState = (rules: GameRules): GameState => {
 
 const SAVE_PREFIX = 'narrativeGameSave_';
 
-export function GameUI({ setGameControlHandlers }: GameUIProps) {
+export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) {
   const [rules, setRules] = useState<GameRules>(defaultGameRules);
   const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
   const [sceneDescription, setSceneDescription] = useState('');
@@ -72,6 +73,7 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
     if (currentSituation) {
       generateNewScene(currentSituation);
     }
+    setPlayerStats(gameState.player);
   }, [gameState.situation, rules]);
   
   const generateNewScene = async (situation: Situation) => {
@@ -153,6 +155,7 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
         isPending: isPending,
         isGenerating: isGeneratingScene,
     });
+    setPlayerStats(gameState.player);
   }, [isPending, isGeneratingScene, gameState, rules]);
 
 
@@ -327,7 +330,6 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
       </div>
 
       <div className="space-y-6 lg:col-span-1">
-        <PlayerStatsComponent stats={gameState.player} />
         <Card>
           <CardHeader>
             <CardTitle className="text-xl font-headline">Environmental Status</CardTitle>

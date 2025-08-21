@@ -21,14 +21,17 @@ import Link from 'next/link';
 import { Separator } from '../ui/separator';
 import { defaultGameRules } from '@/lib/game-rules';
 import { ThemeSwitcher } from './ThemeSwitcher';
+import PlayerStatsComponent from '../game/PlayerStats';
+import type { PlayerStats } from '@/types/game';
 
 interface SidebarProps {
+    playerStats: PlayerStats;
     onSave: () => void;
     onLoad: () => void;
     isPending: boolean;
 }
 
-export function Sidebar({ onSave, onLoad, isPending }: SidebarProps) {
+export function Sidebar({ playerStats, onSave, onLoad, isPending }: SidebarProps) {
   const gameTitle = defaultGameRules.title || 'Interactive Narrative Game';
   return (
     <aside className="h-full flex flex-col items-center w-16 bg-sidebar border-r border-sidebar-border py-4">
@@ -38,14 +41,18 @@ export function Sidebar({ onSave, onLoad, isPending }: SidebarProps) {
             <PanelLeft className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-80 bg-sidebar border-r-0 text-sidebar-foreground">
-          <SheetHeader className="text-left mb-8">
+        <SheetContent side="left" className="w-80 bg-sidebar border-r-0 text-sidebar-foreground flex flex-col">
+          <SheetHeader className="text-left mb-4">
             <SheetTitle className="text-2xl font-bold flex items-center gap-3 text-sidebar-primary-foreground">
                 <Leaf className="w-8 h-8 text-sidebar-primary" />
                 {gameTitle}
             </SheetTitle>
           </SheetHeader>
-          <div className="space-y-4">
+
+          <PlayerStatsComponent stats={playerStats} />
+
+          <div className="space-y-4 mt-auto">
+            <Separator className="bg-sidebar-border"/>
             <div className="space-y-2">
                  <h3 className="font-semibold px-4 text-lg text-sidebar-primary-foreground">Game Controls</h3>
                  <div className="flex flex-col gap-2 px-2">
