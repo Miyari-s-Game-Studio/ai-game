@@ -4,7 +4,7 @@ import React, { useState, useEffect, useTransition } from 'react';
 import type { GameState, LogEntry, Situation, GameRules, ActionRule } from '@/types/game';
 import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
-import { generateNarrative } from '@/ai/flows/narrative-generation';
+import { generateActionNarrative } from '@/ai/flows/generate-action-narrative';
 import { generateSceneDescription } from '@/ai/flows/generate-scene-description';
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -122,10 +122,9 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
           
           const keyWithoutPrefix = key.substring(SAVE_PREFIX.length);
           
-          // Find the last underscore, which separates the ID from the timestamp
           const lastUnderscoreIndex = keyWithoutPrefix.lastIndexOf('_');
           
-          if (lastUnderscoreIndex === -1) continue; // Invalid format
+          if (lastUnderscoreIndex === -1) continue; 
 
           const ruleId = keyWithoutPrefix.substring(0, lastUnderscoreIndex);
           const timestamp = keyWithoutPrefix.substring(lastUnderscoreIndex + 1);
@@ -134,7 +133,6 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
 
           saves.push({ key, title, timestamp, state });
         } catch {
-            // Ignore corrupted save files
         }
       }
     }
@@ -208,22 +206,16 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
         const newSituation = rules.situations[newState.situation];
         const newTargets = getTargetsForSituation(newSituation);
         
-        const environmentalTracks: Record<string, number> = {};
-        for(const trackId in newState.tracks) {
-          environmentalTracks[trackId.replace(/\./g, '_')] = newState.tracks[trackId].value;
-        }
-
         const narrativeInput = {
-          situation: newSituation.label,
-          allowedActions: newSituation.allowed_actions,
+          situationLabel: newSituation.label,
+          sceneDescription: sceneDescription, // Use existing scene description
           actionTaken: `${actionId} ${target || ''}`.trim(),
-          environmentalTracks: environmentalTracks,
-          counters: newState.counters,
+          proceduralLogs: proceduralLogs.map(l => l.message),
           knownTargets: newTargets,
-          gameLog: [...newState.log, actionLog, ...proceduralLogs].map(l => l.message),
         };
 
-        const narrativeOutput = await generateNarrative(narrativeInput);
+        const narrativeOutput = await generateActionNarrative(narrativeInput);
+        
         const narrativeLog: LogEntry = {
             id: Date.now() + 1,
             type: 'narrative',
@@ -349,5 +341,3 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
     </>
   );
 }
-
-    
