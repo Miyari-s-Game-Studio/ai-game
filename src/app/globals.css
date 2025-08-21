@@ -7,7 +7,7 @@ body {
 }
 
 @layer base {
-  :root {
+  :root, .theme-default.light {
     --background: 60 56% 91%;
     --foreground: 0 0% 3.9%;
     --card: 60 56% 91%;
@@ -42,7 +42,7 @@ body {
     --sidebar-border: 140 10% 70%;
     --sidebar-ring: 140 29% 34%;
   }
-  .dark {
+  .dark.theme-default {
     --background: 140 5% 15%;
     --foreground: 60 33% 98%;
     --card: 140 5% 15%;
@@ -76,6 +76,85 @@ body {
     --sidebar-border: 140 5% 20%;
     --sidebar-ring: 140 29% 45%;
   }
+
+  /* Forest Theme */
+  .light.theme-forest {
+    --background: 45 40% 92%;
+    --foreground: 100 15% 10%;
+    --primary: 100 30% 35%;
+    --primary-foreground: 45 40% 95%;
+    --secondary: 90 20% 60%;
+    --accent: 40 60% 50%;
+    --sidebar-background: 45 35% 95%;
+    --sidebar-foreground: 100 30% 35%;
+    --sidebar-primary: 100 30% 35%;
+    --sidebar-accent: 90 20% 88%;
+  }
+  .dark.theme-forest {
+    --background: 100 10% 12%;
+    --foreground: 45 30% 94%;
+    --primary: 100 25% 40%;
+    --primary-foreground: 45 30% 96%;
+    --secondary: 90 15% 25%;
+    --accent: 40 60% 60%;
+    --sidebar-background: 100 12% 8%;
+    --sidebar-foreground: 100 25% 70%;
+    --sidebar-primary: 100 25% 40%;
+    --sidebar-accent: 100 10% 18%;
+  }
+
+  /* Ocean Theme */
+  .light.theme-ocean {
+    --background: 210 50% 95%;
+    --foreground: 220 20% 15%;
+    --primary: 220 60% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 200 40% 70%;
+    --accent: 180 60% 45%;
+    --sidebar-background: 210 45% 98%;
+    --sidebar-foreground: 220 60% 50%;
+    --sidebar-primary: 220 60% 50%;
+    --sidebar-accent: 200 40% 90%;
+  }
+  .dark.theme-ocean {
+    --background: 220 30% 10%;
+    --foreground: 210 30% 90%;
+    --primary: 210 70% 60%;
+    --primary-foreground: 220 20% 98%;
+    --secondary: 200 25% 20%;
+    --accent: 180 50% 50%;
+    --sidebar-background: 220 35% 5%;
+    --sidebar-foreground: 210 70% 80%;
+    --sidebar-primary: 210 70% 60%;
+    --sidebar-accent: 220 30% 15%;
+  }
+
+  /* Crimson Theme */
+  .light.theme-crimson {
+    --background: 0 30% 94%;
+    --foreground: 0 10% 10%;
+    --primary: 0 50% 45%;
+    --primary-foreground: 0 20% 98%;
+    --secondary: 0 15% 65%;
+    --accent: 30 70% 55%;
+    --sidebar-background: 0 25% 96%;
+    --sidebar-foreground: 0 50% 45%;
+    --sidebar-primary: 0 50% 45%;
+    --sidebar-accent: 0 15% 88%;
+  }
+  .dark.theme-crimson {
+    --background: 0 15% 8%;
+    --foreground: 0 10% 92%;
+    --primary: 0 60% 55%;
+    --primary-foreground: 0 10% 95%;
+    --secondary: 0 10% 20%;
+    --accent: 30 65% 60%;
+    --sidebar-background: 0 20% 4%;
+    --sidebar-foreground: 0 60% 80%;
+    --sidebar-primary: 0 60% 55%;
+    --sidebar-accent: 0 15% 14%;
+  }
+
 }
 
 @layer base {

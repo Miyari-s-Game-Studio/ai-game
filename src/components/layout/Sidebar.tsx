@@ -20,6 +20,7 @@ import {
 import Link from 'next/link';
 import { Separator } from '../ui/separator';
 import { defaultGameRules } from '@/lib/game-rules';
+import { ThemeSwitcher } from './ThemeSwitcher';
 
 interface SidebarProps {
     onSave: () => void;
@@ -65,6 +66,7 @@ export function Sidebar({ onSave, onLoad, isPending }: SidebarProps) {
                             <Wrench className="mr-3" /> Manage Rules
                         </Link>
                     </Button>
+                    <ThemeSwitcher />
                  </div>
             </div>
           </div>

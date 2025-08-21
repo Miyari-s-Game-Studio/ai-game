@@ -41,6 +41,7 @@ export type GameRules = {
   id: string;
   title: string;
   description: string;
+  theme?: 'theme-default' | 'theme-forest' | 'theme-ocean' | 'theme-crimson';
   initial: {
     situation: string;
     counters: Record<string, number | boolean>;

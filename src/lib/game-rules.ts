@@ -5,6 +5,7 @@ export const defaultGameRules: GameRules = {
   version: 1,
   id: 'eco_pollution',
   title: 'Environmental Crisis',
+  theme: 'theme-default',
   description: 'An interactive narrative game where the player assumes the role of an environmental protection officer tasked with resolving a mysterious pollution incident in a river.',
   ui: {
     counterIcons: {
