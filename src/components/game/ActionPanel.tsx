@@ -12,11 +12,12 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
-import type { ActionDetail } from '@/types/game';
+import type { ActionDetail, ActionRule } from '@/types/game';
 
 interface ActionPanelProps {
   allowedActions: string[];
   actionDetails: Record<string, ActionDetail>;
+  actionRules: ActionRule[];
   onAction: (actionId: string, target?: string) => void;
   disabled: boolean;
   actionTarget?: { actionId: string, target: string };
@@ -29,7 +30,7 @@ const getDynamicIcon = (iconName: string): React.ElementType => {
     return LucideIcons.HelpCircle; // Default icon
 };
 
-const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails, onAction, disabled, actionTarget }) => {
+const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails, actionRules, onAction, disabled, actionTarget }) => {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [target, setTarget] = useState('');
   
@@ -38,28 +39,30 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
       return actionDetails[selectedAction];
   }, [selectedAction, actionDetails]);
 
+  const doesActionRequireTarget = (actionId: string) => {
+    return actionRules.some(rule => rule.when.actionId === actionId && rule.when.targetPattern);
+  };
+  
   useEffect(() => {
     if (actionTarget) {
-      const details = actionDetails[actionTarget.actionId];
-      if (details?.requiresTarget) {
+      if (doesActionRequireTarget(actionTarget.actionId)) {
           setSelectedAction(actionTarget.actionId);
           setTarget(actionTarget.target);
       }
     }
-  }, [actionTarget, actionDetails]);
+  }, [actionTarget, actionRules]);
 
   const handleActionSelect = (actionId: string) => {
-    const details = actionDetails[actionId];
-    if (details.requiresTarget) {
+    const requiresTarget = doesActionRequireTarget(actionId);
+
+    if (requiresTarget) {
         if (selectedAction === actionId) {
-            // Deselect if clicking the same action
             setSelectedAction(null);
         } else {
             setSelectedAction(actionId);
-            setTarget(''); // Reset target when switching actions
+            setTarget('');
         }
     } else {
-        // For actions without targets, execute immediately
         onAction(actionId);
         setSelectedAction(null);
     }
@@ -96,14 +99,13 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
                     </TooltipTrigger>
                     <TooltipContent>
                         <p className="font-semibold">{details.label}</p>
-                        <p className="text-muted-foreground">{details.description}</p>
                     </TooltipContent>
                 </Tooltip>
               )
             })}
         </div>
         
-        {selectedAction && currentActionDetails?.requiresTarget && (
+        {selectedAction && currentActionDetails && doesActionRequireTarget(selectedAction) && (
              <div className="rounded-lg border bg-background/60 p-4 shadow-sm animate-in fade-in-50">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2 text-lg font-semibold text-primary">

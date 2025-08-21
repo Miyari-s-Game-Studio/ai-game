@@ -65,9 +65,7 @@ export type Situation = {
 
 export type ActionDetail = {
   icon: string;
-  description: string;
   label: string;
-  requiresTarget?: boolean;
 };
 
 export type GameRules = {

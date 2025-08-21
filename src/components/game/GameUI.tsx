@@ -322,6 +322,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
                 <ActionPanel
                     allowedActions={currentSituation.allowed_actions}
                     actionDetails={rules.actions}
+                    actionRules={currentSituation.on_action}
                     onAction={handleAction}
                     disabled={isPending}
                     actionTarget={actionTarget}
