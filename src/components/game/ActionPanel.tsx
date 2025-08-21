@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,50 +9,34 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  Search,
-  FlaskConical,
-  MessageSquare,
-  Megaphone,
-  Flag,
-  Eye,
-  Building,
-  Wrench,
-  Archive,
-  PartyPopper,
-  Handshake,
   ChevronRight,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import * as LucideIcons from 'lucide-react';
+import type { ActionDetail } from '@/types/game';
 
 interface ActionPanelProps {
   allowedActions: string[];
+  actionDetails: Record<string, ActionDetail>;
   onAction: (actionId: string, target?: string) => void;
   disabled: boolean;
   actionTarget?: { actionId: string, target: string };
 }
 
-const actionDetails: { [key: string]: { icon: React.ElementType, description: string, requiresTarget?: boolean, label: string } } = {
-    observe: { icon: Eye, description: 'Scan the area for general clues and environmental signs.', label: 'Observe' },
-    investigate: { icon: Search, description: 'Focus on a specific point of interest.', requiresTarget: true, label: 'Investigate' },
-    sample: { icon: FlaskConical, description: 'Take a sample for analysis.', requiresTarget: true, label: 'Take Sample' },
-    talk: { icon: MessageSquare, description: 'Interview a person of interest.', requiresTarget: true, label: 'Talk To' },
-    announce: { icon: Megaphone, description: 'Hold a press conference or issue a public statement.', label: 'Announce' },
-    declare: { icon: Flag, description: 'Officially declare your strategic approach.', requiresTarget: true, label: 'Declare Strategy' },
-    negotiate: { icon: Handshake, description: 'Negotiate with stakeholders.', requiresTarget: true, label: 'Negotiate' },
-    build: { icon: Building, description: 'Construct environmental remediation facilities.', label: 'Build' },
-    clean: { icon: Wrench, description: 'Perform cleanup operations.', label: 'Clean Up' },
-    reflect: { icon: Archive, description: 'Review the case and archive findings.', label: 'Reflect' },
-    celebrate: { icon: PartyPopper, description: 'Celebrate the resolution of the crisis.', label: 'Celebrate' },
+const getDynamicIcon = (iconName: string): React.ElementType => {
+    if (LucideIcons[iconName as keyof typeof LucideIcons]) {
+        return LucideIcons[iconName as keyof typeof LucideIcons];
+    }
+    return LucideIcons.HelpCircle; // Default icon
 };
 
-const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, onAction, disabled, actionTarget }) => {
+const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails, onAction, disabled, actionTarget }) => {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [target, setTarget] = useState('');
   
   const currentActionDetails = useMemo(() => {
       if (!selectedAction) return null;
       return actionDetails[selectedAction];
-  }, [selectedAction]);
+  }, [selectedAction, actionDetails]);
 
   useEffect(() => {
     if (actionTarget) {
@@ -61,7 +46,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, onAction, dis
           setTarget(actionTarget.target);
       }
     }
-  }, [actionTarget]);
+  }, [actionTarget, actionDetails]);
 
   const handleActionSelect = (actionId: string) => {
     const details = actionDetails[actionId];
@@ -94,7 +79,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, onAction, dis
             {allowedActions.map(actionId => {
               const details = actionDetails[actionId];
               if (!details) return null;
-              const Icon = details.icon;
+              const Icon = getDynamicIcon(details.icon);
 
               return (
                 <Tooltip key={actionId} delayDuration={0}>
@@ -122,7 +107,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, onAction, dis
              <div className="rounded-lg border bg-background/60 p-4 shadow-sm animate-in fade-in-50">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2 text-lg font-semibold text-primary">
-                        <currentActionDetails.icon className="h-6 w-6" />
+                        {React.createElement(getDynamicIcon(currentActionDetails.icon), { className: 'h-6 w-6' })}
                         <span>{currentActionDetails.label}</span>
                     </div>
                      <Input

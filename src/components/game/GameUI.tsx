@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useEffect, useTransition } from 'react';
-import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats } from '@/types/game';
+import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats, ActionDetail } from '@/types/game';
 import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateActionNarrative } from '@/ai/flows/generate-action-narrative';
@@ -321,6 +321,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
             ) : (
                 <ActionPanel
                     allowedActions={currentSituation.allowed_actions}
+                    actionDetails={rules.actions}
                     onAction={handleAction}
                     disabled={isPending}
                     actionTarget={actionTarget}

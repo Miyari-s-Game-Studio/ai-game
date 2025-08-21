@@ -63,12 +63,20 @@ export type Situation = {
   on_action: ActionRule[];
 };
 
+export type ActionDetail = {
+  icon: string;
+  description: string;
+  label: string;
+  requiresTarget?: boolean;
+};
+
 export type GameRules = {
   version: number;
   id: string;
   title: string;
   description: string;
   theme?: 'theme-default' | 'theme-forest' | 'theme-ocean' | 'theme-crimson';
+  actions: Record<string, ActionDetail>;
   initial: {
     situation: string;
     counters: Record<string, number | boolean>;
