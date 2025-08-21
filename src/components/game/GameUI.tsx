@@ -19,6 +19,15 @@ import { Button } from '../ui/button';
 import { LoadGameDialog, type SaveFile } from './LoadGameDialog';
 import { ActionLogDialog } from './ActionLogDialog';
 
+interface GameUIProps {
+    setGameControlHandlers: (handlers: {
+        handleSave: () => void;
+        handleLoad: () => void;
+        isPending: boolean;
+        isGenerating: boolean;
+    }) => void;
+}
+
 
 const getInitialState = (rules: GameRules): GameState => {
   return {
@@ -31,7 +40,7 @@ const getInitialState = (rules: GameRules): GameState => {
 
 const SAVE_PREFIX = 'narrativeGameSave_';
 
-export function GameUI() {
+export function GameUI({ setGameControlHandlers }: GameUIProps) {
   const [rules, setRules] = useState<GameRules>(defaultGameRules);
   const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
   const [sceneDescription, setSceneDescription] = useState('');
@@ -136,6 +145,16 @@ export function GameUI() {
       findSaveFiles();
       setIsLoadDialogOpen(true);
   }
+
+  useEffect(() => {
+    setGameControlHandlers({
+        handleSave: handleSaveGame,
+        handleLoad: handleOpenLoadDialog,
+        isPending: isPending,
+        isGenerating: isGeneratingScene,
+    });
+  }, [isPending, isGeneratingScene, gameState, rules]);
+
 
   const handleLoadGame = (state: GameState) => {
     setGameState(state);
@@ -333,19 +352,6 @@ export function GameUI() {
           </CardContent>
         </Card>
         <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} />
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-xl font-headline">Game Controls</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-2">
-                <Button onClick={handleOpenLoadDialog} variant="outline" disabled={isPending || isGeneratingScene}>
-                    <FolderOpen className="mr-2" /> Load Game
-                </Button>
-                <Button onClick={handleSaveGame} disabled={isPending || isGeneratingScene}>
-                    <Save className="mr-2" /> Save Game
-                </Button>
-            </CardContent>
-        </Card>
       </div>
     </div>
     </>

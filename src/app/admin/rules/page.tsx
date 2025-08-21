@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { RulesEditor } from '@/components/admin/RulesEditor';
 import { defaultGameRules } from '@/lib/game-rules';
+import { Home } from 'lucide-react';
 
 async function getRules() {
   // We can directly import the object and stringify it to ensure it's valid JSON.
@@ -24,7 +25,10 @@ export default async function AdminRulesPage() {
           Game Rules Management
         </h1>
         <Button asChild>
-          <Link href="/">Back to Game</Link>
+          <Link href="/">
+            <Home className="mr-2"/>
+            Back to Game
+          </Link>
         </Button>
       </header>
       <RulesEditor initialRules={rules} />
