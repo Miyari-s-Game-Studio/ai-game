@@ -81,6 +81,8 @@ body {
   .light.theme-forest {
     --background: 45 40% 92%;
     --foreground: 100 15% 10%;
+    --card: 45 40% 92%;
+    --card-foreground: 100 15% 10%;
     --primary: 100 30% 35%;
     --primary-foreground: 45 40% 95%;
     --secondary: 90 20% 60%;
@@ -93,6 +95,8 @@ body {
   .dark.theme-forest {
     --background: 100 10% 12%;
     --foreground: 45 30% 94%;
+    --card: 100 10% 12%;
+    --card-foreground: 45 30% 94%;
     --primary: 100 25% 40%;
     --primary-foreground: 45 30% 96%;
     --secondary: 90 15% 25%;
@@ -107,6 +111,8 @@ body {
   .light.theme-ocean {
     --background: 210 50% 95%;
     --foreground: 220 20% 15%;
+    --card: 210 50% 95%;
+    --card-foreground: 220 20% 15%;
     --primary: 220 60% 50%;
     --primary-foreground: 210 40% 98%;
     --secondary: 200 40% 70%;
@@ -119,6 +125,8 @@ body {
   .dark.theme-ocean {
     --background: 220 30% 10%;
     --foreground: 210 30% 90%;
+    --card: 220 30% 10%;
+    --card-foreground: 210 30% 90%;
     --primary: 210 70% 60%;
     --primary-foreground: 220 20% 98%;
     --secondary: 200 25% 20%;
@@ -133,6 +141,8 @@ body {
   .light.theme-crimson {
     --background: 0 30% 94%;
     --foreground: 0 10% 10%;
+    --card: 0 30% 94%;
+    --card-foreground: 0 10% 10%;
     --primary: 0 50% 45%;
     --primary-foreground: 0 20% 98%;
     --secondary: 0 15% 65%;
@@ -145,6 +155,8 @@ body {
   .dark.theme-crimson {
     --background: 0 15% 8%;
     --foreground: 0 10% 92%;
+    --card: 0 15% 8%;
+    --card-foreground: 0 10% 92%;
     --primary: 0 60% 55%;
     --primary-foreground: 0 10% 95%;
     --secondary: 0 10% 20%;
