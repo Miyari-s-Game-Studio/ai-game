@@ -1,8 +1,8 @@
+
 export type GameState = {
   situation: string;
   counters: Record<string, number | boolean>;
   tracks: Record<string, Track>;
-  knownTargets: string[];
   log: LogEntry[];
   route?: string;
   next_situation?: string;

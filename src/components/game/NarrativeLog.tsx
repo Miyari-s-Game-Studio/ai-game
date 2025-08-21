@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import type { LogEntry, ActionRule } from '@/types/game';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,6 +12,7 @@ interface NarrativeLogProps {
   knownTargets: string[];
   actionRules: ActionRule[];
   onTargetClick: (actionId: string, target: string) => void;
+  isStatic?: boolean;
 }
 
 const logTypeDetails = {
@@ -41,8 +43,8 @@ const HighlightableText: React.FC<{
         if (isTarget) {
           const validActions = rules.filter(rule => {
             if (!rule.when.targetPattern) return false;
-            const targetRegex = new RegExp(rule.when.targetPattern, 'i');
-            return targetRegex.test(part);
+            const targetRegex = new RegExp(`\\b${part}\\b`, 'i');
+            return rule.when.targetPattern.split('|').some(p => new RegExp(`^${p.trim()}$`, 'i').test(part));
           });
 
           if (validActions.length === 0) {
@@ -83,57 +85,74 @@ const HighlightableText: React.FC<{
   );
 };
 
-const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, onTargetClick }) => {
+const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, onTargetClick, isStatic = false }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
+    if (scrollAreaRef.current && !isStatic) {
         const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
         if (viewport) {
             viewport.scrollTop = viewport.scrollHeight;
         }
     }
-  }, [log]);
+  }, [log, isStatic]);
 
-
-  return (
-    <ScrollArea className="h-96 w-full pr-4" ref={scrollAreaRef}>
-      <div className="space-y-4">
-        {log.map((entry, index) => {
-          const details = logTypeDetails[entry.type];
-          const Icon = details.icon;
-          return (
-            <div
-              key={entry.id || index}
-              className={cn(
-                'flex items-start gap-4 p-3 rounded-lg',
-                details.bgColor
-              )}
-            >
+  const LogContent = () => (
+    <div className="space-y-4">
+      {log.length === 0 && !isStatic && (
+        <div className="text-center text-muted-foreground italic py-4">
+          The story will unfold here...
+        </div>
+      )}
+      {log.map((entry, index) => {
+        const details = logTypeDetails[entry.type];
+        const Icon = details.icon;
+        return (
+          <div
+            key={entry.id || index}
+            className={cn(
+              'flex items-start gap-4',
+              !isStatic && 'p-3 rounded-lg',
+              !isStatic && details.bgColor
+            )}
+          >
+            {!isStatic && (
               <div className={cn("mt-1 p-1.5 rounded-full", details.bgColor)}>
                 <Icon className={cn('w-5 h-5', details.color)} />
               </div>
-              <div className="flex-1">
+            )}
+            <div className="flex-1">
+              {!isStatic && (
                 <p className={cn('font-bold text-sm mb-1', details.color)}>
                   {details.label}
                 </p>
-                <p className="text-foreground/90 whitespace-pre-wrap">
-                   {entry.type === 'narrative' ? (
-                    <HighlightableText
-                      text={entry.message}
-                      targets={knownTargets}
-                      rules={actionRules}
-                      onTargetClick={onTargetClick}
-                    />
-                  ) : (
-                    entry.message
-                  )}
-                </p>
+              )}
+              <div className="text-foreground/90 whitespace-pre-wrap">
+                 {entry.type === 'narrative' ? (
+                  <HighlightableText
+                    text={entry.message}
+                    targets={knownTargets}
+                    rules={actionRules}
+                    onTargetClick={onTargetClick}
+                  />
+                ) : (
+                  entry.message
+                )}
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  if (isStatic) {
+      return <LogContent />;
+  }
+
+  return (
+    <ScrollArea className="h-72 w-full pr-4" ref={scrollAreaRef}>
+      <LogContent />
     </ScrollArea>
   );
 };
