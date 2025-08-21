@@ -250,7 +250,7 @@ export function GameUI() {
                   <Skeleton className="h-6 w-5/6" />
                 </div>
               ) : (
-                <p className="text-foreground/90 whitespace-pre-wrap">
+                <div className="text-foreground/90 whitespace-pre-wrap">
                   <NarrativeLog
                       log={[{ id: 0, type: 'narrative', message: sceneDescription }]}
                       knownTargets={knownTargets}
@@ -258,7 +258,7 @@ export function GameUI() {
                       onTargetClick={handleTargetClick}
                       isStatic
                   />
-                </p>
+                </div>
               )}
           </CardContent>
         </Card>
