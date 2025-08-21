@@ -9,7 +9,7 @@ import { generateSceneDescription } from '@/ai/flows/generate-scene-description'
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, FolderOpen } from 'lucide-react';
+import { Loader2, Save, FolderOpen, BookOpen } from 'lucide-react';
 import TrackDisplay from './TrackDisplay';
 import CountersDisplay from './CountersDisplay';
 import ActionPanel from './ActionPanel';
@@ -17,6 +17,8 @@ import NarrativeLog from './NarrativeLog';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { LoadGameDialog, type SaveFile } from './LoadGameDialog';
+import { ActionLogDialog } from './ActionLogDialog';
+
 
 const getInitialState = (rules: GameRules): GameState => {
   return {
@@ -37,11 +39,13 @@ export function GameUI() {
   const [actionTarget, setActionTarget] = useState<{actionId: string, target: string}>();
   const [isPending, startTransition] = useTransition();
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const { toast } = useToast();
 
   const currentSituation: Situation | undefined = rules.situations[gameState.situation];
   const knownTargets = currentSituation ? getTargetsForSituation(currentSituation) : [];
+  const latestNarrativeLog = gameState.log.filter(entry => entry.type === 'narrative').slice(-1);
 
   function getTargetsForSituation(situation: Situation): string[] {
     const targets = new Set<string>();
@@ -223,6 +227,7 @@ export function GameUI() {
 
   const handleTargetClick = (actionId: string, target: string) => {
     setActionTarget({ actionId, target });
+    setIsLogDialogOpen(false); // Close log if open
   };
 
   return (
@@ -233,6 +238,14 @@ export function GameUI() {
         saveFiles={saveFiles}
         onLoad={handleLoadGame}
         onDelete={handleDeleteSave}
+    />
+    <ActionLogDialog
+        isOpen={isLogDialogOpen}
+        onOpenChange={setIsLogDialogOpen}
+        log={gameState.log}
+        knownTargets={knownTargets}
+        actionRules={currentSituation.on_action}
+        onTargetClick={handleTargetClick}
     />
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div className="lg:col-span-2 space-y-6">
@@ -256,7 +269,6 @@ export function GameUI() {
                       knownTargets={knownTargets}
                       actionRules={currentSituation.on_action}
                       onTargetClick={handleTargetClick}
-                      isStatic
                   />
                 </div>
               )}
@@ -264,14 +276,18 @@ export function GameUI() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
              <CardTitle className="text-xl font-headline">
-              Action Log
+              Latest Event
             </CardTitle>
+            <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
+                <BookOpen className="mr-2 h-4 w-4" />
+                View Full Log
+            </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-[100px]">
               <NarrativeLog
-                  log={gameState.log}
+                  log={latestNarrativeLog}
                   knownTargets={knownTargets}
                   actionRules={currentSituation.on_action}
                   onTargetClick={handleTargetClick}

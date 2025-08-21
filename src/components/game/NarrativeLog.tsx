@@ -12,7 +12,7 @@ interface NarrativeLogProps {
   knownTargets: string[];
   actionRules: ActionRule[];
   onTargetClick: (actionId: string, target: string) => void;
-  isStatic?: boolean;
+  isScrollable?: boolean; // Replaces isStatic
 }
 
 const logTypeDetails = {
@@ -85,21 +85,21 @@ const HighlightableText: React.FC<{
   );
 };
 
-const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, onTargetClick, isStatic = false }) => {
+const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, onTargetClick, isScrollable = false }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current && !isStatic) {
+    if (scrollAreaRef.current && isScrollable) {
         const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
         if (viewport) {
             viewport.scrollTop = viewport.scrollHeight;
         }
     }
-  }, [log, isStatic]);
+  }, [log, isScrollable]);
 
   const LogContent = () => (
     <div className="space-y-4">
-      {log.length === 0 && !isStatic && (
+      {log.length === 0 && !isScrollable && (
         <div className="text-center text-muted-foreground italic py-4">
           The story will unfold here...
         </div>
@@ -107,22 +107,24 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
       {log.map((entry, index) => {
         const details = logTypeDetails[entry.type];
         const Icon = details.icon;
+        const isSingleNarrative = log.length === 1 && entry.type === 'narrative';
+
         return (
           <div
             key={entry.id || index}
             className={cn(
               'flex items-start gap-4',
-              !isStatic && 'p-3 rounded-lg',
-              !isStatic && details.bgColor
+              !isSingleNarrative && 'p-3 rounded-lg',
+              !isSingleNarrative && details.bgColor
             )}
           >
-            {!isStatic && (
+            {!isSingleNarrative && (
               <div className={cn("mt-1 p-1.5 rounded-full", details.bgColor)}>
                 <Icon className={cn('w-5 h-5', details.color)} />
               </div>
             )}
             <div className="flex-1">
-              {!isStatic && (
+              {!isSingleNarrative && (
                 <p className={cn('font-bold text-sm mb-1', details.color)}>
                   {details.label}
                 </p>
@@ -146,15 +148,15 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
     </div>
   );
 
-  if (isStatic) {
-      return <LogContent />;
+  if (isScrollable) {
+      return (
+        <ScrollArea className="h-full w-full pr-4" ref={scrollAreaRef}>
+          <LogContent />
+        </ScrollArea>
+      );
   }
 
-  return (
-    <ScrollArea className="h-72 w-full pr-4" ref={scrollAreaRef}>
-      <LogContent />
-    </ScrollArea>
-  );
+  return <LogContent />;
 };
 
 export default NarrativeLog;
