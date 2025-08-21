@@ -9,7 +9,7 @@ import { generateSceneDescription } from '@/ai/flows/generate-scene-description'
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, FolderOpen, BookOpen } from 'lucide-react';
+import { Loader2, Save, FolderOpen, BookOpen, Gamepad2 } from 'lucide-react';
 import TrackDisplay from './TrackDisplay';
 import CountersDisplay from './CountersDisplay';
 import ActionPanel from './ActionPanel';
@@ -112,6 +112,8 @@ export function GameUI() {
           const state: GameState = JSON.parse(localStorage.getItem(key) || '{}');
           
           const keyWithoutPrefix = key.substring(SAVE_PREFIX.length);
+          
+          // Find the last underscore, which separates the ID from the timestamp
           const lastUnderscoreIndex = keyWithoutPrefix.lastIndexOf('_');
           
           if (lastUnderscoreIndex === -1) continue; // Invalid format
@@ -316,14 +318,6 @@ export function GameUI() {
                     />
                 )}
             </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-                <Button onClick={handleOpenLoadDialog} variant="outline" disabled={isPending || isGeneratingScene}>
-                    <FolderOpen className="mr-2" /> Load Game
-                </Button>
-                <Button onClick={handleSaveGame} disabled={isPending || isGeneratingScene}>
-                    <Save className="mr-2" /> Save Game
-                </Button>
-            </CardFooter>
         </Card>
       </div>
 
@@ -339,6 +333,19 @@ export function GameUI() {
           </CardContent>
         </Card>
         <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} />
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-xl font-headline">Game Controls</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-2">
+                <Button onClick={handleOpenLoadDialog} variant="outline" disabled={isPending || isGeneratingScene}>
+                    <FolderOpen className="mr-2" /> Load Game
+                </Button>
+                <Button onClick={handleSaveGame} disabled={isPending || isGeneratingScene}>
+                    <Save className="mr-2" /> Save Game
+                </Button>
+            </CardContent>
+        </Card>
       </div>
     </div>
     </>
