@@ -1,3 +1,4 @@
+
 // src/ai/flows/generate-action-narrative.ts
 'use server';
 /**
@@ -21,7 +22,7 @@ const GenerateActionNarrativeInputSchema = z.object({
 export type GenerateActionNarrativeInput = z.infer<typeof GenerateActionNarrativeInputSchema>;
 
 const GenerateActionNarrativeOutputSchema = z.object({
-  narrative: z.string().describe("A compelling, 1-2 paragraph narrative describing the result of the player's action. It must be based on the procedural logs and fit the scene description. It must also subtly weave in the known interaction targets."),
+  narrative: z.string().describe("A compelling, 2-3 sentence narrative describing the result of the player's action. It must be based on the procedural logs and fit the scene description. It must also subtly weave in the known interaction targets."),
 });
 export type GenerateActionNarrativeOutput = z.infer<typeof GenerateActionNarrativeOutputSchema>;
 
@@ -47,7 +48,7 @@ The game engine determined the following concrete results from this action:
 - {{{this}}}
 {{/each}}
 
-Based on these results, write a compelling, 1-2 paragraph narrative describing what happens. The tone should be consistent with the scene. It is crucial that your response provides clear hints about what the player can interact with next by subtly weaving in items from the 'Known Interaction Targets' list.
+Based on these results, write a compelling, 2-3 sentence narrative describing what happens. The tone should be consistent with the scene. It is crucial that your response provides clear hints about what the player can interact with next by subtly weaving in items from the 'Known Interaction Targets' list.
 
 Known Interaction Targets:
 {{#each knownTargets}}
