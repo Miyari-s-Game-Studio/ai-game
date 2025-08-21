@@ -40,9 +40,25 @@ export function GameUI() {
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const { toast } = useToast();
 
+  const currentSituation: Situation | undefined = rules.situations[gameState.situation];
+
   useEffect(() => {
     fetchIntroduction();
   }, [rules]);
+
+  // Update knownTargets whenever the situation changes.
+  useEffect(() => {
+    if (currentSituation) {
+      const targets = new Set<string>();
+      currentSituation.on_action.forEach(rule => {
+        if (rule.when.targetPattern) {
+          rule.when.targetPattern.split('|').forEach(target => targets.add(target.trim()));
+        }
+      });
+      setGameState(prevState => ({ ...prevState, knownTargets: Array.from(targets) }));
+    }
+  }, [gameState.situation, rules]);
+
 
   const fetchIntroduction = async () => {
     setIsGeneratingIntro(true);
@@ -154,8 +170,6 @@ export function GameUI() {
     });
   }
 
-
-  const currentSituation: Situation | undefined = rules.situations[gameState.situation];
   
   if (!currentSituation) {
     return (

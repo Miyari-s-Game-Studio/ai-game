@@ -37,8 +37,12 @@ export async function processAction(
         continue;
       }
 
-      if (when.targetPattern && (!target || !new RegExp(when.targetPattern, 'i').test(target))) {
-        continue;
+      if (when.targetPattern) {
+        if (!target) continue;
+        const pattern = `^(${when.targetPattern})$`;
+        if (!new RegExp(pattern, 'i').test(target)) {
+          continue;
+        }
       }
       
       if (when.textRegex && (!target || !new RegExp(when.textRegex, 'i').test(target))) {
@@ -117,11 +121,6 @@ export async function processAction(
           }
           case 'log':
             proceduralLogs.push({ id: Date.now() + proceduralLogs.length, type: 'procedural', message: params as string });
-            break;
-          case 'addKnownTarget':
-            if (!draft.knownTargets.includes(params as string)) {
-              draft.knownTargets.push(params as string);
-            }
             break;
         }
       }

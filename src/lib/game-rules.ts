@@ -75,12 +75,10 @@ export const defaultGameRules: GameRules = {
           do: [
             { add: 'counters.clues,1', cap: 2 },
             { log: 'You record the water color, smell, and flow rate, forming a basic survey note.' },
-            { addKnownTarget: 'outlet' },
-            { addKnownTarget: 'upstream factory' },
           ],
         },
         {
-          when: { actionId: 'investigate', targetPattern: '(outlet|oil|dead fish)' },
+          when: { actionId: 'investigate', targetPattern: 'outlet|oil|dead fish' },
           do: [
             { add: 'counters.clues,1' },
             { log: 'You have locked on to key signs of pollution and can now deal with the discharge outlet.' },
@@ -104,7 +102,7 @@ export const defaultGameRules: GameRules = {
           ],
         },
         {
-          when: { actionId: 'talk', targetPattern: '(fisherman|resident|guard)' },
+          when: { actionId: 'talk', targetPattern: 'fisherman|resident|guard' },
           do: [
             { add: 'counters.clues,1' },
             { log: 'The locals complain about the pollution, but they don\'t seem to want to reveal more.' },
@@ -147,7 +145,7 @@ export const defaultGameRules: GameRules = {
       allowed_actions: ['talk', 'investigate', 'negotiate', 'sample', 'announce'],
       on_action: [
         {
-          when: { actionId: 'talk', targetPattern: '(manager|guard|foreman)' },
+          when: { actionId: 'talk', targetPattern: 'manager|guard|foreman' },
           do: [
             { set: 'counters.testimony,true' },
             { log: 'You have obtained written or recorded testimony.' },
@@ -156,7 +154,7 @@ export const defaultGameRules: GameRules = {
         {
           when: {
             actionId: 'negotiate',
-            targetPattern: '(shutdown|rectify|seal|stop production)',
+            targetPattern: 'shutdown|rectify|seal|stop production',
             require: 'counters.testimony == true',
           },
           do: [
