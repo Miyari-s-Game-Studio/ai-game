@@ -297,16 +297,13 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-             <CardTitle className="text-xl font-headline">
-              Latest Event
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-end py-3 px-4">
             <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
                 <BookOpen className="mr-2 h-4 w-4" />
                 View Full Log
             </Button>
           </CardHeader>
-          <CardContent className="min-h-[100px]">
+          <CardContent className="min-h-[100px] pt-0">
               <NarrativeLog
                   log={latestNarrativeLog}
                   knownTargets={knownTargets}
@@ -316,28 +313,23 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
           </CardContent>
         </Card>
         
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-2xl font-headline">Take Action</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {isPending || isGeneratingScene ? (
-                    <div className="flex items-center justify-center p-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="ml-4 text-lg">
-                          {isGeneratingScene ? 'Generating scene...' : 'AI is crafting the next part of your story...'}
-                        </p>
-                    </div>
-                ) : (
-                    <ActionPanel
-                        allowedActions={currentSituation.allowed_actions}
-                        onAction={handleAction}
-                        disabled={isPending}
-                        actionTarget={actionTarget}
-                    />
-                )}
-            </CardContent>
-        </Card>
+        <div>
+            {isPending || isGeneratingScene ? (
+                <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="ml-4 text-lg">
+                      {isGeneratingScene ? 'Generating scene...' : 'AI is crafting the next part of your story...'}
+                    </p>
+                </div>
+            ) : (
+                <ActionPanel
+                    allowedActions={currentSituation.allowed_actions}
+                    onAction={handleAction}
+                    disabled={isPending}
+                    actionTarget={actionTarget}
+                />
+            )}
+        </div>
       </div>
 
       <div className="space-y-6 lg:col-span-1">
@@ -357,3 +349,5 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
     </>
   );
 }
+
+    
