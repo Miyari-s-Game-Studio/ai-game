@@ -43,8 +43,9 @@ export type Track = {
 
 export type LogEntry = {
   id: number;
-  type: 'action' | 'procedural' | 'narrative' | 'error';
+  type: 'action' | 'procedural' | 'narrative' | 'error' | 'player' | 'npc';
   message: string;
+  actor?: string; // For conversation logs
 };
 
 export type ActionRule = {
@@ -87,3 +88,15 @@ export type GameRules = {
     trackStyles?: Record<string, { icon: string; color: string; progressColor: string; }>;
   }
 };
+
+export type CharacterProfile = {
+  name: string;
+  personality: string;
+  dialogStyle: string;
+  openingLine: string;
+};
+
+export type ConversationHistory = {
+  role: 'user' | 'model';
+  parts: { text: string }[];
+}[];

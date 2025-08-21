@@ -1,11 +1,12 @@
 
 'use client';
 import React, { useState, useEffect, useTransition } from 'react';
-import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats, ActionDetail } from '@/types/game';
+import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats, ActionDetail, CharacterProfile } from '@/types/game';
 import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateActionNarrative } from '@/ai/flows/generate-action-narrative';
 import { generateSceneDescription } from '@/ai/flows/generate-scene-description';
+import { generateCharacter, continueConversation } from '@/ai/flows/generate-conversation';
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,7 @@ import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { LoadGameDialog, type SaveFile } from './LoadGameDialog';
 import { ActionLogDialog } from './ActionLogDialog';
+import { TalkDialog } from './TalkDialog';
 
 interface GameUIProps {
     setGameControlHandlers: (handlers: {
@@ -52,6 +54,10 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   const [isPending, startTransition] = useTransition();
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
+  const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
+  const [talkTarget, setTalkTarget] = useState('');
+  const [characterProfile, setCharacterProfile] = useState<CharacterProfile | null>(null);
+  const [isGeneratingCharacter, setIsGeneratingCharacter] = useState(false);
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const { toast } = useToast();
 
@@ -177,7 +183,66 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
     });
   }
 
-  
+  const handleTalk = async (target: string) => {
+    setTalkTarget(target);
+    setIsTalkDialogOpen(true);
+    setIsGeneratingCharacter(true);
+    try {
+        const profile = await generateCharacter({
+            situationLabel: currentSituation?.label || 'An unknown location',
+            target: target,
+        });
+        setCharacterProfile(profile);
+    } catch (error) {
+        console.error('Failed to generate character:', error);
+        toast({
+            variant: 'destructive',
+            title: 'AI Error',
+            description: 'Could not create a character to talk to. Please try again.',
+        });
+        setIsTalkDialogOpen(false);
+    } finally {
+        setIsGeneratingCharacter(false);
+    }
+  };
+
+  const handleEndTalk = (conversationLog: LogEntry[], finalSummary: string) => {
+      setGameState(prevState => ({
+          ...prevState,
+          log: [...prevState.log, ...conversationLog, { id: Date.now(), type: 'procedural', message: finalSummary }],
+      }));
+      
+      // A small hack to trigger a narrative update after talking
+      startTransition(async () => {
+        const { newState } = await processAction(rules, gameState, 'reflect', 'after-talk');
+        
+        const narrativeInput = {
+          situationLabel: currentSituation?.label || '',
+          sceneDescription: sceneDescription,
+          actionTaken: `reflecting after talking to ${talkTarget}`,
+          proceduralLogs: [finalSummary],
+          knownTargets: knownTargets,
+        };
+
+        const narrativeOutput = await generateActionNarrative(narrativeInput);
+        
+        const narrativeLog: LogEntry = {
+            id: Date.now() + 1,
+            type: 'narrative',
+            message: narrativeOutput.narrative,
+        };
+        
+        setGameState(prevState => ({
+          ...newState,
+          log: [...prevState.log, narrativeLog],
+        }));
+      });
+
+      setTalkTarget('');
+      setCharacterProfile(null);
+  };
+
+
   if (!currentSituation) {
     return (
       <Card>
@@ -244,7 +309,11 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   };
 
   const handleTargetClick = (actionId: string, target: string) => {
-    setActionTarget({ actionId, target });
+    if (actionId === 'talk') {
+        handleTalk(target);
+    } else {
+        setActionTarget({ actionId, target });
+    }
     setIsLogDialogOpen(false); // Close log if open
   };
 
@@ -264,6 +333,15 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         knownTargets={knownTargets}
         actionRules={currentSituation.on_action}
         onTargetClick={handleTargetClick}
+    />
+    <TalkDialog
+        isOpen={isTalkDialogOpen}
+        onOpenChange={setIsTalkDialogOpen}
+        target={talkTarget}
+        characterProfile={characterProfile}
+        isGenerating={isGeneratingCharacter}
+        onConversationEnd={handleEndTalk}
+        continueConversation={continueConversation}
     />
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div className="lg:col-span-2 space-y-6">
@@ -324,6 +402,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
                     actionDetails={rules.actions}
                     actionRules={currentSituation.on_action}
                     onAction={handleAction}
+                    onTalk={handleTalk}
                     disabled={isPending}
                     actionTarget={actionTarget}
                 />

@@ -19,6 +19,7 @@ interface ActionPanelProps {
   actionDetails: Record<string, ActionDetail>;
   actionRules: ActionRule[];
   onAction: (actionId: string, target?: string) => void;
+  onTalk: (target: string) => void;
   disabled: boolean;
   actionTarget?: { actionId: string, target: string };
 }
@@ -30,7 +31,7 @@ const getDynamicIcon = (iconName: string): React.ElementType => {
     return LucideIcons.HelpCircle; // Default icon
 };
 
-const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails, actionRules, onAction, disabled, actionTarget }) => {
+const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails, actionRules, onAction, onTalk, disabled, actionTarget }) => {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [target, setTarget] = useState('');
   
@@ -70,7 +71,13 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
 
   const handleExecute = () => {
     if (!selectedAction) return;
-    onAction(selectedAction, target);
+    
+    if (selectedAction === 'talk') {
+        onTalk(target);
+    } else {
+        onAction(selectedAction, target);
+    }
+
     setTarget('');
     setSelectedAction(null);
   }
