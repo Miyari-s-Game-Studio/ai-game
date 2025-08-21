@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useEffect, useTransition } from 'react';
-import type { GameState, LogEntry, Situation, GameRules, ActionRule } from '@/types/game';
+import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats } from '@/types/game';
 import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateActionNarrative } from '@/ai/flows/generate-action-narrative';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, FolderOpen, BookOpen, Gamepad2 } from 'lucide-react';
 import TrackDisplay from './TrackDisplay';
 import CountersDisplay from './CountersDisplay';
+import PlayerStatsComponent from './PlayerStats';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import { Skeleton } from '../ui/skeleton';
@@ -35,6 +36,7 @@ const getInitialState = (rules: GameRules): GameState => {
     counters: { ...rules.initial.counters },
     tracks: JSON.parse(JSON.stringify(rules.tracks)),
     log: [],
+    player: JSON.parse(JSON.stringify(rules.initial.player)),
   };
 };
 
@@ -325,6 +327,7 @@ export function GameUI({ setGameControlHandlers }: GameUIProps) {
       </div>
 
       <div className="space-y-6 lg:col-span-1">
+        <PlayerStatsComponent stats={gameState.player} />
         <Card>
           <CardHeader>
             <CardTitle className="text-xl font-headline">Environmental Status</CardTitle>

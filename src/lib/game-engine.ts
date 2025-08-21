@@ -1,3 +1,4 @@
+
 // src/lib/game-engine.ts
 'use server';
 import type { GameState, GameRules, LogEntry } from '@/types/game';
@@ -7,8 +8,8 @@ import { produce } from 'immer';
 function evaluateCondition(condition: string, state: GameState): boolean {
   try {
     const context = { ...state };
-    const func = new Function('counters', 'tracks', 'route', `return ${condition}`);
-    return func(context.counters, context.tracks, context.route);
+    const func = new Function('counters', 'tracks', 'route', 'player', `return ${condition}`);
+    return func(context.counters, context.tracks, context.route, context.player);
   } catch (e) {
     console.error(`Error evaluating condition: "${condition}"`, e);
     return false;

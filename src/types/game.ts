@@ -1,5 +1,32 @@
 
+export type PlayerAttributes = {
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+};
+
+export type Equipment = {
+  top?: string;
+  bottom?: string;
+  underwear?: string;
+  panties?: string;
+  shoes?: string;
+  socks?: string;
+  accessory?: string;
+};
+
+export type PlayerStats = {
+  name: string;
+  identity: string;
+  attributes: PlayerAttributes;
+  equipment: Equipment;
+};
+
 export type GameState = {
+  player: PlayerStats;
   situation: string;
   counters: Record<string, number | boolean>;
   tracks: Record<string, Track>;
@@ -45,6 +72,7 @@ export type GameRules = {
   initial: {
     situation: string;
     counters: Record<string, number | boolean>;
+    player: PlayerStats;
   };
   tracks: Record<string, Track>;
   situations: Record<string, Situation>;
