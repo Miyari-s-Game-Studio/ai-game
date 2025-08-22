@@ -18,12 +18,6 @@ import { getTranslator } from '@/lib/i18n';
 // 1. Flow for Generating a Character Persona
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-const GenerateCharacterInputSchema = z.object({
-  language: z.enum(['en', 'zh']).describe("The language for the character profile."),
-  situationLabel: z.string().describe("The label of the current situation or chapter."),
-  target: z.string().describe("The role or type of person the player is talking to (e.g., 'fisherman', 'guard', 'factory manager')."),
-});
-
 const GenerateCharacterOutputSchema = z.object({
     name: z.string(),
     personality: z.string(),
@@ -32,7 +26,6 @@ const GenerateCharacterOutputSchema = z.object({
 });
 export type GenerateCharacterOutput = z.infer<typeof GenerateCharacterOutputSchema>;
 
-
 export async function generateCharacter(input: GenerateCharacterInput): Promise<GenerateCharacterOutput> {
   return generateCharacterFlow(input);
 }
@@ -40,12 +33,18 @@ export async function generateCharacter(input: GenerateCharacterInput): Promise<
 const generateCharacterFlow = ai.defineFlow(
   {
     name: 'generateCharacterFlow',
-    inputSchema: GenerateCharacterInputSchema,
+    inputSchema: z.custom<GenerateCharacterInput>(), // Use custom to avoid static schema checks
     outputSchema: GenerateCharacterOutputSchema,
   },
   async (input) => {
     const t = getTranslator(input.language);
     
+    const inputSchema = z.object({
+      language: z.enum(['en', 'zh']).describe(t.ai.generateCharacter.schema.language),
+      situationLabel: z.string().describe(t.ai.generateCharacter.schema.situationLabel),
+      target: z.string().describe(t.ai.generateCharacter.schema.target),
+    });
+
     const outputSchema = z.object({
         name: z.string().describe(t.ai.generateCharacter.schema.name),
         personality: z.string().describe(t.ai.generateCharacter.schema.personality),
@@ -57,6 +56,7 @@ const generateCharacterFlow = ai.defineFlow(
 
     const { output } = await ai.generate({
         prompt: promptText,
+        input: { schema: inputSchema },
         output: { schema: outputSchema },
     });
     return output!;
@@ -67,14 +67,6 @@ const generateCharacterFlow = ai.defineFlow(
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // 2. Flow for Extracting a Secret
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-const ExtractSecretInputSchema = z.object({
-    language: z.enum(['en', 'zh']),
-    characterProfile: GenerateCharacterOutputSchema,
-    conversationHistory: z.custom<ConversationHistory>(),
-    playerInput: z.string().describe("The latest message from the player."),
-    objective: z.string().describe("The secret information the player is trying to get the character to reveal."),
-});
 
 const ConversationOutputSchema = z.object({
   response: z.string(),
@@ -88,12 +80,20 @@ export async function extractSecret(input: ExtractSecretInput): Promise<Conversa
 const extractSecretFlow = ai.defineFlow(
   {
     name: 'extractSecretFlow',
-    inputSchema: ExtractSecretInputSchema,
+    inputSchema: z.custom<ExtractSecretInput>(),
     outputSchema: ConversationOutputSchema,
   },
   async (input) => {
     const t = getTranslator(input.language);
     
+    const inputSchema = z.object({
+      language: z.enum(['en', 'zh']),
+      characterProfile: GenerateCharacterOutputSchema,
+      conversationHistory: z.custom<ConversationHistory>(),
+      playerInput: z.string().describe(t.ai.extractSecret.schema.playerInput),
+      objective: z.string().describe(t.ai.extractSecret.schema.objective),
+    });
+
     const outputSchema = z.object({
         response: z.string().describe(t.ai.extractSecret.schema.response),
     });
@@ -104,6 +104,7 @@ const extractSecretFlow = ai.defineFlow(
       history: input.conversationHistory,
       system: systemPrompt,
       prompt: input.playerInput,
+      input: { schema: inputSchema },
       output: {
           schema: outputSchema,
       },
@@ -116,14 +117,6 @@ const extractSecretFlow = ai.defineFlow(
 // 3. Flow for Reaching an Agreement
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-const ReachAgreementInputSchema = z.object({
-    language: z.enum(['en', 'zh']),
-    characterProfile: GenerateCharacterOutputSchema,
-    conversationHistory: z.custom<ConversationHistory>(),
-    playerInput: z.string().describe("The latest message from the player."),
-    objective: z.string().describe("A negotiation point the player wants the character to agree to."),
-});
-
 export async function reachAgreement(input: ReachAgreementInput): Promise<ConversationOutput> {
   return reachAgreementFlow(input);
 }
@@ -131,11 +124,19 @@ export async function reachAgreement(input: ReachAgreementInput): Promise<Conver
 const reachAgreementFlow = ai.defineFlow(
   {
     name: 'reachAgreementFlow',
-    inputSchema: ReachAgreementInputSchema,
+    inputSchema: z.custom<ReachAgreementInput>(),
     outputSchema: ConversationOutputSchema,
   },
   async (input) => {
     const t = getTranslator(input.language);
+    
+    const inputSchema = z.object({
+      language: z.enum(['en', 'zh']),
+      characterProfile: GenerateCharacterOutputSchema,
+      conversationHistory: z.custom<ConversationHistory>(),
+      playerInput: z.string().describe(t.ai.reachAgreement.schema.playerInput),
+      objective: z.string().describe(t.ai.reachAgreement.schema.objective),
+    });
     
     const outputSchema = z.object({
         response: z.string().describe(t.ai.reachAgreement.schema.response),
@@ -147,6 +148,7 @@ const reachAgreementFlow = ai.defineFlow(
       history: input.conversationHistory,
       system: systemPrompt,
       prompt: input.playerInput,
+      input: { schema: inputSchema },
       output: {
           schema: outputSchema,
       },

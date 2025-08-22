@@ -105,6 +105,9 @@ The player wants to talk to a person described as: ${input.target}
 Generate a character profile for this NPC. Make them feel like a real, unique person. Avoid clichés.
 `,
         schema: {
+            language: "The language for the character profile.",
+            situationLabel: "The label of the current situation or chapter.",
+            target: "The role or type of person the player is talking to (e.g., 'fisherman', 'guard', 'factory manager').",
             name: "A common, realistic name for the character.",
             personality: "A brief, 1-2 sentence description of the character's personality (e.g., 'grumpy but helpful,' 'nervous and evasive').",
             dialogStyle: "A description of how the character speaks (e.g., 'uses short, clipped sentences,' 'speaks very formally,' 'has a thick local accent').",
@@ -126,6 +129,8 @@ Do NOT reveal the secret unless the player's dialogue skillfully and naturally l
 Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.
 `,
         schema: {
+            playerInput: "The latest message from the player.",
+            objective: "The secret information the player is trying to get the character to reveal.",
             response: "The character's response to the player."
         }
       },
@@ -145,6 +150,8 @@ If you are agreeing to the proposal, you MUST use the words "I agree to..." in y
 Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.
 `,
         schema: {
+            playerInput: "The latest message from the player.",
+            objective: "A negotiation point the player wants the character to agree to.",
             response: "The character's response to the player."
         }
       }
@@ -250,6 +257,9 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 为此NPC生成一个角色简介。让他们感觉像一个真实的、独特的人。避免陈词滥调。
 `,
         schema: {
+            language: "角色简介的语言。",
+            situationLabel: "当前情境或章节的标签。",
+            target: "玩家正在交谈的人的角色或类型（例如，‘渔夫’、‘保安’、‘工厂经理’）。",
             name: "角色的一个常见、现实的名字。",
             personality: "关于角色个性的简短一两句话描述（例如，“脾气暴躁但乐于助人”，“紧张而回避”）。",
             dialogStyle: "角色说话方式的描述（例如，“使用简短、生硬的句子”，“说话非常正式”，“带有浓厚的地方口音”）。",
@@ -271,6 +281,8 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 根据你的个性和目前的对话情况，回应玩家的信息。保持你的回答简洁自然。
 `,
         schema: {
+            playerInput: "来自玩家的最新消息。",
+            objective: "玩家试图让角色揭示的秘密信息。",
             response: "角色对玩家的回应。"
         }
       },
@@ -290,6 +302,8 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 根据你的个性和目前的对话情况，回应玩家的信息。保持你的回答简洁自然。
 `,
         schema: {
+            playerInput: "来自玩家的最新消息。",
+            objective: "玩家希望角色同意的谈判要点。",
             response: "角色对玩家的回应。"
         }
       }
