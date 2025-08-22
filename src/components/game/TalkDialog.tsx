@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, SendHorizontal, User, Bot, XCircle, CheckCircle } from 'lucide-react';
+import { Loader2, SendHorizontal, User, Bot, XCircle, CheckCircle, Target } from 'lucide-react';
 import type { CharacterProfile, LogEntry, ConversationHistory } from '@/types/game';
 import type { ConversationOutput, ExtractSecretInput, ReachAgreementInput } from '@/ai/flows/generate-conversation';
 
@@ -158,12 +158,27 @@ export function TalkDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-2">
+        <DialogHeader className="p-6 pb-4 border-b">
           <DialogTitle className="text-2xl">Talking to {characterProfile?.name || target}</DialogTitle>
           {characterProfile && <DialogDescription>{characterProfile.personality}</DialogDescription>}
+          {characterProfile && (
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg text-sm">
+                <div className="flex items-center font-semibold text-primary">
+                    <Target className="w-5 h-5 mr-2"/>
+                    Your Objective
+                </div>
+                <div className="text-muted-foreground pl-7">
+                    {conversationType === 'secret' ? (
+                        <p>Uncover the secret.</p>
+                    ) : (
+                        <p>Get them to agree to the following: <em className="font-medium text-foreground">"{objective}"</em></p>
+                    )}
+                </div>
+            </div>
+          )}
         </DialogHeader>
         
-        <div className="flex-grow overflow-hidden px-6">
+        <div className="flex-grow overflow-hidden px-6 pt-4">
             <ScrollArea className="h-full pr-4" ref={scrollAreaRef}>
                 {isGenerating || !characterProfile ? (
                     <div className="flex items-center justify-center h-full">
@@ -179,7 +194,7 @@ export function TalkDialog({
                                         <Bot className="w-6 h-6 text-muted-foreground" />
                                     </div>
                                 )}
-                                <div className={`max-w-md rounded-xl px-4 py-3 ${entry.type === 'player' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                <div className={`max-w-md rounded-xl px-4 py-3 ${entry.type === 'player' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                                     <p className="font-bold text-sm mb-1">{entry.actor}</p>
                                     <p className="whitespace-pre-wrap">{entry.message}</p>
                                 </div>
@@ -236,3 +251,5 @@ export function TalkDialog({
     </Dialog>
   );
 }
+
+    
