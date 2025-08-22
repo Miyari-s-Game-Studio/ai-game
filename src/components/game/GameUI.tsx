@@ -2,7 +2,6 @@
 'use client';
 import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats, ActionDetail, CharacterProfile } from '@/types/game';
-import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateActionNarrative } from '@/ai/flows/generate-action-narrative';
 import { generateSceneDescription } from '@/ai/flows/generate-scene-description';
@@ -24,6 +23,7 @@ import { TalkDialog } from './TalkDialog';
 import { produce } from 'immer';
 
 interface GameUIProps {
+    rules: GameRules;
     setGameControlHandlers: (handlers: {
         handleSave: () => void;
         handleLoad: () => void;
@@ -49,8 +49,7 @@ const getInitialState = (rules: GameRules): GameState => {
 
 const SAVE_PREFIX = 'narrativeGameSave_';
 
-export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) {
-  const [rules, setRules] = useState<GameRules>(defaultGameRules);
+export function GameUI({ rules, setGameControlHandlers, setPlayerStats }: GameUIProps) {
   const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
   const [sceneDescription, setSceneDescription] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
@@ -157,7 +156,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
           const ruleId = keyWithoutPrefix.substring(0, lastUnderscoreIndex);
           const timestamp = keyWithoutPrefix.substring(lastUnderscoreIndex + 1);
           
-          const title = rules.id === ruleId ? rules.title : ruleId;
+          const title = ruleId;
 
           saves.push({ key, title, timestamp, state });
         } catch {

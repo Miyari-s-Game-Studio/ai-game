@@ -1,7 +1,8 @@
+
 // src/components/admin/RulesEditor.tsx
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -12,14 +13,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 interface RulesEditorProps {
+  rulesId: string;
   initialRules: string;
 }
 
-export function RulesEditor({ initialRules }: RulesEditorProps) {
+export function RulesEditor({ rulesId, initialRules }: RulesEditorProps) {
   const [rules, setRules] = useState(initialRules);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  // Update state if the initialRules prop changes (e.g., when selecting a new file)
+  useEffect(() => {
+    setRules(initialRules);
+  }, [initialRules]);
+
 
   let parsedRules: any;
   try {
@@ -33,7 +41,7 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
     try {
       // Basic validation
       JSON.parse(rules);
-      const result = await saveRules(rules);
+      const result = await saveRules(rulesId, rules);
       if (result.success) {
         toast({ title: 'Success', description: 'Game rules saved successfully.' });
       } else {
@@ -53,12 +61,12 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'game-rules.json';
+        a.download = `${rulesId}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: 'Exported', description: 'Rules exported as game-rules.json' });
+        toast({ title: 'Exported', description: `Rules exported as ${rulesId}.json` });
     } catch (e) {
         toast({ variant: 'destructive', title: 'Invalid JSON', description: 'Cannot export invalid JSON.' });
     }
@@ -77,7 +85,7 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
           const content = e.target?.result as string;
           const parsed = JSON.parse(content);
           setRules(JSON.stringify(parsed, null, 2));
-          toast({ title: 'Imported', description: 'Rules loaded into the editor.' });
+          toast({ title: 'Imported', description: 'Rules loaded into the editor. Note: you still need to save to apply them.' });
         } catch (err) {
           toast({ variant: 'destructive', title: 'Import Error', description: 'Could not parse the JSON file.' });
         }
@@ -126,7 +134,7 @@ export function RulesEditor({ initialRules }: RulesEditorProps) {
         </TabsContent>
       </Tabs>
       <p className="text-sm text-muted-foreground">
-        Note: Modifying the Raw JSON will update the `game-rules.ts` file upon saving. Be careful with the structure.
+        Note: Saving will update the <code>{rulesId}.json</code> file. Be careful with the structure.
       </p>
     </div>
   );

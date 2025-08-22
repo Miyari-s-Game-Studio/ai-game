@@ -1,3 +1,4 @@
+
 // src/components/layout/Sidebar.tsx
 'use client';
 import React from 'react';
@@ -16,23 +17,24 @@ import {
   Save,
   Leaf,
   Settings,
+  Home,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Separator } from '../ui/separator';
-import { defaultGameRules } from '@/lib/game-rules';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import PlayerStatsComponent from '../game/PlayerStats';
-import type { PlayerStats } from '@/types/game';
+import type { PlayerStats, GameRules } from '@/types/game';
 
 interface SidebarProps {
+    rules: GameRules;
     playerStats: PlayerStats;
     onSave: () => void;
     onLoad: () => void;
     isPending: boolean;
 }
 
-export function Sidebar({ playerStats, onSave, onLoad, isPending }: SidebarProps) {
-  const gameTitle = defaultGameRules.title || 'Interactive Narrative Game';
+export function Sidebar({ rules, playerStats, onSave, onLoad, isPending }: SidebarProps) {
+  const gameTitle = rules.title || 'Interactive Narrative Game';
   return (
     <aside className="h-full flex flex-col items-center w-16 bg-sidebar border-r border-sidebar-border py-4">
       <Sheet>
@@ -71,6 +73,11 @@ export function Sidebar({ playerStats, onSave, onLoad, isPending }: SidebarProps
                     <Button asChild variant="ghost" className="justify-start text-base">
                         <Link href="/admin/rules">
                             <Wrench className="mr-3" /> Manage Rules
+                        </Link>
+                    </Button>
+                     <Button asChild variant="ghost" className="justify-start text-base">
+                        <Link href="/">
+                            <Home className="mr-3" /> Scenarios
                         </Link>
                     </Button>
                     <ThemeSwitcher />

@@ -1,8 +1,9 @@
+
 // src/components/layout/ThemeProvider.tsx
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { defaultGameRules } from '@/lib/game-rules';
+import type { GameRules } from '@/types/game';
 
 type Theme = 'theme-default' | 'theme-forest' | 'theme-ocean' | 'theme-crimson';
 type Mode = 'light' | 'dark';
@@ -12,13 +13,15 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
   mode: Mode;
   toggleMode: () => void;
+  initializeTheme: (rules: GameRules) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => (defaultGameRules.theme as Theme) || 'theme-default');
+  const [theme, setThemeState] = useState<Theme>('theme-default');
   const [mode, setModeState] = useState<Mode>('dark');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const applyTheme = useCallback((themeToApply: Theme, modeToApply: Mode) => {
     const root = window.document.documentElement;
@@ -41,17 +44,33 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('ui-mode', modeToApply);
   }, []);
 
-  useEffect(() => {
+  const initializeTheme = useCallback((rules: GameRules) => {
     const savedTheme = localStorage.getItem('ui-theme') as Theme | null;
     const savedMode = localStorage.getItem('ui-mode') as Mode | null;
     
-    const initialTheme = savedTheme || (defaultGameRules.theme as Theme) || 'theme-default';
+    const initialTheme = savedTheme || (rules.theme as Theme) || 'theme-default';
     const initialMode = savedMode || 'dark';
 
     setThemeState(initialTheme);
     setModeState(initialMode);
     applyTheme(initialTheme, initialMode);
+    setIsInitialized(true);
   }, [applyTheme]);
+
+  // Effect for non-game pages
+  useEffect(() => {
+    if (!isInitialized) {
+        const savedTheme = localStorage.getItem('ui-theme') as Theme | null;
+        const savedMode = localStorage.getItem('ui-mode') as Mode | null;
+        
+        const initialTheme = savedTheme || 'theme-default';
+        const initialMode = savedMode || 'dark';
+
+        setThemeState(initialTheme);
+        setModeState(initialMode);
+        applyTheme(initialTheme, initialMode);
+    }
+  }, [isInitialized, applyTheme]);
   
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
@@ -65,7 +84,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, mode, toggleMode }}>
+    <ThemeContext.Provider value={{ theme, setTheme, mode, toggleMode, initializeTheme }}>
       {children}
     </ThemeContext.Provider>
   );

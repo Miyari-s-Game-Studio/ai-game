@@ -1,3 +1,4 @@
+
 // src/lib/rules-actions.ts
 'use server';
 
@@ -5,19 +6,20 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import type { GameRules } from '@/types/game';
 
-export async function saveRules(rulesJson: string): Promise<{ success: boolean; error?: string }> {
+export async function saveRules(rulesId: string, rulesJson: string): Promise<{ success: boolean; error?: string }> {
   try {
+    // Validate that the ID in the JSON matches the filename
     const rulesObject: GameRules = JSON.parse(rulesJson);
+    if (rulesObject.id !== rulesId) {
+        return { success: false, error: `The 'id' in the JSON ("${rulesObject.id}") does not match the file name ("${rulesId}"). Please correct it.` };
+    }
+
+    const filePath = path.join(process.cwd(), 'src', 'lib', 'rulesets', `${rulesId}.json`);
     
-    // Construct the TypeScript file content
-    const tsContent = `
-import type { GameRules } from '@/types/game';
-
-export const defaultGameRules: GameRules = ${JSON.stringify(rulesObject, null, 2)};
-`.trim();
-
-    const filePath = path.join(process.cwd(), 'src', 'lib', 'game-rules.ts');
-    await fs.writeFile(filePath, tsContent, 'utf-8');
+    // The content to be written is just the pretty-printed JSON
+    const jsonContent = JSON.stringify(rulesObject, null, 2);
+    
+    await fs.writeFile(filePath, jsonContent, 'utf-8');
 
     return { success: true };
   } catch (error: any) {
