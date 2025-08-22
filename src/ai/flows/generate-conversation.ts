@@ -5,7 +5,8 @@
  * @fileOverview An AI agent for dynamic conversations with NPCs.
  *
  * - generateCharacter - Creates a new character profile.
- * - continueConversation - Continues a conversation with a character.
+ * - extractSecret - Handles a conversation where the player tries to learn a secret.
+ * - reachAgreement - Handles a conversation where the player tries to negotiate an agreement.
  */
 
 import {ai} from '@/ai/genkit';
@@ -62,64 +63,101 @@ const generateCharacterFlow = ai.defineFlow(
 
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// 2. Flow for Continuing a Conversation
+// 2. Flow for Extracting a Secret
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-const ContinueConversationInputSchema = z.object({
+const ExtractSecretInputSchema = z.object({
     characterProfile: GenerateCharacterOutputSchema,
     conversationHistory: z.custom<ConversationHistory>(),
     playerInput: z.string().describe("The latest message from the player."),
-    objective: z.string().describe("The secret information the player is trying to get the character to reveal OR a negotiation point they want the character to agree to."),
+    objective: z.string().describe("The secret information the player is trying to get the character to reveal."),
 });
-export type ContinueConversationInput = z.infer<typeof ContinueConversationInputSchema>;
+export type ExtractSecretInput = z.infer<typeof ExtractSecretInputSchema>;
 
-const ContinueConversationOutputSchema = z.object({
+const ConversationOutputSchema = z.object({
   response: z.string().describe("The character's response to the player."),
   objectiveAchieved: z.boolean().describe("Set to true if the character's response reveals the secret or explicitly agrees to the negotiation objective."),
 });
-export type ContinueConversationOutput = z.infer<typeof ContinueConversationOutputSchema>;
+export type ConversationOutput = z.infer<typeof ConversationOutputSchema>;
 
-export async function continueConversation(input: ContinueConversationInput): Promise<ContinueConversationOutput> {
-  return continueConversationFlow(input);
+export async function extractSecret(input: ExtractSecretInput): Promise<ConversationOutput> {
+  return extractSecretFlow(input);
 }
 
-const continueConversationFlow = ai.defineFlow(
+const extractSecretFlow = ai.defineFlow(
   {
-    name: 'continueConversationFlow',
-    inputSchema: ContinueConversationInputSchema,
-    outputSchema: ContinueConversationOutputSchema,
+    name: 'extractSecretFlow',
+    inputSchema: ExtractSecretInputSchema,
+    outputSchema: ConversationOutputSchema,
   },
   async ({ characterProfile, conversationHistory, playerInput, objective }) => {
-    
-    const model = ai.model('googleai/gemini-2.0-flash');
-
     const { output } = await ai.generate({
-      model: model,
       history: conversationHistory,
       system: `You are an NPC in a role-playing game.
         Your name is: ${characterProfile.name}
         Your personality is: ${characterProfile.personality}
         Your dialogue style is: ${characterProfile.dialogStyle}
         
-        You must stay in character at all times. The player is trying to achieve an objective.
-        The objective is: "${objective}"
+        You must stay in character at all times. The player is trying to get you to reveal a secret.
+        The secret is: "${objective}"
 
-        There are two types of objectives:
-        1.  A secret to be revealed (e.g., "The factory has suspicious emissions at night.").
-        2.  An agreement to be made (e.g., "Your goal is to get them to agree to this: The factory will stop production for rectification.").
-
-        Do NOT reveal the secret or agree to the proposal unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
+        Do NOT reveal the secret unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
         If your response substantially reveals the secret, set 'objectiveAchieved' to true.
-        If you are agreeing to a proposal, you MUST use the words "I agree to..." in your response, and then set 'objectiveAchieved' to true.
         Otherwise, keep 'objectiveAchieved' false.
         
         Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.`,
       prompt: playerInput,
       output: {
-          schema: ContinueConversationOutputSchema,
+          schema: ConversationOutputSchema,
       },
     });
+    return output!;
+  }
+);
 
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// 3. Flow for Reaching an Agreement
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+const ReachAgreementInputSchema = z.object({
+    characterProfile: GenerateCharacterOutputSchema,
+    conversationHistory: z.custom<ConversationHistory>(),
+    playerInput: z.string().describe("The latest message from the player."),
+    objective: z.string().describe("A negotiation point the player wants the character to agree to."),
+});
+export type ReachAgreementInput = z.infer<typeof ReachAgreementInputSchema>;
+
+export async function reachAgreement(input: ReachAgreementInput): Promise<ConversationOutput> {
+  return reachAgreementFlow(input);
+}
+
+const reachAgreementFlow = ai.defineFlow(
+  {
+    name: 'reachAgreementFlow',
+    inputSchema: ReachAgreementInputSchema,
+    outputSchema: ConversationOutputSchema,
+  },
+  async ({ characterProfile, conversationHistory, playerInput, objective }) => {
+    const { output } = await ai.generate({
+      history: conversationHistory,
+      system: `You are an NPC in a role-playing game.
+        Your name is: ${characterProfile.name}
+        Your personality is: ${characterProfile.personality}
+        Your dialogue style is: ${characterProfile.dialogStyle}
+        
+        You must stay in character at all times. The player is trying to get you to agree to something.
+        The objective is: "${objective}"
+
+        Do NOT agree to the proposal unless the player's dialogue skillfully and naturally persuades you.
+        If you are agreeing to the proposal, you MUST use the words "I agree to..." in your response, and then set 'objectiveAchieved' to true.
+        Otherwise, keep 'objectiveAchieved' false.
+        
+        Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.`,
+      prompt: playerInput,
+      output: {
+          schema: ConversationOutputSchema,
+      },
+    });
     return output!;
   }
 );

@@ -1,3 +1,4 @@
+
 // src/components/game/TalkDialog.tsx
 'use client';
 
@@ -16,7 +17,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, SendHorizontal, User, Bot, XCircle, CheckCircle } from 'lucide-react';
 import type { CharacterProfile, LogEntry, ConversationHistory } from '@/types/game';
-import { ContinueConversationOutput } from '@/ai/flows/generate-conversation';
+import type { ConversationOutput, ExtractSecretInput, ReachAgreementInput } from '@/ai/flows/generate-conversation';
+
+type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
 
 interface TalkDialogProps {
   isOpen: boolean;
@@ -26,12 +29,7 @@ interface TalkDialogProps {
   characterProfile: CharacterProfile | null;
   isGenerating: boolean;
   onConversationEnd: (log: LogEntry[], objectiveAchieved: boolean) => void;
-  continueConversation: (input: {
-    characterProfile: CharacterProfile;
-    conversationHistory: ConversationHistory;
-    playerInput: string;
-    objective: string;
-  }) => Promise<ContinueConversationOutput>;
+  conversationFlow: ConversationFlow | null;
 }
 
 export function TalkDialog({
@@ -42,7 +40,7 @@ export function TalkDialog({
   characterProfile,
   isGenerating,
   onConversationEnd,
-  continueConversation,
+  conversationFlow,
 }: TalkDialogProps) {
   const [conversation, setConversation] = useState<LogEntry[]>([]);
   const [playerInput, setPlayerInput] = useState('');
@@ -81,7 +79,7 @@ export function TalkDialog({
   }, [conversation]);
 
   const handleSend = async () => {
-    if (!playerInput.trim() || !characterProfile) return;
+    if (!playerInput.trim() || !characterProfile || !conversationFlow) return;
 
     const newPlayerEntry: LogEntry = {
       id: Date.now(),
@@ -102,12 +100,12 @@ export function TalkDialog({
             parts: [{ text: entry.message }]
         }));
 
-        const result = await continueConversation({
+        const result = await conversationFlow({
             characterProfile,
             conversationHistory: history,
             playerInput: sentInput,
             objective,
-        });
+        } as ExtractSecretInput | ReachAgreementInput); // Cast to allow either type
 
         const newNpcEntry: LogEntry = {
             id: Date.now() + 1,
@@ -190,7 +188,7 @@ export function TalkDialog({
                         {objectiveAchieved && (
                              <div className="flex flex-col items-center justify-center gap-2 p-4 text-green-600">
                                 <CheckCircle className="w-10 h-10"/>
-                                <p className="font-bold text-lg">Testimony Recorded!</p>
+                                <p className="font-bold text-lg">Objective Achieved!</p>
                              </div>
                         )}
                     </div>

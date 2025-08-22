@@ -6,7 +6,7 @@ import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
 import { generateActionNarrative } from '@/ai/flows/generate-action-narrative';
 import { generateSceneDescription } from '@/ai/flows/generate-scene-description';
-import { generateCharacter, continueConversation } from '@/ai/flows/generate-conversation';
+import { generateCharacter, extractSecret, reachAgreement, type ConversationOutput, type ExtractSecretInput, type ReachAgreementInput } from '@/ai/flows/generate-conversation';
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +32,7 @@ interface GameUIProps {
     setPlayerStats: (stats: PlayerStats) => void;
 }
 
+type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
 
 const getInitialState = (rules: GameRules): GameState => {
   return {
@@ -59,6 +60,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   // State for the talk dialog
   const [talkTarget, setTalkTarget] = useState('');
   const [talkObjective, setTalkObjective] = useState('');
+  const [conversationFlow, setConversationFlow] = useState<ConversationFlow | null>(null);
   const [talkFollowUpActions, setTalkFollowUpActions] = useState<Record<string, any>[]>([]);
   const [characterProfile, setCharacterProfile] = useState<CharacterProfile | null>(null);
   const [isGeneratingCharacter, setIsGeneratingCharacter] = useState(false);
@@ -198,7 +200,6 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   const handleTalk = async (target: string) => {
     if (!currentSituation) return;
 
-    // Find the rule for this talk action to get the objective
     const talkRule = currentSituation.on_action.find(rule => 
         rule.when.actionId === 'talk' && 
         rule.when.targetPattern && 
@@ -213,16 +214,22 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
     const secretAction = talkRule.do.find(action => action.secret);
     const agreementAction = talkRule.do.find(action => action.agreement);
     let objective = "No specific objective.";
+    let flow: ConversationFlow | null = null;
 
     if (secretAction) {
         objective = secretAction.secret as string;
+        flow = extractSecret as ConversationFlow;
     } else if (agreementAction) {
-        objective = `Your goal is to get them to agree to this: ${agreementAction.agreement as string}`;
+        objective = agreementAction.agreement as string;
+        flow = reachAgreement as ConversationFlow;
+    } else {
+        toast({ variant: 'destructive', title: 'Action Error', description: `Talk action for ${target} has no secret or agreement objective.` });
+        return;
     }
 
     setTalkTarget(target);
     setTalkObjective(objective);
-    // All actions other than the secret/agreement are follow-up actions
+    setConversationFlow(() => flow);
     setTalkFollowUpActions(talkRule.do.filter(action => !action.secret && !action.agreement));
     setIsTalkDialogOpen(true);
     setIsGeneratingCharacter(true);
@@ -247,19 +254,17 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   };
   
   const handleEndTalk = (conversationLog: LogEntry[], objectiveAchieved: boolean) => {
-      // Add conversation to the main log
       setGameState(prevState => ({
           ...prevState,
           log: [...prevState.log, ...conversationLog],
       }));
 
       if (objectiveAchieved) {
-          // If the objective was met, process the follow-up actions (e.g., set counters)
           startTransition(async () => {
               const { newState, proceduralLogs } = await processAction(
                   rules, 
                   gameState, 
-                  'talk-objective-complete', // Special actionId to trigger only these actions
+                  'talk-objective-complete',
                   undefined,
                   talkFollowUpActions
               );
@@ -286,7 +291,6 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
               }));
           });
       } else {
-        // If they just ended the conversation, maybe just log that.
          startTransition(async () => {
              const finalSummary = `Finished a conversation with ${talkTarget} without achieving the objective.`;
              const summaryLog: LogEntry = { id: Date.now(), type: 'procedural', message: finalSummary };
@@ -297,10 +301,10 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
          });
       }
 
-      // Reset talk state
       setTalkTarget('');
       setCharacterProfile(null);
       setTalkObjective('');
+      setConversationFlow(null);
       setTalkFollowUpActions([]);
   };
 
@@ -406,7 +410,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         characterProfile={characterProfile}
         isGenerating={isGeneratingCharacter}
         onConversationEnd={handleEndTalk}
-        continueConversation={continueConversation}
+        conversationFlow={conversationFlow}
     />
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div className="lg:col-span-2 space-y-6">
