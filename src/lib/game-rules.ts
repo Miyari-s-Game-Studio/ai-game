@@ -93,14 +93,6 @@ export const defaultGameRules: GameRules = {
   situations: {
     investigate_area: {
       label: 'Field Investigation',
-      allowed_actions: [
-        'observe',
-        'investigate',
-        'sample',
-        'talk',
-        'announce',
-        'declare',
-      ],
       on_action: [
         {
           when: { actionId: 'observe' },
@@ -181,7 +173,6 @@ export const defaultGameRules: GameRules = {
     },
     interview_industry: {
       label: 'Interview Factory',
-      allowed_actions: ['talk', 'investigate', 'negotiate', 'sample', 'announce'],
       on_action: [
         {
           when: { actionId: 'talk', targetPattern: 'manager|guard|foreman' },
@@ -209,11 +200,18 @@ export const defaultGameRules: GameRules = {
             { log: 'Further investigation yielded no new clues.'}
           ],
         },
+        {
+            when: { actionId: 'sample' },
+            do: [{ log: 'Sampling is no longer needed here.'}]
+        },
+        {
+            when: { actionId: 'announce' },
+            do: [{ log: 'Announcements should be made at the main site.'}]
+        }
       ],
     },
     technical_ops: {
       label: 'Technical Governance',
-      allowed_actions: ['build', 'clean', 'announce', 'investigate'],
       on_action: [
         {
           when: { actionId: 'build' },
@@ -232,11 +230,18 @@ export const defaultGameRules: GameRules = {
             { log: 'Decontamination operations have reduced pollution and steadily advanced governance.' },
           ],
         },
+        {
+            when: { actionId: 'announce' },
+            do: [{ log: 'The focus is on action, not words.' }]
+        },
+        {
+            when: { actionId: 'investigate' },
+            do: [{ log: 'The investigation phase is over.' }]
+        }
       ],
     },
     wrap_up: {
       label: 'Wrap Up',
-      allowed_actions: ['reflect', 'celebrate'],
       on_action: [
         {
           when: { actionId: 'reflect' },

@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats, ActionDetail, CharacterProfile } from '@/types/game';
 import { defaultGameRules } from '@/lib/game-rules';
 import { processAction } from '@/lib/game-engine';
@@ -62,18 +62,25 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   const { toast } = useToast();
 
   const currentSituation: Situation | undefined = rules.situations[gameState.situation];
-  const knownTargets = currentSituation ? getTargetsForSituation(currentSituation) : [];
-  const latestNarrativeLog = gameState.log.filter(entry => entry.type === 'narrative').slice(-1);
+  
+  const allowedActions = useMemo(() => {
+    if (!currentSituation) return [];
+    const actionIds = currentSituation.on_action.map(rule => rule.when.actionId);
+    return [...new Set(actionIds)];
+  }, [currentSituation]);
 
-  function getTargetsForSituation(situation: Situation): string[] {
+  const knownTargets = useMemo(() => {
+    if (!currentSituation) return [];
     const targets = new Set<string>();
-    situation.on_action.forEach(rule => {
+    currentSituation.on_action.forEach(rule => {
       if (rule.when.targetPattern) {
         rule.when.targetPattern.split('|').forEach(target => targets.add(target.trim()));
       }
     });
     return Array.from(targets);
-  }
+  }, [currentSituation]);
+
+  const latestNarrativeLog = gameState.log.filter(entry => entry.type === 'narrative').slice(-1);
 
   useEffect(() => {
     if (currentSituation) {
@@ -86,7 +93,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
     setIsGeneratingScene(true);
     setSceneDescription('');
     try {
-      const targets = getTargetsForSituation(situation);
+      const targets = knownTargets;
       const result = await generateSceneDescription({
         situationLabel: situation.label,
         knownTargets: targets,
@@ -274,14 +281,15 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         );
         
         const newSituation = rules.situations[newState.situation];
-        const newTargets = getTargetsForSituation(newSituation);
+        const newActionRules = newSituation.on_action;
+        const newTargets = newActionRules.flatMap(rule => rule.when.targetPattern?.split('|') || []);
         
         const narrativeInput = {
           situationLabel: newSituation.label,
           sceneDescription: sceneDescription, // Use existing scene description
           actionTaken: `${actionId} ${target || ''}`.trim(),
           proceduralLogs: proceduralLogs.map(l => l.message),
-          knownTargets: newTargets,
+          knownTargets: [...new Set(newTargets)],
         };
 
         const narrativeOutput = await generateActionNarrative(narrativeInput);
@@ -332,7 +340,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         log={gameState.log}
         knownTargets={knownTargets}
         actionRules={currentSituation.on_action}
-        allowedActions={currentSituation.allowed_actions}
+        allowedActions={allowedActions}
         onTargetClick={handleTargetClick}
     />
     <TalkDialog
@@ -365,7 +373,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
                       log={[{ id: 0, type: 'narrative', message: sceneDescription }]}
                       knownTargets={knownTargets}
                       actionRules={currentSituation.on_action}
-                      allowedActions={currentSituation.allowed_actions}
+                      allowedActions={allowedActions}
                       onTargetClick={handleTargetClick}
                   />
                 </div>
@@ -385,7 +393,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
                   log={latestNarrativeLog}
                   knownTargets={knownTargets}
                   actionRules={currentSituation.on_action}
-                  allowedActions={currentSituation.allowed_actions}
+                  allowedActions={allowedActions}
                   onTargetClick={handleTargetClick}
                 />
           </CardContent>
@@ -401,7 +409,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
                 </div>
             ) : (
                 <ActionPanel
-                    allowedActions={currentSituation.allowed_actions}
+                    allowedActions={allowedActions}
                     actionDetails={rules.actions}
                     actionRules={currentSituation.on_action}
                     onAction={handleAction}

@@ -60,7 +60,6 @@ export type ActionRule = {
 
 export type Situation = {
   label: string;
-  allowed_actions: string[];
   on_action: ActionRule[];
 };
 

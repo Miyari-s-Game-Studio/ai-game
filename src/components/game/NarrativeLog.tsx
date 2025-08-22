@@ -21,6 +21,8 @@ const logTypeDetails = {
   procedural: { icon: Terminal, color: 'text-muted-foreground', bgColor: 'bg-muted/20', label: 'System Log' },
   narrative: { icon: Bot, color: 'text-primary', bgColor: 'bg-primary/10', label: 'Narrative' },
   error: { icon: AlertCircle, color: 'text-destructive', bgColor: 'bg-destructive/10', label: 'Error' },
+  player: { icon: User, color: 'text-accent', bgColor: 'bg-accent/10', label: 'Player' },
+  npc: { icon: Bot, color: 'text-primary', bgColor: 'bg-primary/10', label: 'NPC' },
 };
 
 const HighlightableText: React.FC<{
@@ -35,7 +37,7 @@ const HighlightableText: React.FC<{
     }
 
   // Create a regex to find all targets
-  const regex = new RegExp(`(${targets.join('|')})`, 'gi');
+  const regex = new RegExp(`(\\b(?:${targets.join('|')})\\b)`, 'gi');
   const parts = text.split(regex);
 
   return (
