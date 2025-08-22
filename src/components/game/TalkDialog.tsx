@@ -20,12 +20,14 @@ import type { CharacterProfile, LogEntry, ConversationHistory } from '@/types/ga
 import type { ConversationOutput, ExtractSecretInput, ReachAgreementInput } from '@/ai/flows/generate-conversation';
 
 type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
+type ConversationType = 'secret' | 'agreement';
 
 interface TalkDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   target: string;
   objective: string;
+  conversationType: ConversationType;
   characterProfile: CharacterProfile | null;
   isGenerating: boolean;
   onConversationEnd: (log: LogEntry[], objectiveAchieved: boolean) => void;
@@ -37,6 +39,7 @@ export function TalkDialog({
   onOpenChange,
   target,
   objective,
+  conversationType,
   characterProfile,
   isGenerating,
   onConversationEnd,
@@ -115,7 +118,18 @@ export function TalkDialog({
         };
         setConversation(prev => [...prev, newNpcEntry]);
         
-        if (result.objectiveAchieved) {
+        let achieved = false;
+        if (conversationType === 'agreement') {
+            if (result.response.toLowerCase().includes('i agree to')) {
+                achieved = true;
+            }
+        } else if (conversationType === 'secret') {
+            if (result.response.toLowerCase().includes(objective.toLowerCase())) {
+                achieved = true;
+            }
+        }
+
+        if (achieved) {
             setObjectiveAchieved(true);
             setTimeout(() => handleClose(true), 2000); // Auto-close after a delay
         }

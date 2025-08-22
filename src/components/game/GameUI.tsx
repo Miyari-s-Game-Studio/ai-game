@@ -33,6 +33,7 @@ interface GameUIProps {
 }
 
 type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
+type ConversationType = 'secret' | 'agreement';
 
 const getInitialState = (rules: GameRules): GameState => {
   return {
@@ -61,6 +62,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   const [talkTarget, setTalkTarget] = useState('');
   const [talkObjective, setTalkObjective] = useState('');
   const [conversationFlow, setConversationFlow] = useState<ConversationFlow | null>(null);
+  const [conversationType, setConversationType] = useState<ConversationType>('secret');
   const [talkFollowUpActions, setTalkFollowUpActions] = useState<Record<string, any>[]>([]);
   const [characterProfile, setCharacterProfile] = useState<CharacterProfile | null>(null);
   const [isGeneratingCharacter, setIsGeneratingCharacter] = useState(false);
@@ -215,13 +217,16 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
     const agreementAction = talkRule.do.find(action => action.agreement);
     let objective = "No specific objective.";
     let flow: ConversationFlow | null = null;
+    let type: ConversationType = 'secret';
 
     if (secretAction) {
         objective = secretAction.secret as string;
         flow = extractSecret as ConversationFlow;
+        type = 'secret';
     } else if (agreementAction) {
         objective = agreementAction.agreement as string;
         flow = reachAgreement as ConversationFlow;
+        type = 'agreement';
     } else {
         toast({ variant: 'destructive', title: 'Action Error', description: `Talk action for ${target} has no secret or agreement objective.` });
         return;
@@ -230,6 +235,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
     setTalkTarget(target);
     setTalkObjective(objective);
     setConversationFlow(() => flow);
+    setConversationType(type);
     setTalkFollowUpActions(talkRule.do.filter(action => !action.secret && !action.agreement));
     setIsTalkDialogOpen(true);
     setIsGeneratingCharacter(true);
@@ -407,6 +413,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         onOpenChange={setIsTalkDialogOpen}
         target={talkTarget}
         objective={talkObjective}
+        conversationType={conversationType}
         characterProfile={characterProfile}
         isGenerating={isGeneratingCharacter}
         onConversationEnd={handleEndTalk}
