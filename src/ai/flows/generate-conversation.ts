@@ -18,6 +18,7 @@ import type { CharacterProfile, ConversationHistory } from '@/types/game';
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 const GenerateCharacterInputSchema = z.object({
+  language: z.enum(['en', 'zh']).describe("The language for the character profile."),
   situationLabel: z.string().describe("The label of the current situation or chapter."),
   target: z.string().describe("The role or type of person the player is talking to (e.g., 'fisherman', 'guard', 'factory manager')."),
 });
@@ -40,12 +41,22 @@ const generateCharacterPrompt = ai.definePrompt({
   name: 'generateCharacterPrompt',
   input: { schema: GenerateCharacterInputSchema },
   output: { schema: GenerateCharacterOutputSchema },
-  prompt: `You are a character creator for a narrative game. Your task is to generate a unique, random NPC for the player to interact with.
+  prompt: `
+{{#if (eq language "zh")}}
+你是一个叙事游戏的角色创造者。你的任务是为玩家生成一个独特的、随机的NPC以供互动。
+
+玩家处于以下情境中：{{{situationLabel}}}
+玩家想要与一个被描述为“{{{target}}}”的人交谈。
+
+为此NPC生成一个角色简介。让他们感觉像一个真实的、独特的人。避免陈词滥调。
+{{else}}
+You are a character creator for a narrative game. Your task is to generate a unique, random NPC for the player to interact with.
 
 The player is in the following situation: {{{situationLabel}}}
 The player wants to talk to a person described as: {{{target}}}
 
 Generate a character profile for this NPC. Make them feel like a real, unique person. Avoid clichés.
+{{/if}}
 `,
 });
 
@@ -67,6 +78,7 @@ const generateCharacterFlow = ai.defineFlow(
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 const ExtractSecretInputSchema = z.object({
+    language: z.enum(['en', 'zh']),
     characterProfile: GenerateCharacterOutputSchema,
     conversationHistory: z.custom<ConversationHistory>(),
     playerInput: z.string().describe("The latest message from the player."),
@@ -89,20 +101,36 @@ const extractSecretFlow = ai.defineFlow(
     inputSchema: ExtractSecretInputSchema,
     outputSchema: ConversationOutputSchema,
   },
-  async ({ characterProfile, conversationHistory, playerInput, objective }) => {
+  async ({ language, characterProfile, conversationHistory, playerInput, objective }) => {
     const { output } = await ai.generate({
       history: conversationHistory,
-      system: `You are an NPC in a role-playing game.
-        Your name is: ${characterProfile.name}
-        Your personality is: ${characterProfile.personality}
-        Your dialogue style is: ${characterProfile.dialogStyle}
-        
-        You must stay in character at all times. The player is trying to get you to reveal a secret.
-        The secret is: "${objective}"
+      system: `
+{{#if (eq language "zh")}}
+你是一个角色扮演游戏中的NPC。
+你的名字是：${characterProfile.name}
+你的个性是：${characterProfile.personality}
+你的对话风格是：${characterProfile.dialogStyle}
 
-        Do NOT reveal the secret unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
-        
-        Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.`,
+你必须始终保持角色。玩家正试图让你透露一个秘密。
+秘密是：“${objective}”
+
+除非玩家的对话技巧娴熟自然地引导你这样做，否则不要透露秘密。要微妙。
+
+根据你的个性和目前的对话情况，回应玩家的信息。保持你的回答简洁自然。
+{{else}}
+You are an NPC in a role-playing game.
+Your name is: ${characterProfile.name}
+Your personality is: ${characterProfile.personality}
+Your dialogue style is: ${characterProfile.dialogStyle}
+
+You must stay in character at all times. The player is trying to get you to reveal a secret.
+The secret is: "${objective}"
+
+Do NOT reveal the secret unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
+
+Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.
+{{/if}}
+      `,
       prompt: playerInput,
       output: {
           schema: ConversationOutputSchema,
@@ -117,6 +145,7 @@ const extractSecretFlow = ai.defineFlow(
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 const ReachAgreementInputSchema = z.object({
+    language: z.enum(['en', 'zh']),
     characterProfile: GenerateCharacterOutputSchema,
     conversationHistory: z.custom<ConversationHistory>(),
     playerInput: z.string().describe("The latest message from the player."),
@@ -134,21 +163,38 @@ const reachAgreementFlow = ai.defineFlow(
     inputSchema: ReachAgreementInputSchema,
     outputSchema: ConversationOutputSchema,
   },
-  async ({ characterProfile, conversationHistory, playerInput, objective }) => {
+  async ({ language, characterProfile, conversationHistory, playerInput, objective }) => {
     const { output } = await ai.generate({
       history: conversationHistory,
-      system: `You are an NPC in a role-playing game.
-        Your name is: ${characterProfile.name}
-        Your personality is: ${characterProfile.personality}
-        Your dialogue style is: ${characterProfile.dialogStyle}
-        
-        You must stay in character at all times. The player is trying to get you to agree to something.
-        The objective is: "${objective}"
+      system: `
+{{#if (eq language "zh")}}
+你是一个角色扮演游戏中的NPC。
+你的名字是：${characterProfile.name}
+你的个性是：${characterProfile.personality}
+你的对话风格是：${characterProfile.dialogStyle}
 
-        Do NOT agree to the proposal unless the player's dialogue skillfully and naturally persuades you.
-        If you are agreeing to the proposal, you MUST use the words "I agree to..." in your response.
-        
-        Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.`,
+你必须始终保持角色。玩家正试图让你同意某件事。
+目标是：“${objective}”
+
+除非玩家的对话技巧娴熟自然地说服你，否则不要同意这个提议。
+如果你同意这个提议，你必须在你的回应中使用“我同意...”这句话。
+
+根据你的个性和目前的对话情况，回应玩家的信息。保持你的回答简洁自然。
+{{else}}
+You are an NPC in a role-playing game.
+Your name is: ${characterProfile.name}
+Your personality is: ${characterProfile.personality}
+Your dialogue style is: ${characterProfile.dialogStyle}
+
+You must stay in character at all times. The player is trying to get you to agree to something.
+The objective is: "${objective}"
+
+Do NOT agree to the proposal unless the player's dialogue skillfully and naturally persuades you.
+If you are agreeing to the proposal, you MUST use the words "I agree to..." in your response.
+
+Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.
+{{/if}}
+      `,
       prompt: playerInput,
       output: {
           schema: ConversationOutputSchema,

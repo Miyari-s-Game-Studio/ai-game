@@ -2,6 +2,7 @@
 // src/lib/rulesets/index.ts
 import type { GameRules } from "@/types/game";
 import ecoCrisisRules from './eco_crisis.json';
+import ecoCrisisZhRules from './eco_crisis_zh.json';
 
 // Add new ruleset imports here
 // import anotherStoryRules from './another_story.json';
@@ -9,6 +10,7 @@ import ecoCrisisRules from './eco_crisis.json';
 // A map of all available rulesets
 const rulesetMap: Record<string, GameRules> = {
     'eco_crisis': ecoCrisisRules as GameRules,
+    'eco_crisis_zh': ecoCrisisZhRules as GameRules,
     // 'another_story': anotherStoryRules as GameRules,
 };
 

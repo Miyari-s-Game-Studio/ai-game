@@ -1,7 +1,7 @@
 
 // src/components/game/ActionLogDialog.tsx
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import NarrativeLog from './NarrativeLog';
 import type { LogEntry, ActionRule } from '@/types/game';
+import { getTranslator } from '@/lib/i18n';
 
 interface ActionLogDialogProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface ActionLogDialogProps {
   actionRules: ActionRule[];
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
+  language: 'en' | 'zh';
 }
 
 export function ActionLogDialog({ 
@@ -29,15 +31,18 @@ export function ActionLogDialog({
     knownTargets, 
     actionRules,
     allowedActions,
-    onTargetClick
+    onTargetClick,
+    language,
 }: ActionLogDialogProps) {
+  const t = useMemo(() => getTranslator(language), [language]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl h-5/6 flex flex-col">
         <DialogHeader>
-          <DialogTitle>Full Action Log</DialogTitle>
+          <DialogTitle>{t.fullActionLog}</DialogTitle>
           <DialogDescription>
-            A complete history of your actions and the resulting narrative.
+            {t.actionLogDescription}
           </DialogDescription>
         </DialogHeader>
         <div className="flex-grow overflow-hidden">

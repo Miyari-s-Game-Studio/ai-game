@@ -1,23 +1,23 @@
 
 {
   "version": 1,
-  "id": "eco_crisis",
-  "title": "Environmental Crisis",
-  "language": "en",
+  "id": "eco_crisis_zh",
+  "title": "环境危机",
+  "language": "zh",
   "theme": "theme-default",
-  "description": "An interactive narrative game where the player assumes the role of an environmental protection officer tasked with resolving a mysterious pollution incident in a river.",
+  "description": "一个互动叙事游戏，玩家扮演一名环保官员，负责解决一起神秘的河流污染事件。",
   "actions": {
-    "observe": { "icon": "Eye", "label": "Observe" },
-    "investigate": { "icon": "Search", "label": "Investigate" },
-    "sample": { "icon": "FlaskConical", "label": "Take Sample" },
-    "talk": { "icon": "MessageSquare", "label": "Talk To" },
-    "announce": { "icon": "Megaphone", "label": "Announce" },
-    "declare": { "icon": "Flag", "label": "Declare Strategy" },
-    "negotiate": { "icon": "Handshake", "label": "Negotiate" },
-    "build": { "icon": "Building", "label": "Build" },
-    "clean": { "icon": "Wrench", "label": "Clean Up" },
-    "reflect": { "icon": "Archive", "label": "Reflect" },
-    "celebrate": { "icon": "PartyPopper", "label": "Celebrate" }
+    "observe": { "icon": "Eye", "label": "观察" },
+    "investigate": { "icon": "Search", "label": "调查" },
+    "sample": { "icon": "FlaskConical", "label": "取样" },
+    "talk": { "icon": "MessageSquare", "label": "交谈" },
+    "announce": { "icon": "Megaphone", "label": "公布" },
+    "declare": { "icon": "Flag", "label": "宣布策略" },
+    "negotiate": { "icon": "Handshake", "label": "谈判" },
+    "build": { "icon": "Building", "label": "建造" },
+    "clean": { "icon": "Wrench", "label": "清理" },
+    "reflect": { "icon": "Archive", "label": "反思" },
+    "celebrate": { "icon": "PartyPopper", "label": "庆祝" }
   },
   "ui": {
     "counterIcons": {
@@ -54,8 +54,8 @@
       "shutdown_ok": false
     },
     "player": {
-      "name": "Alex",
-      "identity": "Environmental Officer",
+      "name": "艾历克斯",
+      "identity": "环保官员",
       "attributes": {
         "strength": 10,
         "dexterity": 12,
@@ -65,54 +65,54 @@
         "charisma": 12
       },
       "equipment": {
-        "top": "Uniform Shirt",
-        "bottom": "Cargo Pants",
-        "shoes": "Work Boots",
-        "accessory": "ID Badge"
+        "top": "制服衬衫",
+        "bottom": "工装裤",
+        "shoes": "工装靴",
+        "accessory": "身份徽章"
       }
     }
   },
   "tracks": {
     "eco.pollution": {
-      "name": "Pollution",
+      "name": "污染指数",
       "value": 2,
       "max": 10
     },
     "eco.governance": {
-      "name": "Governance",
+      "name": "治理水平",
       "value": 0,
       "max": 8
     },
     "eco.media": {
-      "name": "Media Attention",
+      "name": "媒体关注度",
       "value": 3,
       "max": 10
     }
   },
   "situations": {
     "investigate_area": {
-      "label": "Field Investigation",
+      "label": "现场调查",
       "on_action": [
         {
           "when": { "actionId": "observe" },
           "do": [
             { "add": "counters.clues,1", "cap": 2 },
-            { "log": "You record the water color, smell, and flow rate, forming a basic survey note." }
+            { "log": "你记录了水的颜色、气味和流速，形成了一份基本的勘查记录。" }
           ]
         },
         {
-          "when": { "actionId": "investigate", "targetPattern": "outlet|oil|dead fish" },
+          "when": { "actionId": "investigate", "targetPattern": "排污口|油污|死鱼" },
           "do": [
             { "add": "counters.clues,1" },
-            { "log": "You have locked on to key signs of pollution and can now deal with the discharge outlet." }
+            { "log": "你锁定了污染的关键迹象，现在可以着手处理排污口了。" }
           ]
         },
         {
-          "when": { "actionId": "investigate", "targetPattern": "upstream factory" },
+          "when": { "actionId": "investigate", "targetPattern": "上游工厂" },
           "do": [
             { "add": "counters.clues,1" },
             { "set": "next_situation,interview_industry", "if": "counters.clues >= 2" },
-            { "log": "The factory is now a key area of investigation. You should go there to gather more direct evidence." }
+            { "log": "工厂现在是重点调查对象。你应该去那里收集更直接的证据。" }
           ]
         },
         {
@@ -121,13 +121,13 @@
             { "add": "counters.samples,1" },
             { "track": "eco.pollution,1" },
             { "set": "next_situation,technical_ops", "if": "counters.samples >= 2" },
-            { "log": "Sampling stirred up the sediment, causing a short-term rise in pollution; the data will support subsequent treatment." }
+            { "log": "取样搅动了沉积物，导致短期内污染升高；这些数据将为后续治理提供支持。" }
           ]
         },
         {
-          "when": { "actionId": "talk", "targetPattern": "fisherman|resident|guard" },
+          "when": { "actionId": "talk", "targetPattern": "渔夫|居民|保安" },
           "do": [
-            { "secret": "The factory has suspicious emissions at night." },
+            { "secret": "工厂在夜间有可疑的排放。" },
             { "set": "counters.testimony,true" }
           ]
         },
@@ -135,45 +135,45 @@
           "when": { "actionId": "announce" },
           "do": [
             { "track": "eco.media,-1" },
-            { "log": "Public opinion has temporarily cooled down." },
+            { "log": "舆论暂时降温。" },
             { "track": "eco.media,2", "if": "tracks['eco.pollution'].value >= 7" },
-            { "log": "Foreign media questioned the authenticity of the data, and public opinion rebounded.", "if": "tracks['eco.pollution'].value >= 7" }
+            { "log": "有外国媒体质疑数据的真实性，舆论反弹。", "if": "tracks['eco.pollution'].value >= 7" }
           ]
         },
         {
-          "when": { "actionId": "declare", "textRegex": "(Engineering)" },
+          "when": { "actionId": "declare", "textRegex": "(工程)" },
           "do": [
             { "set": "route,policy.engineering" },
-            { "log": "[Route] Engineering First: Prioritize construction and technical governance." }
+            { "log": "[路线] 工程优先：优先进行建设和技术治理。" }
           ]
         },
         {
-          "when": { "actionId": "declare", "textRegex": "(Enforcement)" },
+          "when": { "actionId": "declare", "textRegex": "(执法)" },
           "do": [
             { "set": "route,policy.enforcement" },
-            { "log": "[Route] Mandatory Enforcement: Prioritize forensics/shutdown." }
+            { "log": "[路线] 强制执法：优先进行取证/关停。" }
           ]
         },
         {
-          "when": { "actionId": "declare", "textRegex": "(PR)" },
+          "when": { "actionId": "declare", "textRegex": "(公关)" },
           "do": [
             { "set": "route,policy.pr" },
-            { "log": "[Route] Public Relations Cover-up: Prioritize stabilizing public opinion." }
+            { "log": "[路线] 公关掩盖：优先稳定舆论。" }
           ]
         }
       ]
     },
     "interview_industry": {
-      "label": "Interview Factory",
+      "label": "约谈工厂",
       "on_action": [
         {
-          "when": { 
-            "actionId": "talk", 
-            "targetPattern": "manager|guard|foreman",
+          "when": {
+            "actionId": "talk",
+            "targetPattern": "经理|保安|工头",
             "require": "counters.testimony == true"
           },
           "do": [
-            { "agreement": "The factory will stop production for rectification." },
+            { "agreement": "工厂将停产整改。" },
             { "set": "counters.shutdown_ok,true" },
             { "track": "eco.pollution,-2" },
             { "track": "eco.governance,1" }
@@ -183,28 +183,28 @@
           "when": { "actionId": "investigate" },
           "do": [
             { "set": "next_situation,technical_ops", "if": "counters.samples >= 2 && counters.shutdown_ok == false" },
-            { "log": "Further investigation yielded no new clues."}
+            { "log": "进一步调查没有发现新线索。" }
           ]
         },
         {
             "when": { "actionId": "sample" },
-            "do": [{ "log": "Sampling is no longer needed here."}]
+            "do": [{ "log": "这里不再需要取样。" }]
         },
         {
             "when": { "actionId": "announce" },
-            "do": [{ "log": "Announcements should be made at the main site."}]
+            "do": [{ "log": "应在主要现场发布公告。" }]
         }
       ]
     },
     "technical_ops": {
-      "label": "Technical Governance",
+      "label": "技术治理",
       "on_action": [
         {
           "when": { "actionId": "build" },
           "do": [
             { "track": "eco.governance,2" },
             { "track": "eco.media,1" },
-            { "log": "The project is progressing significantly, but the construction has attracted attention." },
+            { "log": "项目进展显著，但施工吸引了注意力。" },
             { "set": "next_situation,wrap_up", "if": "tracks['eco.governance'].value >= 8 && tracks['eco.pollution'].value <= 3 && tracks['eco.media'].value <= 5" }
           ]
         },
@@ -213,29 +213,29 @@
           "do": [
             { "track": "eco.pollution,-1" },
             { "track": "eco.governance,1" },
-            { "log": "Decontamination operations have reduced pollution and steadily advanced governance." }
+            { "log": "净化作业降低了污染，稳步推进了治理。" }
           ]
         },
         {
             "when": { "actionId": "announce" },
-            "do": [{ "log": "The focus is on action, not words." }]
+            "do": [{ "log": "现在的重点是行动，不是言语。" }]
         },
         {
             "when": { "actionId": "investigate" },
-            "do": [{ "log": "The investigation phase is over." }]
+            "do": [{ "log": "调查阶段已经结束。" }]
         }
       ]
     },
     "wrap_up": {
-      "label": "Wrap Up",
+      "label": "收尾",
       "on_action": [
         {
           "when": { "actionId": "reflect" },
-          "do": [{ "log": "You have sorted out the entire evidence chain and governance data and entered a long-term monitoring period." }]
+          "do": [{ "log": "你整理了完整的证据链和治理数据，进入了长期监测期。" }]
         },
         {
           "when": { "actionId": "celebrate" },
-          "do": [{ "log": "The crisis has been resolved. You celebrate with your team and revisit the local residents, who express their gratitude for the environmental improvements." }]
+          "do": [{ "log": "危机已经解决。你和团队庆祝，并回访了当地居民，他们对环境改善表示感谢。" }]
         }
       ]
     }

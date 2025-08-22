@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
@@ -7,6 +8,7 @@ import * as LucideIcons from 'lucide-react';
 interface CountersDisplayProps {
   counters: Record<string, number | boolean>;
   iconMap?: Record<string, string>;
+  title: string;
 }
 
 const getDynamicIcon = (iconName: string): React.ElementType => {
@@ -56,11 +58,11 @@ const CounterItem: React.FC<{ label: string; value: number | boolean; iconMap?: 
   );
 };
 
-const CountersDisplay: React.FC<CountersDisplayProps> = ({counters, iconMap}) => {
+const CountersDisplay: React.FC<CountersDisplayProps> = ({counters, iconMap, title}) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl font-headline">Key Items & Info</CardTitle>
+        <CardTitle className="text-xl font-headline">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {Object.entries(counters).map(([key, value]) => (

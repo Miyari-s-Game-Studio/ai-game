@@ -21,6 +21,8 @@ import { LoadGameDialog, type SaveFile } from './LoadGameDialog';
 import { ActionLogDialog } from './ActionLogDialog';
 import { TalkDialog } from './TalkDialog';
 import { produce } from 'immer';
+import { getTranslator } from '@/lib/i18n';
+
 
 interface GameUIProps {
     rules: GameRules;
@@ -74,6 +76,8 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const { toast } = useToast();
 
+  const t = useMemo(() => getTranslator(rules.language), [rules.language]);
+
   const currentSituation: Situation | undefined = rules.situations[gameState.situation];
   
   const allowedActions = useMemo(() => {
@@ -107,13 +111,10 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
       generateNewScene(currentSituation);
     }
     setPlayerStats(gameState.player);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.situation, rules]);
   
   const generateNewScene = async (situation: Situation) => {
-    // If we're loading from a save, we might already have a narrative log.
-    // If the game has just started (log is empty), generate the scene.
-    // If the situation has changed, generate the scene.
-    // Otherwise, assume the scene is already described by the existing log.
     const lastNarrative = gameState.log.filter(e => e.type === 'narrative').pop();
     if (gameState.log.length > 0 && !lastNarrative) {
        // There are logs, but no narrative yet. Let's see...
@@ -126,6 +127,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         try {
           const targets = knownTargets;
           const result = await generateSceneDescription({
+            language: rules.language,
             situationLabel: situation.label,
             knownTargets: targets,
           });
@@ -134,10 +136,10 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
            console.error('Failed to generate scene description:', error);
            toast({
               variant: 'destructive',
-              title: 'Error',
-              description: 'Could not generate the scene description.',
+              title: t.error,
+              description: t.failedToGenerateScene,
            });
-           setSceneDescription('Error: Failed to load scene description.');
+           setSceneDescription(`${t.error}: ${t.failedToGenerateScene}`);
         } finally {
           setIsGeneratingScene(false);
         }
@@ -152,13 +154,13 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         const saveKey = `${SAVE_PREFIX}${rules.id}_${new Date().toISOString()}`;
         localStorage.setItem(saveKey, JSON.stringify(gameState));
         toast({
-            title: 'Game Saved',
-            description: `Saved as ${rules.title} - ${new Date().toLocaleString()}`,
+            title: t.gameSaved,
+            description: `${rules.title} - ${new Date().toLocaleString()}`,
         });
     } catch (error) {
         toast({
             variant: 'destructive',
-            title: 'Save Failed',
+            title: t.saveFailed,
             description: 'Could not save your game. The browser may be out of space.',
         });
     }
@@ -207,6 +209,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         isGenerating: isGeneratingScene || isGeneratingCharacter,
     });
     setPlayerStats(gameState.player);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending, isGeneratingScene, isGeneratingCharacter, gameState, rules]);
 
 
@@ -214,7 +217,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
     setGameState(saveFile.state);
     setIsLoadDialogOpen(false);
     toast({
-        title: 'Game Loaded',
+        title: t.gameLoaded,
         description: 'Your progress has been restored.',
     });
   }
@@ -223,7 +226,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
     localStorage.removeItem(key);
     findSaveFiles(); // Refresh the list
     toast({
-        title: 'Save Deleted',
+        title: t.saveDeleted,
         description: 'The selected save file has been removed.',
     });
   }
@@ -279,6 +282,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
     setIsGeneratingCharacter(true);
     try {
         const profile = await generateCharacter({
+            language: rules.language,
             situationLabel: currentSituation?.label || 'An unknown location',
             target: target,
         });
@@ -323,6 +327,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
               );
 
               const narrativeInput = {
+                  language: rules.language,
                   situationLabel: currentSituation?.label || '',
                   sceneDescription: sceneDescription,
                   actionTaken: `Succeeded in conversation with ${talkTarget}`,
@@ -366,11 +371,11 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Error</CardTitle>
+          <CardTitle>{t.error}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>The current situation `({gameState.situation})` is not defined in the game rules.</p>
-          <p>Please check your rules configuration.</p>
+          <p>{t.invalidSituation} `({gameState.situation})`</p>
+          <p>{t.pleaseCheckRules}</p>
         </CardContent>
       </Card>
     );
@@ -397,6 +402,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         const newTargets = newActionRules.flatMap(rule => rule.when.targetPattern?.split('|') || []);
         
         const narrativeInput = {
+          language: rules.language,
           situationLabel: newSituation.label,
           sceneDescription: sceneDescription, // Use existing scene description
           actionTaken: `${actionId} ${target || ''}`.trim(),
@@ -421,8 +427,8 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         console.error('Error processing action:', error);
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to process the action. Please try again.',
+          title: t.error,
+          description: t.failedToProcessAction,
         });
       }
     });
@@ -445,6 +451,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         saveFiles={saveFiles}
         onLoad={handleLoadGame}
         onDelete={handleDeleteSave}
+        language={rules.language}
     />
     <ActionLogDialog
         isOpen={isLogDialogOpen}
@@ -454,6 +461,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         actionRules={currentSituation.on_action}
         allowedActions={allowedActions}
         onTargetClick={handleTargetClick}
+        language={rules.language}
     />
     <TalkDialog
         isOpen={isTalkDialogOpen}
@@ -465,13 +473,14 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         isGenerating={isGeneratingCharacter}
         onConversationEnd={handleEndTalk}
         conversationFlow={conversationFlow}
+        language={rules.language}
     />
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div className="lg:col-span-2 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-headline">
-              Current Situation: {currentSituation.label}
+              {t.currentSituation}: {currentSituation.label}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -499,10 +508,15 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
           <CardHeader className="flex flex-row items-center justify-end py-3 px-4">
             <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
                 <BookOpen className="mr-2 h-4 w-4" />
-                View Full Log
+                {t.viewFullLog}
             </Button>
           </CardHeader>
           <CardContent className="min-h-[100px] pt-0">
+             {latestNarrativeLog.length === 0 && (
+                <div className="text-center text-muted-foreground italic py-4">
+                    {t.storyWillUnfold}
+                </div>
+             )}
               <NarrativeLog
                   log={latestNarrativeLog}
                   knownTargets={knownTargets}
@@ -518,7 +532,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
                 <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <p className="ml-4 text-lg">
-                      {isGeneratingScene ? 'Generating scene...' : isGeneratingCharacter ? 'Character is approaching...' : 'AI is crafting the next part of your story...'}
+                      {isGeneratingScene ? t.loadingScene : isGeneratingCharacter ? t.characterApproaching : t.aiCraftingStory}
                     </p>
                 </div>
             ) : (
@@ -538,7 +552,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
       <div className="space-y-6 lg:col-span-1">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl font-headline">Environmental Status</CardTitle>
+            <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {Object.entries(gameState.tracks).map(([id, track]) => (
@@ -546,7 +560,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
             ))}
           </CardContent>
         </Card>
-        <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} />
+        <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} title={t.keyItemsAndInfo} />
       </div>
     </div>
     </>

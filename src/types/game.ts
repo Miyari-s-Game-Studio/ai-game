@@ -83,6 +83,7 @@ export type GameRules = {
   id: string;
   title: string;
   description: string;
+  language: 'en' | 'zh';
   theme?: 'theme-default' | 'theme-forest' | 'theme-ocean' | 'theme-crimson';
   actions: Record<string, ActionDetail>;
   initial: {

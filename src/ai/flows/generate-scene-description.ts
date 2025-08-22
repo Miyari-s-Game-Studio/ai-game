@@ -13,6 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateSceneDescriptionInputSchema = z.object({
+  language: z.enum(['en', 'zh']).describe("The language for the narrative."),
   situationLabel: z.string().describe("The label of the current situation or chapter."),
   knownTargets: z.array(z.string()).describe("A list of all keywords or targets the player can interact with in this scene."),
 });
@@ -31,7 +32,22 @@ const prompt = ai.definePrompt({
   name: 'generateSceneDescriptionPrompt',
   input: {schema: GenerateSceneDescriptionInputSchema},
   output: {schema: GenerateSceneDescriptionOutputSchema},
-  prompt: `You are a game master for an interactive narrative game. Your task is to craft a compelling scene description for the player. This description sets the stage for the current situation.
+  prompt: `
+{{#if (eq language "zh")}}
+你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
+
+当前情境：{{{situationLabel}}}
+
+你必须创造一个引人入胜的、多段落的叙述，描述环境、氛围和关键元素。至关重要的是，你必须将以下所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
+
+互动目标：
+{{#each knownTargets}}
+- {{{this}}}
+{{/each}}
+
+现在生成场景描述。
+{{else}}
+You are a game master for an interactive narrative game. Your task is to craft a compelling scene description for the player. This description sets the stage for the current situation.
 
 Current Situation: {{{situationLabel}}}
 
@@ -43,6 +59,7 @@ Interaction Targets:
 {{/each}}
 
 Generate the scene description now.
+{{/if}}
 `,
 });
 

@@ -2,7 +2,7 @@
 // src/components/game/TalkDialog.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, SendHorizontal, User, Bot, XCircle, CheckCircle, Target } from 'lucide-react';
 import type { CharacterProfile, LogEntry, ConversationHistory } from '@/types/game';
 import type { ConversationOutput, ExtractSecretInput, ReachAgreementInput } from '@/ai/flows/generate-conversation';
+import { getTranslator } from '@/lib/i18n';
 
 type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
 type ConversationType = 'secret' | 'agreement';
@@ -32,6 +33,7 @@ interface TalkDialogProps {
   isGenerating: boolean;
   onConversationEnd: (log: LogEntry[], objectiveAchieved: boolean) => void;
   conversationFlow: ConversationFlow | null;
+  language: 'en' | 'zh';
 }
 
 export function TalkDialog({
@@ -44,12 +46,15 @@ export function TalkDialog({
   isGenerating,
   onConversationEnd,
   conversationFlow,
+  language,
 }: TalkDialogProps) {
   const [conversation, setConversation] = useState<LogEntry[]>([]);
   const [playerInput, setPlayerInput] = useState('');
   const [isReplying, setIsReplying] = useState(false);
   const [objectiveAchieved, setObjectiveAchieved] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
+  const t = useMemo(() => getTranslator(language), [language]);
 
   useEffect(() => {
     if (isOpen && characterProfile && conversation.length === 0) {
@@ -69,7 +74,7 @@ export function TalkDialog({
         setObjectiveAchieved(false);
       }, 300); // Delay to allow dialog to close before state reset
     }
-  }, [isOpen, characterProfile]);
+  }, [isOpen, characterProfile, conversation.length]);
 
   useEffect(() => {
     // Scroll to bottom
@@ -104,6 +109,7 @@ export function TalkDialog({
         }));
 
         const result = await conversationFlow({
+            language,
             characterProfile,
             conversationHistory: history,
             playerInput: sentInput,
@@ -120,9 +126,10 @@ export function TalkDialog({
         
         let achieved = false;
         const responseLower = result.response.toLowerCase();
+        const agreementPhrase = language === 'zh' ? '我同意' : 'i agree to';
 
         if (conversationType === 'agreement') {
-            if (responseLower.includes('i agree to')) {
+            if (responseLower.includes(agreementPhrase)) {
                 achieved = true;
             }
         } else if (conversationType === 'secret') {
@@ -141,7 +148,7 @@ export function TalkDialog({
         const errorEntry: LogEntry = {
             id: Date.now() + 1,
             type: 'error',
-            message: 'The character seems lost in thought and does not reply.'
+            message: t.characterLostInThought,
         }
         setConversation(prev => [...prev, errorEntry]);
     } finally {
@@ -159,19 +166,19 @@ export function TalkDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4 border-b">
-          <DialogTitle className="text-2xl">Talking to {characterProfile?.name || target}</DialogTitle>
+          <DialogTitle className="text-2xl">{t.talkingTo} {characterProfile?.name || target}</DialogTitle>
           {characterProfile && <DialogDescription>{characterProfile.personality}</DialogDescription>}
           {characterProfile && (
             <div className="mt-4 p-3 bg-muted/50 rounded-lg text-sm">
                 <div className="flex items-center font-semibold text-primary">
                     <Target className="w-5 h-5 mr-2"/>
-                    Your Objective
+                    {t.yourObjective}
                 </div>
                 <div className="text-muted-foreground pl-7">
                     {conversationType === 'secret' ? (
-                        <p>Uncover the secret.</p>
+                        <p>{t.uncoverSecret}</p>
                     ) : (
-                        <p>Get them to agree to the following: <em className="font-medium text-foreground">"{objective}"</em></p>
+                        <p>{t.getThemToAgree} <em className="font-medium text-foreground">"{objective}"</em></p>
                     )}
                 </div>
             </div>
@@ -183,7 +190,7 @@ export function TalkDialog({
                 {isGenerating || !characterProfile ? (
                     <div className="flex items-center justify-center h-full">
                         <Loader2 className="w-8 h-8 animate-spin" />
-                        <p className="ml-4 text-lg">Character is approaching...</p>
+                        <p className="ml-4 text-lg">{t.characterApproaching}</p>
                     </div>
                 ) : (
                     <div className="space-y-6">
@@ -219,7 +226,7 @@ export function TalkDialog({
                         {objectiveAchieved && (
                              <div className="flex flex-col items-center justify-center gap-2 p-4 text-green-600">
                                 <CheckCircle className="w-10 h-10"/>
-                                <p className="font-bold text-lg">Objective Achieved!</p>
+                                <p className="font-bold text-lg">{t.objectiveAchieved}</p>
                              </div>
                         )}
                     </div>
@@ -230,7 +237,7 @@ export function TalkDialog({
         <DialogFooter className="p-6 pt-4 border-t">
           <div className="flex w-full items-center gap-4">
             <Input
-              placeholder="Say something..."
+              placeholder={t.saySomething}
               value={playerInput}
               onChange={(e) => setPlayerInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -239,11 +246,11 @@ export function TalkDialog({
             />
             <Button onClick={handleSend} disabled={isGenerating || isReplying || objectiveAchieved || !playerInput.trim()}>
               <SendHorizontal className="mr-2" />
-              Send
+              {t.send}
             </Button>
             <Button variant="outline" onClick={() => handleClose(false)} disabled={objectiveAchieved}>
                 <XCircle className="mr-2" />
-                End Conversation
+                {t.endConversation}
             </Button>
           </div>
         </DialogFooter>
@@ -251,5 +258,3 @@ export function TalkDialog({
     </Dialog>
   );
 }
-
-    

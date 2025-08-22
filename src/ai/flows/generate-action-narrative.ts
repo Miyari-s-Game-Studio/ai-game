@@ -13,6 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateActionNarrativeInputSchema = z.object({
+  language: z.enum(['en', 'zh']).describe("The language for the narrative."),
   situationLabel: z.string().describe("The label of the current situation or chapter."),
   sceneDescription: z.string().describe("The persistent, descriptive text for the current scene."),
   actionTaken: z.string().describe("The specific action the player just performed (e.g., 'investigate outlet')."),
@@ -34,7 +35,32 @@ const prompt = ai.definePrompt({
   name: 'generateActionNarrativePrompt',
   input: {schema: GenerateActionNarrativeInputSchema},
   output: {schema: GenerateActionNarrativeOutputSchema},
-  prompt: `You are a game master for an interactive narrative game. Your task is to describe the outcome of the player's action.
+  prompt: `
+{{#if (eq language "zh")}}
+你是一个互动叙事游戏的地下城主。你的任务是描述玩家行动的结果。
+
+玩家目前处于这种情况：
+情境：{{{situationLabel}}}
+场景：{{{sceneDescription}}}
+
+玩家采取了此行动：
+行动：{{{actionTaken}}}
+
+游戏引擎确定了此行动的具体结果如下：
+{{#each proceduralLogs}}
+- {{{this}}}
+{{/each}}
+
+根据这些结果，写一个引人入胜的、2-3句话的叙述，描述发生了什么。基调应与场景一致。至关重要的是，你的回应必须通过巧妙地编织“已知互动目标”列表中的项目，为玩家下一步可以与什么互动提供清晰的提示。
+
+已知互动目标：
+{{#each knownTargets}}
+- {{{this}}}
+{{/each}}
+
+现在生成行动结果的叙述。
+{{else}}
+You are a game master for an interactive narrative game. Your task is to describe the outcome of the player's action.
 
 The player is currently in this situation:
 Situation: {{{situationLabel}}}
@@ -56,6 +82,7 @@ Known Interaction Targets:
 {{/each}}
 
 Generate the action-result narrative now.
+{{/if}}
 `,
 });
 

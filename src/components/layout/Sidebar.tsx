@@ -1,7 +1,7 @@
 
 // src/components/layout/Sidebar.tsx
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -24,6 +24,8 @@ import { Separator } from '../ui/separator';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import PlayerStatsComponent from '../game/PlayerStats';
 import type { PlayerStats, GameRules } from '@/types/game';
+import { getTranslator } from '@/lib/i18n';
+
 
 interface SidebarProps {
     rules: GameRules;
@@ -35,6 +37,8 @@ interface SidebarProps {
 
 export function Sidebar({ rules, playerStats, onSave, onLoad, isPending }: SidebarProps) {
   const gameTitle = rules.title || 'Interactive Narrative Game';
+  const t = useMemo(() => getTranslator(rules.language), [rules.language]);
+
   return (
     <aside className="h-full flex flex-col items-center w-16 bg-sidebar border-r border-sidebar-border py-4">
       <Sheet>
@@ -56,28 +60,28 @@ export function Sidebar({ rules, playerStats, onSave, onLoad, isPending }: Sideb
           <div className="space-y-4 mt-auto">
             <Separator className="bg-sidebar-border"/>
             <div className="space-y-2">
-                 <h3 className="font-semibold px-4 text-lg text-sidebar-primary-foreground">Game Controls</h3>
+                 <h3 className="font-semibold px-4 text-lg text-sidebar-primary-foreground">{t.gameControls}</h3>
                  <div className="flex flex-col gap-2 px-2">
                     <Button onClick={onLoad} variant="ghost" className="justify-start text-base" disabled={isPending}>
-                        <FolderOpen className="mr-3" /> Load Game
+                        <FolderOpen className="mr-3" /> {t.loadGame}
                     </Button>
                     <Button onClick={onSave} variant="ghost" className="justify-start text-base" disabled={isPending}>
-                        <Save className="mr-3" /> Save Game
+                        <Save className="mr-3" /> {t.gameSaved}
                     </Button>
                  </div>
             </div>
             <Separator className="bg-sidebar-border"/>
              <div className="space-y-2">
-                 <h3 className="font-semibold px-4 text-lg text-sidebar-primary-foreground">Settings</h3>
+                 <h3 className="font-semibold px-4 text-lg text-sidebar-primary-foreground">{t.settings}</h3>
                  <div className="flex flex-col gap-2 px-2">
                     <Button asChild variant="ghost" className="justify-start text-base">
                         <Link href="/admin/rules">
-                            <Wrench className="mr-3" /> Manage Rules
+                            <Wrench className="mr-3" /> {t.manageRules}
                         </Link>
                     </Button>
                      <Button asChild variant="ghost" className="justify-start text-base">
                         <Link href="/">
-                            <Home className="mr-3" /> Scenarios
+                            <Home className="mr-3" /> {t.scenarios}
                         </Link>
                     </Button>
                     <ThemeSwitcher />
