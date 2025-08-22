@@ -119,12 +119,14 @@ export function TalkDialog({
         setConversation(prev => [...prev, newNpcEntry]);
         
         let achieved = false;
+        const responseLower = result.response.toLowerCase();
+
         if (conversationType === 'agreement') {
-            if (result.response.toLowerCase().includes('i agree to')) {
+            if (responseLower.includes('i agree to')) {
                 achieved = true;
             }
         } else if (conversationType === 'secret') {
-            if (result.response.toLowerCase().includes(objective.toLowerCase())) {
+            if (responseLower.includes(objective.toLowerCase())) {
                 achieved = true;
             }
         }
@@ -163,7 +165,7 @@ export function TalkDialog({
         
         <div className="flex-grow overflow-hidden px-6">
             <ScrollArea className="h-full pr-4" ref={scrollAreaRef}>
-                {isGenerating ? (
+                {isGenerating || !characterProfile ? (
                     <div className="flex items-center justify-center h-full">
                         <Loader2 className="w-8 h-8 animate-spin" />
                         <p className="ml-4 text-lg">Character is approaching...</p>

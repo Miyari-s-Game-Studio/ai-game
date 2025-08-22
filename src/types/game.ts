@@ -33,6 +33,7 @@ export type GameState = {
   log: LogEntry[];
   route?: string;
   next_situation?: string;
+  characters?: Record<string, CharacterProfile>;
 };
 
 export type Track = {

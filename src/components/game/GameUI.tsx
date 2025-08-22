@@ -21,6 +21,7 @@ import { Button } from '../ui/button';
 import { LoadGameDialog, type SaveFile } from './LoadGameDialog';
 import { ActionLogDialog } from './ActionLogDialog';
 import { TalkDialog } from './TalkDialog';
+import { produce } from 'immer';
 
 interface GameUIProps {
     setGameControlHandlers: (handlers: {
@@ -42,6 +43,7 @@ const getInitialState = (rules: GameRules): GameState => {
     tracks: JSON.parse(JSON.stringify(rules.tracks)),
     log: [],
     player: JSON.parse(JSON.stringify(rules.initial.player)),
+    characters: {},
   };
 };
 
@@ -175,10 +177,10 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         handleSave: handleSaveGame,
         handleLoad: handleOpenLoadDialog,
         isPending: isPending,
-        isGenerating: isGeneratingScene,
+        isGenerating: isGeneratingScene || isGeneratingCharacter,
     });
     setPlayerStats(gameState.player);
-  }, [isPending, isGeneratingScene, gameState, rules]);
+  }, [isPending, isGeneratingScene, isGeneratingCharacter, gameState, rules]);
 
 
   const handleLoadGame = (state: GameState) => {
@@ -237,15 +239,34 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
     setConversationFlow(() => flow);
     setConversationType(type);
     setTalkFollowUpActions(talkRule.do.filter(action => !action.secret && !action.agreement));
-    setIsTalkDialogOpen(true);
-    setIsGeneratingCharacter(true);
+    
+    // Check for existing character profile
+    const existingProfile = gameState.characters?.[target];
+    if (existingProfile) {
+        setCharacterProfile(existingProfile);
+        setIsTalkDialogOpen(true);
+        return;
+    }
 
+    // If no profile, generate one
+    setIsGeneratingCharacter(true);
     try {
         const profile = await generateCharacter({
             situationLabel: currentSituation?.label || 'An unknown location',
             target: target,
         });
+        
+        // Save the new profile to the game state
+        setGameState(produce(draft => {
+            if (!draft.characters) {
+                draft.characters = {};
+            }
+            draft.characters[target] = profile;
+        }));
+
         setCharacterProfile(profile);
+        setIsTalkDialogOpen(true);
+
     } catch (error) {
         console.error('Failed to generate character:', error);
         toast({
@@ -253,7 +274,6 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
             title: 'AI Error',
             description: 'Could not create a character to talk to. Please try again.',
         });
-        setIsTalkDialogOpen(false);
     } finally {
         setIsGeneratingCharacter(false);
     }
@@ -467,11 +487,11 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         </Card>
         
         <div>
-            {isPending || isGeneratingScene ? (
+            {isPending || isGeneratingScene || isGeneratingCharacter ? (
                 <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <p className="ml-4 text-lg">
-                      {isGeneratingScene ? 'Generating scene...' : 'AI is crafting the next part of your story...'}
+                      {isGeneratingScene ? 'Generating scene...' : isGeneratingCharacter ? 'Character is approaching...' : 'AI is crafting the next part of your story...'}
                     </p>
                 </div>
             ) : (
