@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, SendHorizontal, User, Bot, XCircle } from 'lucide-react';
+import { Loader2, SendHorizontal, User, Bot, XCircle, CheckCircle } from 'lucide-react';
 import type { CharacterProfile, LogEntry, ConversationHistory } from '@/types/game';
 import { ContinueConversationOutput } from '@/ai/flows/generate-conversation';
 
@@ -22,13 +22,15 @@ interface TalkDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   target: string;
+  objective: string;
   characterProfile: CharacterProfile | null;
   isGenerating: boolean;
-  onConversationEnd: (log: LogEntry[], finalSummary: string) => void;
+  onConversationEnd: (log: LogEntry[], objectiveAchieved: boolean) => void;
   continueConversation: (input: {
     characterProfile: CharacterProfile;
     conversationHistory: ConversationHistory;
     playerInput: string;
+    objective: string;
   }) => Promise<ContinueConversationOutput>;
 }
 
@@ -36,6 +38,7 @@ export function TalkDialog({
   isOpen,
   onOpenChange,
   target,
+  objective,
   characterProfile,
   isGenerating,
   onConversationEnd,
@@ -44,6 +47,7 @@ export function TalkDialog({
   const [conversation, setConversation] = useState<LogEntry[]>([]);
   const [playerInput, setPlayerInput] = useState('');
   const [isReplying, setIsReplying] = useState(false);
+  const [objectiveAchieved, setObjectiveAchieved] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,8 +62,11 @@ export function TalkDialog({
       ]);
     } else if (!isOpen) {
       // Reset on close
-      setConversation([]);
-      setPlayerInput('');
+      setTimeout(() => {
+        setConversation([]);
+        setPlayerInput('');
+        setObjectiveAchieved(false);
+      }, 300); // Delay to allow dialog to close before state reset
     }
   }, [isOpen, characterProfile]);
 
@@ -83,12 +90,14 @@ export function TalkDialog({
       message: playerInput,
     };
 
-    setConversation(prev => [...prev, newPlayerEntry]);
+    const currentHistory = [...conversation, newPlayerEntry];
+    setConversation(currentHistory);
     setIsReplying(true);
+    const sentInput = playerInput;
     setPlayerInput('');
 
     try {
-        const history: ConversationHistory = conversation.map(entry => ({
+        const history: ConversationHistory = currentHistory.map(entry => ({
             role: entry.type === 'player' ? 'user' : 'model',
             parts: [{ text: entry.message }]
         }));
@@ -96,7 +105,8 @@ export function TalkDialog({
         const result = await continueConversation({
             characterProfile,
             conversationHistory: history,
-            playerInput,
+            playerInput: sentInput,
+            objective,
         });
 
         const newNpcEntry: LogEntry = {
@@ -106,6 +116,11 @@ export function TalkDialog({
             message: result.response,
         };
         setConversation(prev => [...prev, newNpcEntry]);
+        
+        if (result.objectiveAchieved) {
+            setObjectiveAchieved(true);
+            setTimeout(() => handleClose(true), 2000); // Auto-close after a delay
+        }
 
     } catch (error) {
         console.error("Failed to get NPC reply:", error);
@@ -119,10 +134,9 @@ export function TalkDialog({
         setIsReplying(false);
     }
   };
-
-  const handleClose = () => {
-    const summary = `Finished a conversation with ${characterProfile?.name || target}.`;
-    onConversationEnd(conversation, summary);
+  
+  const handleClose = (achieved: boolean) => {
+    onConversationEnd(conversation, achieved);
     onOpenChange(false);
   };
 
@@ -173,6 +187,12 @@ export function TalkDialog({
                                 </div>
                             </div>
                         )}
+                        {objectiveAchieved && (
+                             <div className="flex flex-col items-center justify-center gap-2 p-4 text-green-600">
+                                <CheckCircle className="w-10 h-10"/>
+                                <p className="font-bold text-lg">Testimony Recorded!</p>
+                             </div>
+                        )}
                     </div>
                 )}
             </ScrollArea>
@@ -185,14 +205,14 @@ export function TalkDialog({
               value={playerInput}
               onChange={(e) => setPlayerInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              disabled={isGenerating || isReplying}
+              disabled={isGenerating || isReplying || objectiveAchieved}
               className="text-base"
             />
-            <Button onClick={handleSend} disabled={isGenerating || isReplying || !playerInput.trim()}>
+            <Button onClick={handleSend} disabled={isGenerating || isReplying || objectiveAchieved || !playerInput.trim()}>
               <SendHorizontal className="mr-2" />
               Send
             </Button>
-            <Button variant="outline" onClick={handleClose}>
+            <Button variant="outline" onClick={() => handleClose(false)} disabled={objectiveAchieved}>
                 <XCircle className="mr-2" />
                 End Conversation
             </Button>

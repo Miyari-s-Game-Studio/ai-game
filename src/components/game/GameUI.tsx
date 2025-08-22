@@ -55,9 +55,14 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
+  
+  // State for the talk dialog
   const [talkTarget, setTalkTarget] = useState('');
+  const [talkObjective, setTalkObjective] = useState('');
+  const [talkFollowUpActions, setTalkFollowUpActions] = useState<Record<string, any>[]>([]);
   const [characterProfile, setCharacterProfile] = useState<CharacterProfile | null>(null);
   const [isGeneratingCharacter, setIsGeneratingCharacter] = useState(false);
+
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const { toast } = useToast();
 
@@ -191,9 +196,29 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
   }
 
   const handleTalk = async (target: string) => {
+    if (!currentSituation) return;
+
+    // Find the rule for this talk action to get the objective
+    const talkRule = currentSituation.on_action.find(rule => 
+        rule.when.actionId === 'talk' && 
+        rule.when.targetPattern && 
+        new RegExp(`^(${rule.when.targetPattern})$`, 'i').test(target)
+    );
+    
+    if (!talkRule) {
+        toast({ variant: 'destructive', title: 'Action Error', description: `No talk rule found for target: ${target}` });
+        return;
+    }
+
+    const logAction = talkRule.do.find(action => action.log);
+    const objective = logAction ? (logAction.log as string) : "No specific objective.";
+
     setTalkTarget(target);
+    setTalkObjective(objective);
+    setTalkFollowUpActions(talkRule.do.filter(action => !action.log));
     setIsTalkDialogOpen(true);
     setIsGeneratingCharacter(true);
+
     try {
         const profile = await generateCharacter({
             situationLabel: currentSituation?.label || 'An unknown location',
@@ -212,41 +237,63 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         setIsGeneratingCharacter(false);
     }
   };
-
-  const handleEndTalk = (conversationLog: LogEntry[], finalSummary: string) => {
+  
+  const handleEndTalk = (conversationLog: LogEntry[], objectiveAchieved: boolean) => {
+      // Add conversation to the main log
       setGameState(prevState => ({
           ...prevState,
-          log: [...prevState.log, ...conversationLog, { id: Date.now(), type: 'procedural', message: finalSummary }],
+          log: [...prevState.log, ...conversationLog],
       }));
-      
-      // A small hack to trigger a narrative update after talking
-      startTransition(async () => {
-        const { newState } = await processAction(rules, gameState, 'reflect', 'after-talk');
-        
-        const narrativeInput = {
-          situationLabel: currentSituation?.label || '',
-          sceneDescription: sceneDescription,
-          actionTaken: `reflecting after talking to ${talkTarget}`,
-          proceduralLogs: [finalSummary],
-          knownTargets: knownTargets,
-        };
 
-        const narrativeOutput = await generateActionNarrative(narrativeInput);
-        
-        const narrativeLog: LogEntry = {
-            id: Date.now() + 1,
-            type: 'narrative',
-            message: narrativeOutput.narrative,
-        };
-        
-        setGameState(prevState => ({
-          ...newState,
-          log: [...prevState.log, narrativeLog],
-        }));
-      });
+      if (objectiveAchieved) {
+          // If the objective was met, process the follow-up actions (e.g., set counters)
+          startTransition(async () => {
+              const { newState, proceduralLogs } = await processAction(
+                  rules, 
+                  gameState, 
+                  'talk-objective-complete', // Special actionId to trigger only these actions
+                  undefined,
+                  talkFollowUpActions
+              );
 
+              const narrativeInput = {
+                  situationLabel: currentSituation?.label || '',
+                  sceneDescription: sceneDescription,
+                  actionTaken: `Succeeded in conversation with ${talkTarget}`,
+                  proceduralLogs: proceduralLogs.map(l => l.message),
+                  knownTargets: knownTargets,
+              };
+
+              const narrativeOutput = await generateActionNarrative(narrativeInput);
+              
+              const narrativeLog: LogEntry = {
+                  id: Date.now() + 1,
+                  type: 'narrative',
+                  message: narrativeOutput.narrative,
+              };
+              
+              setGameState(prevState => ({
+                ...newState,
+                log: [...prevState.log, ...proceduralLogs, narrativeLog],
+              }));
+          });
+      } else {
+        // If they just ended the conversation, maybe just log that.
+         startTransition(async () => {
+             const finalSummary = `Finished a conversation with ${talkTarget} without achieving the objective.`;
+             const summaryLog: LogEntry = { id: Date.now(), type: 'procedural', message: finalSummary };
+             setGameState(prevState => ({
+                 ...prevState,
+                 log: [...prevState.log, summaryLog],
+             }));
+         });
+      }
+
+      // Reset talk state
       setTalkTarget('');
       setCharacterProfile(null);
+      setTalkObjective('');
+      setTalkFollowUpActions([]);
   };
 
 
@@ -347,6 +394,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         isOpen={isTalkDialogOpen}
         onOpenChange={setIsTalkDialogOpen}
         target={talkTarget}
+        objective={talkObjective}
         characterProfile={characterProfile}
         isGenerating={isGeneratingCharacter}
         onConversationEnd={handleEndTalk}

@@ -24,7 +24,7 @@ export const defaultGameRules: GameRules = {
     counterIcons: {
       clues: 'FileText',
       samples: 'Beaker',
-      testimony: 'Handshake',
+      testimony: 'Quote',
       shutdown_ok: 'CheckCircle2',
       default: 'Star',
     },
@@ -113,7 +113,7 @@ export const defaultGameRules: GameRules = {
           do: [
             { add: 'counters.clues,1' },
             { set: 'next_situation,interview_industry', if: 'counters.clues >= 2' },
-            { log: 'The factory has suspicious emissions at night; it would be better if you could get testimony.' },
+            { log: 'The factory is now a key area of investigation. You should go there to gather more direct evidence.' },
           ],
         },
         {
@@ -128,9 +128,8 @@ export const defaultGameRules: GameRules = {
         {
           when: { actionId: 'talk', targetPattern: 'fisherman|resident|guard' },
           do: [
-            // This action is now handled by the TalkDialog, but we can keep a log.
-            { add: 'counters.clues,1' },
-            { log: 'You decide to talk to a local.' },
+            { log: "The factory has suspicious emissions at night; maybe you can get a testimony." },
+            { set: 'counters.testimony,true' },
           ],
         },
         {
@@ -171,7 +170,8 @@ export const defaultGameRules: GameRules = {
         {
           when: { actionId: 'talk', targetPattern: 'manager|guard|foreman' },
           do: [
-            { log: 'You decide to talk to someone at the factory.' },
+            { log: 'The factory seems to be using a secret pipeline to discharge waste.' },
+            { set: 'counters.shutdown_ok,true' },
           ],
         },
         {

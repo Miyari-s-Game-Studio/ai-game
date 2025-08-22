@@ -20,41 +20,48 @@ export async function processAction(
   rules: GameRules,
   currentState: GameState,
   actionId: string,
-  target?: string
+  target?: string,
+  // Allow overriding the action rules, for special cases like post-conversation events
+  actionRulesOverride?: Record<string, any>[]
 ): Promise<{ newState: GameState; proceduralLogs: LogEntry[] }> {
   
   const proceduralLogs: LogEntry[] = [];
   
   let newState = produce(currentState, (draft) => {
     const situation = rules.situations[draft.situation];
-    if (!situation) return;
+    if (!situation && !actionRulesOverride) return;
 
-    const actionRules = situation.on_action;
+    // Use override if provided, otherwise use rules from the current situation
+    const actionRules = actionRulesOverride || situation.on_action;
 
     for (const rule of actionRules) {
-      const { when, do: actions } = rule;
+      // If we are using the standard rules, we need to match actionId and target.
+      // If we are using an override, we assume the rules are meant to be executed directly.
+      if (!actionRulesOverride) {
+        const { when } = rule;
+        if (when.actionId !== actionId) {
+          continue;
+        }
 
-      if (when.actionId !== actionId) {
-        continue;
-      }
+        if (when.targetPattern) {
+          if (!target) continue;
+          const pattern = `^(${when.targetPattern})$`;
+          if (!new RegExp(pattern, 'i').test(target)) {
+            continue;
+          }
+        }
+        
+        if (when.textRegex && (!target || !new RegExp(when.textRegex, 'i').test(target))) {
+          continue;
+        }
 
-      if (when.targetPattern) {
-        if (!target) continue;
-        const pattern = `^(${when.targetPattern})$`;
-        if (!new RegExp(pattern, 'i').test(target)) {
+        if (when.require && !evaluateCondition(when.require, draft)) {
           continue;
         }
       }
-      
-      if (when.textRegex && (!target || !new RegExp(when.textRegex, 'i').test(target))) {
-        continue;
-      }
 
-      if (when.require && !evaluateCondition(when.require, draft)) {
-        continue;
-      }
-
-      // Rule matches, execute actions
+      // Rule matches (or is an override), execute actions
+      const actions = actionRulesOverride || rule.do;
       for (const action of actions) {
         const actionDef = action as any;
         
@@ -99,7 +106,14 @@ export async function processAction(
             } else if (parts.length === 2) {
                 const [obj, key] = parts;
                 if (obj === 'counters') {
-                    draft.counters[key] = valStr === 'true' ? true : valStr === 'false' ? false : valStr;
+                    const boolVal = valStr.toLowerCase();
+                    if (boolVal === 'true') {
+                        draft.counters[key] = true;
+                    } else if (boolVal === 'false') {
+                        draft.counters[key] = false;
+                    } else {
+                         draft.counters[key] = valStr;
+                    }
                 } else if (obj === 'route') {
                     draft.route = valStr;
                 }
@@ -121,12 +135,18 @@ export async function processAction(
             break;
           }
           case 'log':
-            proceduralLogs.push({ id: Date.now() + proceduralLogs.length, type: 'procedural', message: params as string });
+            // Don't process log actions in this special override mode
+            if (!actionRulesOverride) {
+              proceduralLogs.push({ id: Date.now() + proceduralLogs.length, type: 'procedural', message: params as string });
+            }
             break;
         }
       }
-      // Break after the first matching rule is processed
-      break; 
+      
+      // If we are in standard mode, break after the first matching rule is processed.
+      if (!actionRulesOverride) {
+        break; 
+      }
     }
   });
 
