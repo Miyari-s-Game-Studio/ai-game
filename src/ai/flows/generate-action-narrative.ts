@@ -22,8 +22,8 @@ const GenerateActionNarrativeInputSchema = z.object({
 });
 export type GenerateActionNarrativeInput = z.infer<typeof GenerateActionNarrativeInputSchema>;
 
-const GenerateActionNarrativeOutputSchema = z.object({
-  narrative: z.string().describe("A compelling, 2-3 sentence narrative describing the result of the player's action. It must be based on the procedural logs and fit the scene description. It must also subtly weave in the known interaction targets."),
+let GenerateActionNarrativeOutputSchema = z.object({
+  narrative: z.string(),
 });
 export type GenerateActionNarrativeOutput = z.infer<typeof GenerateActionNarrativeOutputSchema>;
 
@@ -35,10 +35,19 @@ const generateActionNarrativeFlow = ai.defineFlow(
   {
     name: 'generateActionNarrativeFlow',
     inputSchema: GenerateActionNarrativeInputSchema,
-    outputSchema: GenerateActionNarrativeOutputSchema,
+    outputSchema: z.object({ // Define output schema inline for flow signature
+        narrative: z.string(),
+    }),
   },
   async (input) => {
     const isZh = input.language === 'zh';
+
+    const outputSchema = z.object({
+        narrative: z.string().describe(isZh 
+            ? "一个引人入胜的、2-3句话的叙述，描述玩家行动的结果。它必须基于程序日志，并与场景描述相符。它还必须巧妙地编织入已知的互动目标。"
+            : "A compelling, 2-3 sentence narrative describing the result of the player's action. It must be based on the procedural logs and fit the scene description. It must also subtly weave in the known interaction targets."
+        ),
+    });
 
     const promptText = isZh ? `
 你是一个互动叙事游戏的地下城主。你的任务是描述玩家行动的结果。
@@ -81,7 +90,7 @@ Generate the action-result narrative now.
 `;
     const { output } = await ai.generate({
         prompt: promptText,
-        output: { schema: GenerateActionNarrativeOutputSchema },
+        output: { schema: outputSchema },
     });
     return output!;
   }

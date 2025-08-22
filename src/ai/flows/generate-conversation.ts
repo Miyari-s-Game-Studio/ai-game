@@ -24,11 +24,12 @@ const GenerateCharacterInputSchema = z.object({
 });
 export type GenerateCharacterInput = z.infer<typeof GenerateCharacterInputSchema>;
 
-const GenerateCharacterOutputSchema = z.object({
-  name: z.string().describe("A common, realistic name for the character."),
-  personality: z.string().describe("A brief, 1-2 sentence description of the character's personality (e.g., 'grumpy but helpful,' 'nervous and evasive')."),
-  dialogStyle: z.string().describe("A description of how the character speaks (e.g., 'uses short, clipped sentences,' 'speaks very formally,' 'has a thick local accent')."),
-  openingLine: z.string().describe("The first thing the character says to the player to start the conversation."),
+// Define a placeholder schema for the type export
+let GenerateCharacterOutputSchema = z.object({
+    name: z.string(),
+    personality: z.string(),
+    dialogStyle: z.string(),
+    openingLine: z.string(),
 });
 export type GenerateCharacterOutput = z.infer<typeof GenerateCharacterOutputSchema>;
 
@@ -41,10 +42,18 @@ const generateCharacterFlow = ai.defineFlow(
   {
     name: 'generateCharacterFlow',
     inputSchema: GenerateCharacterInputSchema,
-    outputSchema: GenerateCharacterOutputSchema,
+    outputSchema: GenerateCharacterOutputSchema, // Use placeholder for signature
   },
   async (input) => {
     const isZh = input.language === 'zh';
+    
+    const outputSchema = z.object({
+        name: z.string().describe(isZh ? "角色的一个常见、现实的名字。" : "A common, realistic name for the character."),
+        personality: z.string().describe(isZh ? "关于角色个性的简短一两句话描述（例如，“脾气暴躁但乐于助人”，“紧张而回避”）。" : "A brief, 1-2 sentence description of the character's personality (e.g., 'grumpy but helpful,' 'nervous and evasive')."),
+        dialogStyle: z.string().describe(isZh ? "角色说话方式的描述（例如，“使用简短、生硬的句子”，“说话非常正式”，“带有浓厚的地方口音”）。" : "A description of how the character speaks (e.g., 'uses short, clipped sentences,' 'speaks very formally,' 'has a thick local accent')."),
+        openingLine: z.string().describe(isZh ? "角色对玩家说的第一句话，以开始对话。" : "The first thing the character says to the player to start the conversation."),
+    });
+
     const promptText = isZh ? `
 你是一个叙事游戏的角色创造者。你的任务是为玩家生成一个独特的、随机的NPC以供互动。
 
@@ -62,7 +71,7 @@ Generate a character profile for this NPC. Make them feel like a real, unique pe
 `;
     const { output } = await ai.generate({
         prompt: promptText,
-        output: { schema: GenerateCharacterOutputSchema },
+        output: { schema: outputSchema },
     });
     return output!;
   }
@@ -75,7 +84,7 @@ Generate a character profile for this NPC. Make them feel like a real, unique pe
 
 const ExtractSecretInputSchema = z.object({
     language: z.enum(['en', 'zh']),
-    characterProfile: GenerateCharacterOutputSchema,
+    characterProfile: GenerateCharacterOutputSchema, // We can reuse the placeholder here
     conversationHistory: z.custom<ConversationHistory>(),
     playerInput: z.string().describe("The latest message from the player."),
     objective: z.string().describe("The secret information the player is trying to get the character to reveal."),
@@ -83,7 +92,7 @@ const ExtractSecretInputSchema = z.object({
 export type ExtractSecretInput = z.infer<typeof ExtractSecretInputSchema>;
 
 const ConversationOutputSchema = z.object({
-  response: z.string().describe("The character's response to the player."),
+  response: z.string(),
 });
 export type ConversationOutput = z.infer<typeof ConversationOutputSchema>;
 
@@ -95,10 +104,15 @@ const extractSecretFlow = ai.defineFlow(
   {
     name: 'extractSecretFlow',
     inputSchema: ExtractSecretInputSchema,
-    outputSchema: ConversationOutputSchema,
+    outputSchema: ConversationOutputSchema, // Use placeholder for signature
   },
   async ({ language, characterProfile, conversationHistory, playerInput, objective }) => {
     const isZh = language === 'zh';
+    
+    const outputSchema = z.object({
+        response: z.string().describe(isZh ? "角色对玩家的回应。" : "The character's response to the player."),
+    });
+
     const systemPrompt = isZh ? `
 你是一个角色扮演游戏中的NPC。
 你的名字是：${characterProfile.name}
@@ -129,7 +143,7 @@ Respond to the player's message based on your personality and the conversation s
       system: systemPrompt,
       prompt: playerInput,
       output: {
-          schema: ConversationOutputSchema,
+          schema: outputSchema,
       },
     });
     return output!;
@@ -142,7 +156,7 @@ Respond to the player's message based on your personality and the conversation s
 
 const ReachAgreementInputSchema = z.object({
     language: z.enum(['en', 'zh']),
-    characterProfile: GenerateCharacterOutputSchema,
+    characterProfile: GenerateCharacterOutputSchema, // Reusing placeholder
     conversationHistory: z.custom<ConversationHistory>(),
     playerInput: z.string().describe("The latest message from the player."),
     objective: z.string().describe("A negotiation point the player wants the character to agree to."),
@@ -157,10 +171,15 @@ const reachAgreementFlow = ai.defineFlow(
   {
     name: 'reachAgreementFlow',
     inputSchema: ReachAgreementInputSchema,
-    outputSchema: ConversationOutputSchema,
+    outputSchema: ConversationOutputSchema, // Reusing placeholder
   },
   async ({ language, characterProfile, conversationHistory, playerInput, objective }) => {
     const isZh = language === 'zh';
+    
+    const outputSchema = z.object({
+        response: z.string().describe(isZh ? "角色对玩家的回应。" : "The character's response to the player."),
+    });
+
     const systemPrompt = isZh ? `
 你是一个角色扮演游戏中的NPC。
 你的名字是：${characterProfile.name}
@@ -193,7 +212,7 @@ Respond to the player's message based on your personality and the conversation s
       system: systemPrompt,
       prompt: playerInput,
       output: {
-          schema: ConversationOutputSchema,
+          schema: outputSchema,
       },
     });
     return output!;

@@ -19,8 +19,8 @@ const GenerateSceneDescriptionInputSchema = z.object({
 });
 export type GenerateSceneDescriptionInput = z.infer<typeof GenerateSceneDescriptionInputSchema>;
 
-const GenerateSceneDescriptionOutputSchema = z.object({
-  sceneDescription: z.string().describe("A compelling, multi-paragraph narrative that describes the scene. It MUST naturally weave in all of the provided 'knownTargets' to introduce them to the player."),
+let GenerateSceneDescriptionOutputSchema = z.object({
+  sceneDescription: z.string(),
 });
 export type GenerateSceneDescriptionOutput = z.infer<typeof GenerateSceneDescriptionOutputSchema>;
 
@@ -32,10 +32,20 @@ const generateSceneDescriptionFlow = ai.defineFlow(
   {
     name: 'generateSceneDescriptionFlow',
     inputSchema: GenerateSceneDescriptionInputSchema,
-    outputSchema: GenerateSceneDescriptionOutputSchema,
+    outputSchema: z.object({ // Define output schema inline for flow signature
+        sceneDescription: z.string(),
+    }),
   },
   async (input) => {
     const isZh = input.language === 'zh';
+    
+    const outputSchema = z.object({
+        sceneDescription: z.string().describe(isZh 
+            ? "一个引人入胜的、多段落的叙述，描述了场景。它必须自然地编织入所有提供的“已知目标”，以将它们介绍给玩家。"
+            : "A compelling, multi-paragraph narrative that describes the scene. It MUST naturally weave in all of the provided 'knownTargets' to introduce them to the player."
+        ),
+    });
+
     const promptText = isZh ? `
 你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
 
@@ -61,7 +71,7 @@ Generate the scene description now.
 `;
     const { output } = await ai.generate({
         prompt: promptText,
-        output: { schema: GenerateSceneDescriptionOutputSchema },
+        output: { schema: outputSchema },
     });
     return output!;
   }
