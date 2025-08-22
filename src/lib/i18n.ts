@@ -1,12 +1,12 @@
 
 // src/lib/i18n.ts
-import type { GameRules } from "@/types/game";
+import type { GameRules, GenerateActionNarrativeInput, GenerateCharacterInput, GenerateSceneDescriptionInput, ReachAgreementInput, ExtractSecretInput } from "@/types/game";
 
 type Language = 'en' | 'zh';
 
 const translations = {
   en: {
-    // GameUI
+    // UI Translations from before...
     loadingScene: 'Generating scene...',
     characterApproaching: 'Character is approaching...',
     aiCraftingStory: 'AI is crafting the next part of your story...',
@@ -20,8 +20,6 @@ const translations = {
     environmentalStatus: 'Environmental Status',
     keyItemsAndInfo: 'Key Items & Info',
     storyWillUnfold: 'The story will unfold here...',
-
-    // TalkDialog
     talkingTo: 'Talking to',
     yourObjective: 'Your Objective',
     uncoverSecret: 'Uncover the secret.',
@@ -31,40 +29,129 @@ const translations = {
     endConversation: 'End Conversation',
     objectiveAchieved: 'Objective Achieved!',
     characterLostInThought: 'The character seems lost in thought and does not reply.',
-    
-    // LoadGameDialog
     loadGame: 'Load Game',
     loadGameDescription: 'Select a saved game to continue your progress.',
     noSavedGames: 'No saved games found.',
     load: 'Load',
     cancel: 'Cancel',
-    
-    // ActionLogDialog
     fullActionLog: 'Full Action Log',
     actionLogDescription: 'A complete history of your actions and the resulting narrative.',
-    
-    // Sidebar
     gameControls: 'Game Controls',
     settings: 'Settings',
     manageRules: 'Manage Rules',
     scenarios: 'Scenarios',
-
-    // Page.tsx
     selectScenario: 'Select a Scenario',
     selectScenarioDescription: 'Choose an interactive story to begin, or load a saved game.',
     playScenario: 'Play Scenario',
     version: 'Version',
     yourStory: 'Your Story',
     createNew: 'Create New',
-    
-    // useToast related
     gameSaved: 'Game Saved',
     saveFailed: 'Save Failed',
     gameLoaded: 'Game Loaded',
     saveDeleted: 'Save Deleted',
+
+    // AI Flow Translations
+    ai: {
+      generateScene: {
+        prompt: (input: GenerateSceneDescriptionInput) => `
+You are a game master for an interactive narrative game. Your task is to craft a compelling scene description for the player. This description sets the stage for the current situation.
+
+Current Situation: ${input.situationLabel}
+
+You must create a captivating, multi-paragraph narrative that describes the environment, atmosphere, and key elements. Crucially, you MUST naturally weave all of the following interaction targets into your description to ensure the player knows what they can interact with.
+
+Interaction Targets:
+${input.knownTargets.map(target => `- ${target}`).join('\n')}
+
+Generate the scene description now.
+`,
+        schema: {
+            sceneDescription: "A compelling, multi-paragraph narrative that describes the scene. It MUST naturally weave in all of the provided 'knownTargets' to introduce them to the player."
+        }
+      },
+      generateActionNarrative: {
+        prompt: (input: GenerateActionNarrativeInput) => `
+You are a game master for an interactive narrative game. Your task is to describe the outcome of the player's action.
+
+The player is currently in this situation:
+Situation: ${input.situationLabel}
+Scene: ${input.sceneDescription}
+
+The player took this action:
+Action: ${input.actionTaken}
+
+The game engine determined the following concrete results from this action:
+${input.proceduralLogs.map(log => `- ${log}`).join('\n')}
+
+Based on these results, write a compelling, 2-3 sentence narrative describing what happens. The tone should be consistent with the scene. It is crucial that your response provides clear hints about what the player can interact with next by subtly weaving in items from the 'Known Interaction Targets' list.
+
+Known Interaction Targets:
+${input.knownTargets.map(target => `- ${target}`).join('\n')}
+
+Generate the action-result narrative now.
+`,
+        schema: {
+            narrative: "A compelling, 2-3 sentence narrative describing the result of the player's action. It must be based on the procedural logs and fit the scene description. It must also subtly weave in the known interaction targets."
+        }
+      },
+      generateCharacter: {
+        prompt: (input: GenerateCharacterInput) => `
+You are a character creator for a narrative game. Your task is to generate a unique, random NPC for the player to interact with.
+
+The player is in the following situation: ${input.situationLabel}
+The player wants to talk to a person described as: ${input.target}
+
+Generate a character profile for this NPC. Make them feel like a real, unique person. Avoid clichés.
+`,
+        schema: {
+            name: "A common, realistic name for the character.",
+            personality: "A brief, 1-2 sentence description of the character's personality (e.g., 'grumpy but helpful,' 'nervous and evasive').",
+            dialogStyle: "A description of how the character speaks (e.g., 'uses short, clipped sentences,' 'speaks very formally,' 'has a thick local accent').",
+            openingLine: "The first thing the character says to the player to start the conversation."
+        }
+      },
+      extractSecret: {
+        systemPrompt: (input: ExtractSecretInput) => `
+You are an NPC in a role-playing game.
+Your name is: ${input.characterProfile.name}
+Your personality is: ${input.characterProfile.personality}
+Your dialogue style is: ${input.characterProfile.dialogStyle}
+
+You must stay in character at all times. The player is trying to get you to reveal a secret.
+The secret is: "${input.objective}"
+
+Do NOT reveal the secret unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
+
+Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.
+`,
+        schema: {
+            response: "The character's response to the player."
+        }
+      },
+      reachAgreement: {
+        systemPrompt: (input: ReachAgreementInput) => `
+You are an NPC in a role-playing game.
+Your name is: ${input.characterProfile.name}
+Your personality is: ${input.characterProfile.personality}
+Your dialogue style is: ${input.characterProfile.dialogStyle}
+
+You must stay in character at all times. The player is trying to get you to agree to something.
+The objective is: "${input.objective}"
+
+Do NOT agree to the proposal unless the player's dialogue skillfully and naturally persuades you.
+If you are agreeing to the proposal, you MUST use the words "I agree to..." in your response.
+
+Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.
+`,
+        schema: {
+            response: "The character's response to the player."
+        }
+      }
+    }
   },
   zh: {
-    // GameUI
+    // UI Translations from before...
     loadingScene: '正在生成场景...',
     characterApproaching: '角色正在走来...',
     aiCraftingStory: 'AI正在创作你的下一个故事...',
@@ -78,8 +165,6 @@ const translations = {
     environmentalStatus: '环境状态',
     keyItemsAndInfo: '关键物品和信息',
     storyWillUnfold: '故事将在这里展开...',
-
-    // TalkDialog
     talkingTo: '与...交谈',
     yourObjective: '你的目标',
     uncoverSecret: '揭开秘密。',
@@ -89,37 +174,126 @@ const translations = {
     endConversation: '结束对话',
     objectiveAchieved: '目标已达成！',
     characterLostInThought: '角色似乎陷入了沉思，没有回应。',
-
-    // LoadGameDialog
     loadGame: '读取游戏',
     loadGameDescription: '选择一个存档以继续你的进度。',
     noSavedGames: '未找到存档。',
     load: '读取',
     cancel: '取消',
-
-    // ActionLogDialog
     fullActionLog: '完整行动日志',
     actionLogDescription: '你的行动和相应叙事的完整历史记录。',
-
-    // Sidebar
     gameControls: '游戏控制',
     settings: '设置',
     manageRules: '管理规则',
     scenarios: '选择剧本',
-
-    // Page.tsx
     selectScenario: '选择一个剧本',
     selectScenarioDescription: '选择一个互动故事开始，或读取一个存档。',
     playScenario: '开始剧本',
     version: '版本',
     yourStory: '你的故事',
     createNew: '创建新的',
-
-    // useToast related
     gameSaved: '游戏已保存',
     saveFailed: '保存失败',
     gameLoaded: '游戏已读取',
     saveDeleted: '存档已删除',
+
+    // AI Flow Translations
+    ai: {
+      generateScene: {
+        prompt: (input: GenerateSceneDescriptionInput) => `
+你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
+
+当前情境：${input.situationLabel}
+
+你必须创造一个引人入胜的、多段落的叙述，描述环境、氛围和关键元素。至关重要的是，你必须将以下所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
+
+互动目标：
+${input.knownTargets.map(target => `- ${target}`).join('\n')}
+
+现在生成场景描述。
+`,
+        schema: {
+            sceneDescription: "一个引人入胜的、多段落的叙述，描述了场景。它必须自然地编织入所有提供的“已知目标”，以将它们介绍给玩家。"
+        }
+      },
+      generateActionNarrative: {
+        prompt: (input: GenerateActionNarrativeInput) => `
+你是一个互动叙事游戏的地下城主。你的任务是描述玩家行动的结果。
+
+玩家目前处于这种情况：
+情境：${input.situationLabel}
+场景：${input.sceneDescription}
+
+玩家采取了此行动：
+行动：${input.actionTaken}
+
+游戏引擎确定了此行动的具体结果如下：
+${input.proceduralLogs.map(log => `- ${log}`).join('\n')}
+
+根据这些结果，写一个引人入胜的、2-3句话的叙述，描述发生了什么。基调应与场景一致。至关重要的是，你的回应必须通过巧妙地编织“已知互动目标”列表中的项目，为玩家下一步可以与什么互动提供清晰的提示。
+
+已知互动目标：
+${input.knownTargets.map(target => `- ${target}`).join('\n')}
+
+现在生成行动结果的叙述。
+`,
+        schema: {
+            narrative: "一个引人入胜的、2-3句话的叙述，描述玩家行动的结果。它必须基于程序日志，并与场景描述相符。它还必须巧妙地编织入已知的互动目标。"
+        }
+      },
+      generateCharacter: {
+        prompt: (input: GenerateCharacterInput) => `
+你是一个叙事游戏的角色创造者。你的任务是为玩家生成一个独特的、随机的NPC以供互动。
+
+玩家处于以下情境中：${input.situationLabel}
+玩家想要与一个被描述为“${input.target}”的人交谈。
+
+为此NPC生成一个角色简介。让他们感觉像一个真实的、独特的人。避免陈词滥调。
+`,
+        schema: {
+            name: "角色的一个常见、现实的名字。",
+            personality: "关于角色个性的简短一两句话描述（例如，“脾气暴躁但乐于助人”，“紧张而回避”）。",
+            dialogStyle: "角色说话方式的描述（例如，“使用简短、生硬的句子”，“说话非常正式”，“带有浓厚的地方口音”）。",
+            openingLine: "角色对玩家说的第一句话，以开始对话。"
+        }
+      },
+      extractSecret: {
+        systemPrompt: (input: ExtractSecretInput) => `
+你是一个角色扮演游戏中的NPC。
+你的名字是：${input.characterProfile.name}
+你的个性是：${input.characterProfile.personality}
+你的对话风格是：${input.characterProfile.dialogStyle}
+
+你必须始终保持角色。玩家正试图让你透露一个秘密。
+秘密是：“${input.objective}”
+
+除非玩家的对话技巧娴熟自然地引导你这样做，否则不要透露秘密。要微妙。
+
+根据你的个性和目前的对话情况，回应玩家的信息。保持你的回答简洁自然。
+`,
+        schema: {
+            response: "角色对玩家的回应。"
+        }
+      },
+      reachAgreement: {
+        systemPrompt: (input: ReachAgreementInput) => `
+你是一个角色扮演游戏中的NPC。
+你的名字是：${input.characterProfile.name}
+你的个性是：${input.characterProfile.personality}
+你的对话风格是：${input.characterProfile.dialogStyle}
+
+你必须始终保持角色。玩家正试图让你同意某件事。
+目标是：“${input.objective}”
+
+除非玩家的对话技巧娴熟自然地说服你，否则不要同意这个提议。
+如果你同意这个提议，你必须在你的回应中使用“我同意...”这句话。
+
+根据你的个性和目前的对话情况，回应玩家的信息。保持你的回答简洁自然。
+`,
+        schema: {
+            response: "角色对玩家的回应。"
+        }
+      }
+    }
   },
 };
 

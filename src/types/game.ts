@@ -1,4 +1,5 @@
 
+
 export type PlayerAttributes = {
   strength: number;
   dexterity: number;
@@ -110,3 +111,43 @@ export type ConversationHistory = {
   role: 'user' | 'model';
   parts: { text: string }[];
 }[];
+
+
+// AI Flow Input/Output Types
+
+export interface GenerateSceneDescriptionInput {
+  language: 'en' | 'zh';
+  situationLabel: string;
+  knownTargets: string[];
+};
+
+export interface GenerateActionNarrativeInput {
+  language: 'en' | 'zh';
+  situationLabel: string;
+  sceneDescription: string;
+  actionTaken: string;
+  proceduralLogs: string[];
+  knownTargets: string[];
+};
+
+export interface GenerateCharacterInput {
+  language: 'en' | 'zh';
+  situationLabel: string;
+  target: string;
+};
+
+export interface ExtractSecretInput {
+  language: 'en' | 'zh';
+  characterProfile: CharacterProfile;
+  conversationHistory: ConversationHistory;
+  playerInput: string;
+  objective: string;
+};
+
+export interface ReachAgreementInput {
+  language: 'en' | 'zh';
+  characterProfile: CharacterProfile;
+  conversationHistory: ConversationHistory;
+  playerInput: string;
+  objective: string;
+};
