@@ -129,14 +129,8 @@ export const defaultGameRules: GameRules = {
           when: { actionId: 'talk', targetPattern: 'fisherman|resident|guard' },
           do: [
             // This action is now handled by the TalkDialog, but we can keep a log.
-            { log: 'You decide to talk to a local.' },
-          ],
-        },
-         {
-          when: { actionId: 'reflect', targetPattern: 'after-talk' },
-          do: [
             { add: 'counters.clues,1' },
-            { log: 'Your conversation yielded a new clue.' },
+            { log: 'You decide to talk to a local.' },
           ],
         },
         {
