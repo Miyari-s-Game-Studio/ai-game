@@ -11,6 +11,7 @@ interface NarrativeLogProps {
   log: LogEntry[];
   knownTargets: string[];
   actionRules: ActionRule[];
+  allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
   isScrollable?: boolean; // Replaces isStatic
 }
@@ -26,8 +27,9 @@ const HighlightableText: React.FC<{
   text: string;
   targets: string[];
   rules: ActionRule[];
+  allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
-}> = ({ text, targets, rules, onTargetClick }) => {
+}> = ({ text, targets, rules, allowedActions, onTargetClick }) => {
     if (targets.length === 0) {
       return <>{text}</>;
     }
@@ -42,8 +44,13 @@ const HighlightableText: React.FC<{
         const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
         if (isTarget) {
           const validActions = rules.filter(rule => {
+            // Rule must be for an allowed action
+            if (!allowedActions.includes(rule.when.actionId)) {
+                return false;
+            }
             if (!rule.when.targetPattern) return false;
-            const targetRegex = new RegExp(`\\b${part}\\b`, 'i');
+            
+            // Check if the target part matches one of the patterns in the rule
             return rule.when.targetPattern.split('|').some(p => new RegExp(`^${p.trim()}$`, 'i').test(part));
           });
 
@@ -85,7 +92,7 @@ const HighlightableText: React.FC<{
   );
 };
 
-const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, onTargetClick, isScrollable = false }) => {
+const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, allowedActions, onTargetClick, isScrollable = false }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -135,6 +142,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                     text={entry.message}
                     targets={knownTargets}
                     rules={actionRules}
+                    allowedActions={allowedActions}
                     onTargetClick={onTargetClick}
                   />
                 ) : (

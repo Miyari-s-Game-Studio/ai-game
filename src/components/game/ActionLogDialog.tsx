@@ -18,6 +18,7 @@ interface ActionLogDialogProps {
   log: LogEntry[];
   knownTargets: string[];
   actionRules: ActionRule[];
+  allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
 }
 
@@ -27,6 +28,7 @@ export function ActionLogDialog({
     log, 
     knownTargets, 
     actionRules,
+    allowedActions,
     onTargetClick
 }: ActionLogDialogProps) {
   return (
@@ -43,6 +45,7 @@ export function ActionLogDialog({
                 log={log}
                 knownTargets={knownTargets}
                 actionRules={actionRules}
+                allowedActions={allowedActions}
                 onTargetClick={onTargetClick}
                 isScrollable={true}
             />

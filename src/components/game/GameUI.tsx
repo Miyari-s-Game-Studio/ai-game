@@ -332,6 +332,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         log={gameState.log}
         knownTargets={knownTargets}
         actionRules={currentSituation.on_action}
+        allowedActions={currentSituation.allowed_actions}
         onTargetClick={handleTargetClick}
     />
     <TalkDialog
@@ -364,6 +365,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
                       log={[{ id: 0, type: 'narrative', message: sceneDescription }]}
                       knownTargets={knownTargets}
                       actionRules={currentSituation.on_action}
+                      allowedActions={currentSituation.allowed_actions}
                       onTargetClick={handleTargetClick}
                   />
                 </div>
@@ -383,6 +385,7 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
                   log={latestNarrativeLog}
                   knownTargets={knownTargets}
                   actionRules={currentSituation.on_action}
+                  allowedActions={currentSituation.allowed_actions}
                   onTargetClick={handleTargetClick}
                 />
           </CardContent>
