@@ -1,3 +1,4 @@
+
 // src/ai/flows/generate-conversation.ts
 'use server';
 /**
@@ -68,13 +69,13 @@ const ContinueConversationInputSchema = z.object({
     characterProfile: GenerateCharacterOutputSchema,
     conversationHistory: z.custom<ConversationHistory>(),
     playerInput: z.string().describe("The latest message from the player."),
-    objective: z.string().describe("A piece of information the player is trying to get the character to reveal."),
+    objective: z.string().describe("The secret information the player is trying to get the character to reveal OR a negotiation point they want the character to agree to."),
 });
 export type ContinueConversationInput = z.infer<typeof ContinueConversationInputSchema>;
 
 const ContinueConversationOutputSchema = z.object({
   response: z.string().describe("The character's response to the player."),
-  objectiveAchieved: z.boolean().describe("Set to true if the character's response substantially reveals the secret objective."),
+  objectiveAchieved: z.boolean().describe("Set to true if the character's response reveals the secret or explicitly agrees to the negotiation objective."),
 });
 export type ContinueConversationOutput = z.infer<typeof ContinueConversationOutputSchema>;
 
@@ -100,10 +101,17 @@ const continueConversationFlow = ai.defineFlow(
         Your personality is: ${characterProfile.personality}
         Your dialogue style is: ${characterProfile.dialogStyle}
         
-        You must stay in character at all times. The player is trying to get you to reveal a secret.
-        The secret objective is: "${objective}"
+        You must stay in character at all times. The player is trying to achieve an objective.
+        The objective is: "${objective}"
 
-        Do NOT reveal this secret unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. If your response substantially reveals the secret, set 'objectiveAchieved' to true. Otherwise, keep it false.
+        There are two types of objectives:
+        1.  A secret to be revealed (e.g., "The factory has suspicious emissions at night.").
+        2.  An agreement to be made (e.g., "Your goal is to get them to agree to this: The factory will stop production for rectification.").
+
+        Do NOT reveal the secret or agree to the proposal unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
+        If your response substantially reveals the secret, set 'objectiveAchieved' to true.
+        If you are agreeing to a proposal, you MUST use the words "I agree to..." in your response, and then set 'objectiveAchieved' to true.
+        Otherwise, keep 'objectiveAchieved' false.
         
         Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.`,
       prompt: playerInput,

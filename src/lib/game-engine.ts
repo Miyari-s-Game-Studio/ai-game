@@ -135,7 +135,9 @@ export async function processAction(
             break;
           }
           case 'log':
-            // Don't process log actions in this special override mode
+          case 'secret':
+          case 'agreement':
+            // Don't process these actions in this special override mode
             if (!actionRulesOverride) {
               proceduralLogs.push({ id: Date.now() + proceduralLogs.length, type: 'procedural', message: params as string });
             }

@@ -210,12 +210,20 @@ export function GameUI({ setGameControlHandlers, setPlayerStats }: GameUIProps) 
         return;
     }
 
-    const logAction = talkRule.do.find(action => action.log);
-    const objective = logAction ? (logAction.log as string) : "No specific objective.";
+    const secretAction = talkRule.do.find(action => action.secret);
+    const agreementAction = talkRule.do.find(action => action.agreement);
+    let objective = "No specific objective.";
+
+    if (secretAction) {
+        objective = secretAction.secret as string;
+    } else if (agreementAction) {
+        objective = `Your goal is to get them to agree to this: ${agreementAction.agreement as string}`;
+    }
 
     setTalkTarget(target);
     setTalkObjective(objective);
-    setTalkFollowUpActions(talkRule.do.filter(action => !action.log));
+    // All actions other than the secret/agreement are follow-up actions
+    setTalkFollowUpActions(talkRule.do.filter(action => !action.secret && !action.agreement));
     setIsTalkDialogOpen(true);
     setIsGeneratingCharacter(true);
 

@@ -128,7 +128,7 @@ export const defaultGameRules: GameRules = {
         {
           when: { actionId: 'talk', targetPattern: 'fisherman|resident|guard' },
           do: [
-            { log: "The factory has suspicious emissions at night; maybe you can get a testimony." },
+            { secret: "The factory has suspicious emissions at night." },
             { set: 'counters.testimony,true' },
           ],
         },
@@ -168,23 +168,16 @@ export const defaultGameRules: GameRules = {
       label: 'Interview Factory',
       on_action: [
         {
-          when: { actionId: 'talk', targetPattern: 'manager|guard|foreman' },
-          do: [
-            { log: 'The factory seems to be using a secret pipeline to discharge waste.' },
-            { set: 'counters.shutdown_ok,true' },
-          ],
-        },
-        {
-          when: {
-            actionId: 'negotiate',
-            targetPattern: 'shutdown|rectify|seal|stop production',
+          when: { 
+            actionId: 'talk', 
+            targetPattern: 'manager|guard|foreman',
             require: 'counters.testimony == true',
           },
           do: [
+            { agreement: 'The factory will stop production for rectification.' },
             { set: 'counters.shutdown_ok,true' },
             { track: 'eco.pollution,-2' },
             { track: 'eco.governance,1' },
-            { log: 'The other party signed a commitment to stop production for rectification, and the pollution was alleviated.' },
           ],
         },
         {

@@ -55,7 +55,16 @@ export type ActionRule = {
     require?: string;
     textRegex?: string;
   };
-  do: Array<Record<string, any>>;
+  do: Array<{
+    add?: string;
+    set?: string;
+    track?: string;
+    log?: string;
+    secret?: string;
+    agreement?: string;
+    if?: string;
+    cap?: number;
+  }>;
 };
 
 export type Situation = {
