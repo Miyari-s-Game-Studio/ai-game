@@ -1,13 +1,11 @@
-
 // src/lib/game-engine.ts
 'use server';
-import type { GameState, GameRules, LogEntry } from '@/types/game';
-import { defaultGameRules } from './game-rules';
-import { produce } from 'immer';
+import type {GameState, GameRules, LogEntry} from '@/types/game';
+import {produce} from 'immer';
 
 function evaluateCondition(condition: string, state: GameState): boolean {
   try {
-    const context = { ...state };
+    const context = {...state};
     const func = new Function('counters', 'tracks', 'route', 'player', `return ${condition}`);
     return func(context.counters, context.tracks, context.route, context.player);
   } catch (e) {
@@ -24,9 +22,9 @@ export async function processAction(
   // Allow overriding the action rules, for special cases like post-conversation events
   actionRulesOverride?: Record<string, any>[]
 ): Promise<{ newState: GameState; proceduralLogs: LogEntry[] }> {
-  
+
   const proceduralLogs: LogEntry[] = [];
-  
+
   let newState = produce(currentState, (draft) => {
     const situation = rules.situations[draft.situation];
     if (!situation && !actionRulesOverride) return;
@@ -38,7 +36,7 @@ export async function processAction(
       // If we are using the standard rules, we need to match actionId and target.
       // If we are using an override, we assume the rules are meant to be executed directly.
       if (!actionRulesOverride) {
-        const { when } = rule;
+        const {when} = rule;
         if (when.actionId !== actionId) {
           continue;
         }
@@ -50,7 +48,7 @@ export async function processAction(
             continue;
           }
         }
-        
+
         if (when.textRegex && (!target || !new RegExp(when.textRegex, 'i').test(target))) {
           continue;
         }
@@ -64,27 +62,27 @@ export async function processAction(
       const actions = actionRulesOverride || rule.do;
       for (const action of actions) {
         const actionDef = action as any;
-        
+
         if (actionDef.if && !evaluateCondition(actionDef.if, draft)) {
-            continue;
+          continue;
         }
 
         let type: string | null = null;
         let params: any = null;
         let cap: number | undefined = undefined;
 
-        for(const key in actionDef) {
-            if (key !== 'if' && key !== 'cap') {
-                type = key;
-                params = actionDef[key];
-            }
-            if (key === 'cap') {
-                cap = actionDef[key];
-            }
+        for (const key in actionDef) {
+          if (key !== 'if' && key !== 'cap') {
+            type = key;
+            params = actionDef[key];
+          }
+          if (key === 'cap') {
+            cap = actionDef[key];
+          }
         }
 
         if (!type) continue;
-        
+
         switch (type) {
           case 'add': {
             const [path, valStr] = (params as string).split(',');
@@ -102,21 +100,21 @@ export async function processAction(
             const [path, valStr] = (params as string).split(',');
             const parts = path.split('.');
             if (path === 'next_situation') {
-                draft.next_situation = valStr;
+              draft.next_situation = valStr;
             } else if (parts.length === 2) {
-                const [obj, key] = parts;
-                if (obj === 'counters') {
-                    const boolVal = valStr.toLowerCase();
-                    if (boolVal === 'true') {
-                        draft.counters[key] = true;
-                    } else if (boolVal === 'false') {
-                        draft.counters[key] = false;
-                    } else {
-                         draft.counters[key] = valStr;
-                    }
-                } else if (obj === 'route') {
-                    draft.route = valStr;
+              const [obj, key] = parts;
+              if (obj === 'counters') {
+                const boolVal = valStr.toLowerCase();
+                if (boolVal === 'true') {
+                  draft.counters[key] = true;
+                } else if (boolVal === 'false') {
+                  draft.counters[key] = false;
+                } else {
+                  draft.counters[key] = Number(valStr);
                 }
+              } else if (obj === 'route') {
+                draft.route = valStr;
+              }
             }
             break;
           }
@@ -139,15 +137,19 @@ export async function processAction(
           case 'agreement':
             // Don't process these actions in this special override mode
             if (!actionRulesOverride) {
-              proceduralLogs.push({ id: Date.now() + proceduralLogs.length, type: 'procedural', message: params as string });
+              proceduralLogs.push({
+                id: Date.now() + proceduralLogs.length,
+                type: 'procedural',
+                message: params as string
+              });
             }
             break;
         }
       }
-      
+
       // If we are in standard mode, break after the first matching rule is processed.
       if (!actionRulesOverride) {
-        break; 
+        break;
       }
     }
   });
@@ -155,10 +157,10 @@ export async function processAction(
   // After processing, check if a situation transition is pending and apply it.
   if (newState.next_situation && rules.situations[newState.next_situation]) {
     newState = produce(newState, draft => {
-        draft.situation = draft.next_situation!;
-        delete draft.next_situation;
+      draft.situation = draft.next_situation!;
+      delete draft.next_situation;
     });
   }
 
-  return { newState, proceduralLogs };
+  return {newState, proceduralLogs};
 }

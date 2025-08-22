@@ -26,7 +26,7 @@ interface ActionPanelProps {
 
 const getDynamicIcon = (iconName: string): React.ElementType => {
     if (LucideIcons[iconName as keyof typeof LucideIcons]) {
-        return LucideIcons[iconName as keyof typeof LucideIcons];
+        return LucideIcons[iconName as keyof typeof LucideIcons] as React.ElementType;
     }
     return LucideIcons.HelpCircle; // Default icon
 };
@@ -34,7 +34,7 @@ const getDynamicIcon = (iconName: string): React.ElementType => {
 const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails, actionRules, onAction, onTalk, disabled, actionTarget }) => {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [target, setTarget] = useState('');
-  
+
   const currentActionDetails = useMemo(() => {
       if (!selectedAction) return null;
       return actionDetails[selectedAction];
@@ -43,7 +43,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
   const doesActionRequireTarget = (actionId: string) => {
     return actionRules.some(rule => rule.when.actionId === actionId && rule.when.targetPattern);
   };
-  
+
   useEffect(() => {
     if (actionTarget) {
       if (doesActionRequireTarget(actionTarget.actionId)) {
@@ -71,7 +71,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
 
   const handleExecute = () => {
     if (!selectedAction) return;
-    
+
     if (selectedAction === 'talk') {
         onTalk(target);
     } else {
@@ -94,9 +94,9 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
               return (
                 <Tooltip key={actionId} delayDuration={0}>
                     <TooltipTrigger asChild>
-                         <Button 
-                            variant={selectedAction === actionId ? "default" : "outline"} 
-                            size="icon" 
+                         <Button
+                            variant={selectedAction === actionId ? "default" : "outline"}
+                            size="icon"
                             onClick={() => handleActionSelect(actionId)}
                             disabled={disabled}
                             className="h-12 w-12"
@@ -111,7 +111,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
               )
             })}
         </div>
-        
+
         {selectedAction && currentActionDetails && doesActionRequireTarget(selectedAction) && (
              <div className="rounded-lg border bg-background/60 p-4 shadow-sm animate-in fade-in-50">
                 <div className="flex items-center gap-4">
