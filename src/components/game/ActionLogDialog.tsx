@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import NarrativeLog from './NarrativeLog';
-import type { LogEntry, ActionRule } from '@/types/game';
+import type { LogEntry, ActionRule, ActionDetail } from '@/types/game';
 import { getTranslator } from '@/lib/i18n';
 
 interface ActionLogDialogProps {
@@ -19,6 +19,7 @@ interface ActionLogDialogProps {
   log: LogEntry[];
   knownTargets: string[];
   actionRules: ActionRule[];
+  actionDetails: Record<string, ActionDetail>;
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
   language: 'en' | 'zh';
@@ -30,6 +31,7 @@ export function ActionLogDialog({
     log, 
     knownTargets, 
     actionRules,
+    actionDetails,
     allowedActions,
     onTargetClick,
     language,
@@ -50,9 +52,11 @@ export function ActionLogDialog({
                 log={log}
                 knownTargets={knownTargets}
                 actionRules={actionRules}
+                actionDetails={actionDetails}
                 allowedActions={allowedActions}
                 onTargetClick={onTargetClick}
                 isScrollable={true}
+                language={language}
             />
         </div>
       </DialogContent>

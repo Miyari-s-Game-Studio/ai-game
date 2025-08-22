@@ -459,6 +459,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
         log={gameState.log}
         knownTargets={knownTargets}
         actionRules={currentSituation.on_action}
+        actionDetails={rules.actions}
         allowedActions={allowedActions}
         onTargetClick={handleTargetClick}
         language={rules.language}
@@ -496,6 +497,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
                       log={[{ id: 0, type: 'narrative', message: sceneDescription }]}
                       knownTargets={knownTargets}
                       actionRules={currentSituation.on_action}
+                      actionDetails={rules.actions}
                       allowedActions={allowedActions}
                       onTargetClick={handleTargetClick}
                       language={rules.language}
@@ -522,6 +524,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
                   log={latestNarrativeLog}
                   knownTargets={knownTargets}
                   actionRules={currentSituation.on_action}
+                  actionDetails={rules.actions}
                   allowedActions={allowedActions}
                   onTargetClick={handleTargetClick}
                   language={rules.language}

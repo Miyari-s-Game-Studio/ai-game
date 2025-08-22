@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
-import type { LogEntry, ActionRule } from '@/types/game';
+import type { ActionRule, ActionDetail, LogEntry } from '@/types/game';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Terminal, Bot, User, AlertCircle, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ interface NarrativeLogProps {
   log: LogEntry[];
   knownTargets: string[];
   actionRules: ActionRule[];
+  actionDetails: Record<string, ActionDetail>;
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
   isScrollable?: boolean;
@@ -30,10 +31,11 @@ const HighlightableText: React.FC<{
   text: string;
   targets: string[];
   rules: ActionRule[];
+  actionDetails: Record<string, ActionDetail>;
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
   language?: 'en' | 'zh';
-}> = ({ text, targets, rules, allowedActions, onTargetClick, language }) => {
+}> = ({ text, targets, rules, actionDetails, allowedActions, onTargetClick, language }) => {
     if (targets.length === 0) {
       return <>{text}</>;
     }
@@ -66,7 +68,7 @@ const HighlightableText: React.FC<{
           return (
             <Popover key={index}>
               <PopoverTrigger asChild>
-                <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:bg-opacity-80">
+                <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
                   {part}
                 </span>
               </PopoverTrigger>
@@ -82,7 +84,7 @@ const HighlightableText: React.FC<{
                     >
                       <ChevronRight className="w-4 h-4 mr-2" />
                       <span>
-                        {rule.when.actionId}
+                        {actionDetails[rule.when.actionId]?.label || rule.when.actionId}
                       </span>
                     </Button>
                   ))}
@@ -97,7 +99,7 @@ const HighlightableText: React.FC<{
   );
 };
 
-const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, allowedActions, onTargetClick, isScrollable = false, language = 'en' }) => {
+const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, actionDetails, allowedActions, onTargetClick, isScrollable = false, language = 'en' }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -147,6 +149,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                     text={entry.message}
                     targets={knownTargets}
                     rules={actionRules}
+                    actionDetails={actionDetails}
                     allowedActions={allowedActions}
                     onTargetClick={onTargetClick}
                     language={language}
