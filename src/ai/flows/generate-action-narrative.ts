@@ -33,10 +33,10 @@ export async function generateActionNarrative(input: GenerateActionNarrativeInpu
 
 const prompt = ai.definePrompt({
   name: 'generateActionNarrativePrompt',
-  input: {schema: GenerateActionNarrativeInputSchema},
+  input: {schema: GenerateActionNarrativeInputSchema.extend({ isZh: z.boolean() })},
   output: {schema: GenerateActionNarrativeOutputSchema},
   prompt: `
-{{#if (eq language "zh")}}
+{{#if isZh}}
 你是一个互动叙事游戏的地下城主。你的任务是描述玩家行动的结果。
 
 玩家目前处于这种情况：
@@ -93,7 +93,9 @@ const generateActionNarrativeFlow = ai.defineFlow(
     outputSchema: GenerateActionNarrativeOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const isZh = input.language === 'zh';
+    const {output} = await prompt({...input, isZh});
     return output!;
   }
 );
+

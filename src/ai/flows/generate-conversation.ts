@@ -39,10 +39,10 @@ export async function generateCharacter(input: GenerateCharacterInput): Promise<
 
 const generateCharacterPrompt = ai.definePrompt({
   name: 'generateCharacterPrompt',
-  input: { schema: GenerateCharacterInputSchema },
+  input: { schema: GenerateCharacterInputSchema.extend({ isZh: z.boolean() }) },
   output: { schema: GenerateCharacterOutputSchema },
   prompt: `
-{{#if (eq language "zh")}}
+{{#if isZh}}
 你是一个叙事游戏的角色创造者。你的任务是为玩家生成一个独特的、随机的NPC以供互动。
 
 玩家处于以下情境中：{{{situationLabel}}}
@@ -67,7 +67,8 @@ const generateCharacterFlow = ai.defineFlow(
     outputSchema: GenerateCharacterOutputSchema,
   },
   async (input) => {
-    const { output } = await generateCharacterPrompt(input);
+    const isZh = input.language === 'zh';
+    const { output } = await generateCharacterPrompt({...input, isZh});
     return output!;
   }
 );
@@ -102,10 +103,11 @@ const extractSecretFlow = ai.defineFlow(
     outputSchema: ConversationOutputSchema,
   },
   async ({ language, characterProfile, conversationHistory, playerInput, objective }) => {
+    const isZh = language === 'zh';
     const { output } = await ai.generate({
       history: conversationHistory,
       system: `
-{{#if (eq language "zh")}}
+{{#if isZh}}
 你是一个角色扮演游戏中的NPC。
 你的名字是：${characterProfile.name}
 你的个性是：${characterProfile.personality}
@@ -135,6 +137,7 @@ Respond to the player's message based on your personality and the conversation s
       output: {
           schema: ConversationOutputSchema,
       },
+      context: { isZh },
     });
     return output!;
   }
@@ -164,10 +167,11 @@ const reachAgreementFlow = ai.defineFlow(
     outputSchema: ConversationOutputSchema,
   },
   async ({ language, characterProfile, conversationHistory, playerInput, objective }) => {
+    const isZh = language === 'zh';
     const { output } = await ai.generate({
       history: conversationHistory,
       system: `
-{{#if (eq language "zh")}}
+{{#if isZh}}
 你是一个角色扮演游戏中的NPC。
 你的名字是：${characterProfile.name}
 你的个性是：${characterProfile.personality}
@@ -199,6 +203,7 @@ Respond to the player's message based on your personality and the conversation s
       output: {
           schema: ConversationOutputSchema,
       },
+      context: { isZh }
     });
     return output!;
   }

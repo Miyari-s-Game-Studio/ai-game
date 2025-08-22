@@ -30,10 +30,10 @@ export async function generateSceneDescription(input: GenerateSceneDescriptionIn
 
 const prompt = ai.definePrompt({
   name: 'generateSceneDescriptionPrompt',
-  input: {schema: GenerateSceneDescriptionInputSchema},
+  input: {schema: GenerateSceneDescriptionInputSchema.extend({ isZh: z.boolean() })},
   output: {schema: GenerateSceneDescriptionOutputSchema},
   prompt: `
-{{#if (eq language "zh")}}
+{{#if isZh}}
 你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
 
 当前情境：{{{situationLabel}}}
@@ -70,7 +70,8 @@ const generateSceneDescriptionFlow = ai.defineFlow(
     outputSchema: GenerateSceneDescriptionOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const isZh = input.language === 'zh';
+    const {output} = await prompt({...input, isZh});
     return output!;
   }
 );
