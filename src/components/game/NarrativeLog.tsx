@@ -13,7 +13,8 @@ interface NarrativeLogProps {
   actionRules: ActionRule[];
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
-  isScrollable?: boolean; // Replaces isStatic
+  isScrollable?: boolean;
+  language?: 'en' | 'zh';
 }
 
 const logTypeDetails = {
@@ -31,13 +32,15 @@ const HighlightableText: React.FC<{
   rules: ActionRule[];
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
-}> = ({ text, targets, rules, allowedActions, onTargetClick }) => {
+  language?: 'en' | 'zh';
+}> = ({ text, targets, rules, allowedActions, onTargetClick, language }) => {
     if (targets.length === 0) {
       return <>{text}</>;
     }
 
-  // Create a regex to find all targets
-  const regex = new RegExp(`(\\b(?:${targets.join('|')})\\b)`, 'gi');
+  // Create a regex to find all targets. Remove word boundaries for Chinese.
+  const wordBoundary = language === 'zh' ? '' : '\\b';
+  const regex = new RegExp(`(${wordBoundary}(?:${targets.join('|')})${wordBoundary})`, 'gi');
   const parts = text.split(regex);
 
   return (
@@ -94,7 +97,7 @@ const HighlightableText: React.FC<{
   );
 };
 
-const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, allowedActions, onTargetClick, isScrollable = false }) => {
+const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, allowedActions, onTargetClick, isScrollable = false, language = 'en' }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -146,6 +149,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                     rules={actionRules}
                     allowedActions={allowedActions}
                     onTargetClick={onTargetClick}
+                    language={language}
                   />
                 ) : (
                   entry.message

@@ -498,6 +498,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
                       actionRules={currentSituation.on_action}
                       allowedActions={allowedActions}
                       onTargetClick={handleTargetClick}
+                      language={rules.language}
                   />
                 </div>
               )}
@@ -523,6 +524,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
                   actionRules={currentSituation.on_action}
                   allowedActions={allowedActions}
                   onTargetClick={handleTargetClick}
+                  language={rules.language}
                 />
           </CardContent>
         </Card>
