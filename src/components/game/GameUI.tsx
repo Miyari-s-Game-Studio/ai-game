@@ -47,6 +47,7 @@ const getInitialState = (rules: GameRules): GameState => {
     log: [],
     player: JSON.parse(JSON.stringify(rules.initial.player)),
     characters: {},
+    sceneDescriptions: {},
   };
 };
 
@@ -108,44 +109,49 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
 
   useEffect(() => {
     if (currentSituation) {
-      generateNewScene(currentSituation);
+      generateNewScene(gameState.situation, currentSituation);
     }
     setPlayerStats(gameState.player);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState.situation, rules]);
+  }, [gameState.situation]);
   
-  const generateNewScene = async (situation: Situation) => {
-    const lastNarrative = gameState.log.filter(e => e.type === 'narrative').pop();
-    if (gameState.log.length > 0 && !lastNarrative) {
-       // There are logs, but no narrative yet. Let's see...
+  const generateNewScene = async (situationId: string, situation: Situation) => {
+    // Check cache first
+    const cachedDescription = gameState.sceneDescriptions[situationId];
+    if (cachedDescription) {
+      setSceneDescription(cachedDescription);
+      setIsGeneratingScene(false);
+      return;
     }
 
+    // If not in cache, generate it
+    setIsGeneratingScene(true);
+    setSceneDescription('');
+    try {
+      const targets = knownTargets;
+      const result = await generateSceneDescription({
+        language: rules.language,
+        situationLabel: situation.label,
+        knownTargets: targets,
+      });
+      const newDescription = result.sceneDescription;
+      setSceneDescription(newDescription);
+      
+      // Save to cache in game state
+      setGameState(produce(draft => {
+        draft.sceneDescriptions[situationId] = newDescription;
+      }));
 
-    if (gameState.log.length === 0) {
-        setIsGeneratingScene(true);
-        setSceneDescription('');
-        try {
-          const targets = knownTargets;
-          const result = await generateSceneDescription({
-            language: rules.language,
-            situationLabel: situation.label,
-            knownTargets: targets,
-          });
-          setSceneDescription(result.sceneDescription);
-        } catch (error) {
-           console.error('Failed to generate scene description:', error);
-           toast({
-              variant: 'destructive',
-              title: t.error,
-              description: t.failedToGenerateScene,
-           });
-           setSceneDescription(`${t.error}: ${t.failedToGenerateScene}`);
-        } finally {
-          setIsGeneratingScene(false);
-        }
-    } else {
-       setSceneDescription(lastNarrative?.message || situation.label);
-       setIsGeneratingScene(false);
+    } catch (error) {
+       console.error('Failed to generate scene description:', error);
+       toast({
+          variant: 'destructive',
+          title: t.error,
+          description: t.failedToGenerateScene,
+       });
+       setSceneDescription(`${t.error}: ${t.failedToGenerateScene}`);
+    } finally {
+      setIsGeneratingScene(false);
     }
   };
 

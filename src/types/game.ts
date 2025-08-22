@@ -35,6 +35,7 @@ export type GameState = {
   route?: string;
   next_situation?: string;
   characters?: Record<string, CharacterProfile>;
+  sceneDescriptions: Record<string, string>; // Cache for generated scene descriptions
 };
 
 export type Track = {
