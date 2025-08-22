@@ -52,24 +52,6 @@
       "samples": 0,
       "testimony": false,
       "shutdown_ok": false
-    },
-    "player": {
-      "name": "Alex",
-      "identity": "Environmental Officer",
-      "attributes": {
-        "strength": 10,
-        "dexterity": 12,
-        "constitution": 11,
-        "intelligence": 14,
-        "wisdom": 13,
-        "charisma": 12
-      },
-      "equipment": {
-        "top": "Uniform Shirt",
-        "bottom": "Cargo Pants",
-        "shoes": "Work Boots",
-        "accessory": "ID Badge"
-      }
     }
   },
   "tracks": {

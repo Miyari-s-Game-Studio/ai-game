@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useEffect, useTransition, useMemo } from 'react';
-import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats, ActionDetail, CharacterProfile } from '@/types/game';
+import type { GameState, LogEntry, Situation, GameRules, ActionRule, PlayerStats, CharacterProfile } from '@/types/game';
 import { processAction } from '@/lib/game-engine';
 import { generateActionNarrative } from '@/ai/flows/generate-action-narrative';
 import { generateSceneDescription } from '@/ai/flows/generate-scene-description';
@@ -34,18 +34,16 @@ interface GameUIProps {
     }) => void;
     setPlayerStats: (stats: PlayerStats) => void;
     initialStateOverride?: GameState | null;
+    initialPlayerStats?: PlayerStats | null;
 }
 
-type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
-type ConversationType = 'secret' | 'agreement';
-
-const getInitialState = (rules: GameRules): GameState => {
+const getInitialState = (rules: GameRules, playerStats: PlayerStats): GameState => {
   return {
     situation: rules.initial.situation,
     counters: { ...rules.initial.counters },
     tracks: JSON.parse(JSON.stringify(rules.tracks)),
     log: [],
-    player: JSON.parse(JSON.stringify(rules.initial.player)),
+    player: playerStats,
     characters: {},
     sceneDescriptions: {},
   };
@@ -53,10 +51,19 @@ const getInitialState = (rules: GameRules): GameState => {
 
 const SAVE_PREFIX = 'narrativeGameSave_';
 
-export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialStateOverride }: GameUIProps) {
-  const [gameState, setGameState] = useState<GameState>(() => 
-    initialStateOverride || getInitialState(rules)
-  );
+export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialStateOverride, initialPlayerStats }: GameUIProps) {
+  const [gameState, setGameState] = useState<GameState>(() => {
+    if (initialStateOverride) {
+      return initialStateOverride;
+    }
+    if (initialPlayerStats) {
+      return getInitialState(rules, initialPlayerStats);
+    }
+    // This should ideally not be reached if the parent page redirects correctly,
+    // but provides a fallback.
+    const fallbackPlayer: PlayerStats = { name: 'Fallback', identity: 'Player', attributes: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10}, equipment: {}};
+    return getInitialState(rules, fallbackPlayer);
+  });
   const [sceneDescription, setSceneDescription] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
   const [actionTarget, setActionTarget] = useState<{actionId: string, target: string}>();
@@ -113,7 +120,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
     }
     setPlayerStats(gameState.player);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState.situation]);
+  }, [gameState.situation, currentSituation]);
   
   const generateNewScene = async (situationId: string, situation: Situation) => {
     // Check cache first

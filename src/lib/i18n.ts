@@ -50,6 +50,14 @@ const translations = {
     saveFailed: 'Save Failed',
     gameLoaded: 'Game Loaded',
     saveDeleted: 'Save Deleted',
+    createYourCharacter: 'Create Your Character',
+    defineYourRoleIn: 'Define your role in',
+    characterName: 'Character Name',
+    enterNamePlaceholder: 'e.g., Alex Ryder',
+    characterIdentity: 'Character Identity / Role',
+    enterIdentityPlaceholder: 'e.g., Freelance Investigator',
+    beginAdventure: 'Begin Adventure',
+
 
     // AI Flow Translations
     ai: {
@@ -202,6 +210,13 @@ Respond to the player's message based on your personality and the conversation s
     saveFailed: '保存失败',
     gameLoaded: '游戏已读取',
     saveDeleted: '存档已删除',
+    createYourCharacter: '创建你的角色',
+    defineYourRoleIn: '在...中定义你的角色',
+    characterName: '角色名称',
+    enterNamePlaceholder: '例如，莱德·亚历克斯',
+    characterIdentity: '角色身份/职业',
+    enterIdentityPlaceholder: '例如，自由调查员',
+    beginAdventure: '开始冒险',
 
     // AI Flow Translations
     ai: {

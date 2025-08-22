@@ -91,7 +91,6 @@ export type GameRules = {
   initial: {
     situation: string;
     counters: Record<string, number | boolean>;
-    player: PlayerStats;
   };
   tracks: Record<string, Track>;
   situations: Record<string, Situation>;

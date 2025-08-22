@@ -1,3 +1,4 @@
+
 // src/app/play/[rulesId]/page.tsx
 'use client';
 import {GameUI} from '@/components/game/GameUI';
@@ -6,56 +7,32 @@ import {getRuleset} from '@/lib/rulesets';
 import {useState, useEffect, use} from 'react';
 import type {PlayerStats, GameRules, GameState} from '@/types/game';
 import {useTheme} from '@/components/layout/ThemeProvider';
-import {notFound} from 'next/navigation';
+import {notFound, useRouter} from 'next/navigation';
 
 interface PlayPageProps {
   rulesId: string;
 }
 
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
+const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
 export default function PlayPage({params}: { params: Promise<PlayPageProps> }) {
   const {rulesId} = use(params);
+  const router = useRouter();
   const [rules, setRules] = useState<GameRules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initialStateOverride, setInitialStateOverride] = useState<GameState | null>(null);
+  const [initialPlayerStats, setInitialPlayerStats] = useState<PlayerStats | null>(null);
   const {initializeTheme} = useTheme();
-
-  useEffect(() => {
-    const loadedRules = getRuleset(rulesId);
-    if (loadedRules) {
-      setRules(loadedRules);
-      initializeTheme(loadedRules);
-
-      // Check for a game state to load from session storage
-      const stateToLoadJson = sessionStorage.getItem(STATE_TO_LOAD_KEY);
-      if (stateToLoadJson) {
-        try {
-          const stateToLoad: GameState = JSON.parse(stateToLoadJson);
-          setInitialStateOverride(stateToLoad);
-          sessionStorage.removeItem(STATE_TO_LOAD_KEY); // Clean up after loading
-        } catch (e) {
-          console.error("Failed to parse game state from session storage", e);
-          sessionStorage.removeItem(STATE_TO_LOAD_KEY);
-        }
-      }
-
-    }
-    setIsLoading(false);
-  }, [rulesId, initializeTheme]);
-
-
+  
   const [gameControlHandlers, setGameControlHandlers] = useState({
-    handleSave: () => {
-    },
-    handleLoad: () => {
-    },
+    handleSave: () => {},
+    handleLoad: () => {},
     isPending: false,
     isGenerating: false,
   });
 
-  // Initialize player stats with a default or from loaded rules
-  const [playerStats, setPlayerStats] = useState<PlayerStats>(rules?.initial.player || {
+  const [playerStats, setPlayerStats] = useState<PlayerStats>({
     name: 'Player',
     identity: 'Adventurer',
     attributes: {strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10},
@@ -63,10 +40,55 @@ export default function PlayPage({params}: { params: Promise<PlayPageProps> }) {
   });
 
   useEffect(() => {
-    if (rules) {
-      setPlayerStats(rules.initial.player);
+    const loadedRules = getRuleset(rulesId);
+    if (!loadedRules) {
+      setIsLoading(false);
+      return;
     }
-  }, [rules]);
+    
+    setRules(loadedRules);
+    initializeTheme(loadedRules);
+
+    // Check for a full game state to load (from a save file)
+    const stateToLoadJson = sessionStorage.getItem(STATE_TO_LOAD_KEY);
+    if (stateToLoadJson) {
+      try {
+        const stateToLoad: GameState = JSON.parse(stateToLoadJson);
+        setInitialStateOverride(stateToLoad);
+        setPlayerStats(stateToLoad.player); // Set player stats from the loaded state
+        sessionStorage.removeItem(STATE_TO_LOAD_KEY);
+        setIsLoading(false);
+        return;
+      } catch (e) {
+        console.error("Failed to parse game state from session storage", e);
+        sessionStorage.removeItem(STATE_TO_LOAD_KEY);
+      }
+    }
+
+    // If no full state, check for new player stats (from the start page)
+    const playerStatsToLoadJson = sessionStorage.getItem(PLAYER_STATS_TO_LOAD_KEY);
+    if (playerStatsToLoadJson) {
+        try {
+            const playerStatsToLoad: PlayerStats = JSON.parse(playerStatsToLoadJson);
+            setInitialPlayerStats(playerStatsToLoad);
+            setPlayerStats(playerStatsToLoad); // Set player stats for the sidebar
+            sessionStorage.removeItem(PLAYER_STATS_TO_LOAD_KEY);
+        } catch (e) {
+            console.error("Failed to parse player stats from session storage", e);
+            sessionStorage.removeItem(PLAYER_STATS_TO_LOAD_KEY);
+            // If parsing fails, redirect to start to be safe
+            router.replace(`/play/${rulesId}/start`);
+            return;
+        }
+    } else {
+        // If there's no saved state and no new player info, it's a new game. Redirect to start page.
+        router.replace(`/play/${rulesId}/start`);
+        return;
+    }
+
+    setIsLoading(false);
+  }, [rulesId, initializeTheme, router]);
+
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Loading Scenario...</div>;
@@ -91,6 +113,7 @@ export default function PlayPage({params}: { params: Promise<PlayPageProps> }) {
           setGameControlHandlers={setGameControlHandlers}
           setPlayerStats={setPlayerStats}
           initialStateOverride={initialStateOverride}
+          initialPlayerStats={initialPlayerStats}
         />
       </main>
     </div>

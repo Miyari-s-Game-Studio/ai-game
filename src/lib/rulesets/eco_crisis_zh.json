@@ -52,24 +52,6 @@
       "samples": 0,
       "testimony": false,
       "shutdown_ok": false
-    },
-    "player": {
-      "name": "艾历克斯",
-      "identity": "环保官员",
-      "attributes": {
-        "strength": 10,
-        "dexterity": 12,
-        "constitution": 11,
-        "intelligence": 14,
-        "wisdom": 13,
-        "charisma": 12
-      },
-      "equipment": {
-        "top": "制服衬衫",
-        "bottom": "工装裤",
-        "shoes": "工装靴",
-        "accessory": "身份徽章"
-      }
     }
   },
   "tracks": {

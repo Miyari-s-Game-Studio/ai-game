@@ -106,7 +106,7 @@ export default function GameSelectionPage() {
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link href={`/play/${rules.id}`}>
+                <Link href={`/play/${rules.id}/start`}>
                   <BookOpen className="mr-2" />
                   {t.playScenario}
                 </Link>
