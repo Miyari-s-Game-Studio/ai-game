@@ -25,7 +25,7 @@ interface LoadGameDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   saveFiles: SaveFile[];
-  onLoad: (state: GameState) => void;
+  onLoad: (saveFile: SaveFile) => void;
   onDelete: (key: string) => void;
 }
 
@@ -65,7 +65,7 @@ export function LoadGameDialog({ isOpen, onOpenChange, saveFiles, onLoad, onDele
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        <Button onClick={() => onLoad(file.state)}>Load</Button>
+                        <Button onClick={() => onLoad(file)}>Load</Button>
                     </div>
                   </div>
                 ))

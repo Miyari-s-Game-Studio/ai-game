@@ -31,6 +31,7 @@ interface GameUIProps {
         isGenerating: boolean;
     }) => void;
     setPlayerStats: (stats: PlayerStats) => void;
+    initialStateOverride?: GameState | null;
 }
 
 type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
@@ -49,8 +50,10 @@ const getInitialState = (rules: GameRules): GameState => {
 
 const SAVE_PREFIX = 'narrativeGameSave_';
 
-export function GameUI({ rules, setGameControlHandlers, setPlayerStats }: GameUIProps) {
-  const [gameState, setGameState] = useState<GameState>(() => getInitialState(rules));
+export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialStateOverride }: GameUIProps) {
+  const [gameState, setGameState] = useState<GameState>(() => 
+    initialStateOverride || getInitialState(rules)
+  );
   const [sceneDescription, setSceneDescription] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
   const [actionTarget, setActionTarget] = useState<{actionId: string, target: string}>();
@@ -92,6 +95,13 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats }: GameUI
 
   const latestNarrativeLog = gameState.log.filter(entry => entry.type === 'narrative').slice(-1);
 
+  // Effect to handle initial state override changing after mount
+  useEffect(() => {
+    if (initialStateOverride) {
+      setGameState(initialStateOverride);
+    }
+  }, [initialStateOverride]);
+
   useEffect(() => {
     if (currentSituation) {
       generateNewScene(currentSituation);
@@ -100,25 +110,40 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats }: GameUI
   }, [gameState.situation, rules]);
   
   const generateNewScene = async (situation: Situation) => {
-    setIsGeneratingScene(true);
-    setSceneDescription('');
-    try {
-      const targets = knownTargets;
-      const result = await generateSceneDescription({
-        situationLabel: situation.label,
-        knownTargets: targets,
-      });
-      setSceneDescription(result.sceneDescription);
-    } catch (error) {
-       console.error('Failed to generate scene description:', error);
-       toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Could not generate the scene description.',
-       });
-       setSceneDescription('Error: Failed to load scene description.');
-    } finally {
-      setIsGeneratingScene(false);
+    // If we're loading from a save, we might already have a narrative log.
+    // If the game has just started (log is empty), generate the scene.
+    // If the situation has changed, generate the scene.
+    // Otherwise, assume the scene is already described by the existing log.
+    const lastNarrative = gameState.log.filter(e => e.type === 'narrative').pop();
+    if (gameState.log.length > 0 && !lastNarrative) {
+       // There are logs, but no narrative yet. Let's see...
+    }
+
+
+    if (gameState.log.length === 0) {
+        setIsGeneratingScene(true);
+        setSceneDescription('');
+        try {
+          const targets = knownTargets;
+          const result = await generateSceneDescription({
+            situationLabel: situation.label,
+            knownTargets: targets,
+          });
+          setSceneDescription(result.sceneDescription);
+        } catch (error) {
+           console.error('Failed to generate scene description:', error);
+           toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: 'Could not generate the scene description.',
+           });
+           setSceneDescription('Error: Failed to load scene description.');
+        } finally {
+          setIsGeneratingScene(false);
+        }
+    } else {
+       setSceneDescription(lastNarrative?.message || situation.label);
+       setIsGeneratingScene(false);
     }
   };
 
@@ -156,7 +181,10 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats }: GameUI
           const ruleId = keyWithoutPrefix.substring(0, lastUnderscoreIndex);
           const timestamp = keyWithoutPrefix.substring(lastUnderscoreIndex + 1);
           
-          const title = ruleId;
+          // Only show saves for the current game
+          if (ruleId !== rules.id) continue;
+
+          const title = rules.title;
 
           saves.push({ key, title, timestamp, state });
         } catch {
@@ -182,8 +210,8 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats }: GameUI
   }, [isPending, isGeneratingScene, isGeneratingCharacter, gameState, rules]);
 
 
-  const handleLoadGame = (state: GameState) => {
-    setGameState(state);
+  const handleLoadGame = (saveFile: SaveFile) => {
+    setGameState(saveFile.state);
     setIsLoadDialogOpen(false);
     toast({
         title: 'Game Loaded',
