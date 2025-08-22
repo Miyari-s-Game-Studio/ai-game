@@ -56,7 +56,6 @@ const generateCharacterFlow = ai.defineFlow(
 
     const { output } = await ai.generate({
         prompt: promptText,
-        input: { schema: inputSchema },
         output: { schema: outputSchema },
     });
     return output!;
@@ -104,7 +103,6 @@ const extractSecretFlow = ai.defineFlow(
       history: input.conversationHistory,
       system: systemPrompt,
       prompt: input.playerInput,
-      input: { schema: inputSchema },
       output: {
           schema: outputSchema,
       },
@@ -148,7 +146,6 @@ const reachAgreementFlow = ai.defineFlow(
       history: input.conversationHistory,
       system: systemPrompt,
       prompt: input.playerInput,
-      input: { schema: inputSchema },
       output: {
           schema: outputSchema,
       },
