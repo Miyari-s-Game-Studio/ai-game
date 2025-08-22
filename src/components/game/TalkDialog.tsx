@@ -179,13 +179,13 @@ export function TalkDialog({
                                         <Bot className="w-6 h-6 text-muted-foreground" />
                                     </div>
                                 )}
-                                <div className={`max-w-md rounded-xl px-4 py-3 ${entry.type === 'player' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                <div className={`max-w-md rounded-xl px-4 py-3 ${entry.type === 'player' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                                     <p className="font-bold text-sm mb-1">{entry.actor}</p>
                                     <p className="whitespace-pre-wrap">{entry.message}</p>
                                 </div>
                                 {entry.type === 'player' && (
-                                     <div className="flex-shrink-0 w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                                        <User className="w-6 h-6 text-muted-foreground" />
+                                     <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/80 flex items-center justify-center">
+                                        <User className="w-6 h-6 text-primary-foreground" />
                                     </div>
                                 )}
                             </div>

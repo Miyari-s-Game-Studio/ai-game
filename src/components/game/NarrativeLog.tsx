@@ -63,7 +63,7 @@ const HighlightableText: React.FC<{
           return (
             <Popover key={index}>
               <PopoverTrigger asChild>
-                <span className="bg-accent/30 text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:bg-accent/50">
+                <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:bg-opacity-80">
                   {part}
                 </span>
               </PopoverTrigger>

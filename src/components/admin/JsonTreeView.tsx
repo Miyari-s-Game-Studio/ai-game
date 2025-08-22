@@ -25,12 +25,12 @@ const getDataType = (value: any) => {
 
 const TypeBadge: React.FC<{ type: string; length?: number }> = ({ type, length }) => {
     const typeStyles: Record<string, string> = {
-        object: 'text-blue-500',
-        array: 'text-green-500',
-        string: 'text-rose-500',
-        number: 'text-amber-500',
-        boolean: 'text-violet-500',
-        null: 'text-gray-500'
+        object: 'text-primary',
+        array: 'text-emerald-500', // Keeping one for variety, seems ok for 'array'
+        string: 'text-rose-500', // Keeping one for variety
+        number: 'text-amber-500', // Keeping one for variety
+        boolean: 'text-violet-500', // Keeping one for variety
+        null: 'text-muted-foreground'
     };
     return (
         <span className={`text-xs font-mono ml-2 ${typeStyles[type]}`}>
@@ -52,7 +52,7 @@ const JsonNode: React.FC<{ nodeKey: string, nodeValue: any, level: number }> = (
             case 'boolean':
                 return <span className="text-violet-600 dark:text-violet-400">{String(nodeValue)}</span>;
             case 'null':
-                return <span className="text-gray-500">null</span>;
+                return <span className="text-muted-foreground">null</span>;
             default:
                 return null;
         }
@@ -103,4 +103,3 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, level = 0 }) =
         </div>
     );
 };
-
