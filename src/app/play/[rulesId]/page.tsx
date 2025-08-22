@@ -16,18 +16,19 @@ interface PlayPageProps {
 }
 
 export default function PlayPage({ params }: PlayPageProps) {
+  const { rulesId } = params;
   const [rules, setRules] = useState<GameRules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { initializeTheme } = useTheme();
   
   useEffect(() => {
-    const loadedRules = getRuleset(params.rulesId);
+    const loadedRules = getRuleset(rulesId);
     if (loadedRules) {
       setRules(loadedRules);
       initializeTheme(loadedRules);
     }
     setIsLoading(false);
-  }, [params.rulesId, initializeTheme]);
+  }, [rulesId, initializeTheme]);
 
 
   const [gameControlHandlers, setGameControlHandlers] = useState({
@@ -78,4 +79,3 @@ export default function PlayPage({ params }: PlayPageProps) {
     </div>
   );
 }
-
