@@ -31,71 +31,58 @@ export async function generateActionNarrative(input: GenerateActionNarrativeInpu
   return generateActionNarrativeFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateActionNarrativePrompt',
-  input: {schema: GenerateActionNarrativeInputSchema.extend({ isZh: z.boolean() })},
-  output: {schema: GenerateActionNarrativeOutputSchema},
-  prompt: `
-{{#if isZh}}
-你是一个互动叙事游戏的地下城主。你的任务是描述玩家行动的结果。
-
-玩家目前处于这种情况：
-情境：{{{situationLabel}}}
-场景：{{{sceneDescription}}}
-
-玩家采取了此行动：
-行动：{{{actionTaken}}}
-
-游戏引擎确定了此行动的具体结果如下：
-{{#each proceduralLogs}}
-- {{{this}}}
-{{/each}}
-
-根据这些结果，写一个引人入胜的、2-3句话的叙述，描述发生了什么。基调应与场景一致。至关重要的是，你的回应必须通过巧妙地编织“已知互动目标”列表中的项目，为玩家下一步可以与什么互动提供清晰的提示。
-
-已知互动目标：
-{{#each knownTargets}}
-- {{{this}}}
-{{/each}}
-
-现在生成行动结果的叙述。
-{{else}}
-You are a game master for an interactive narrative game. Your task is to describe the outcome of the player's action.
-
-The player is currently in this situation:
-Situation: {{{situationLabel}}}
-Scene: {{{sceneDescription}}}
-
-The player took this action:
-Action: {{{actionTaken}}}
-
-The game engine determined the following concrete results from this action:
-{{#each proceduralLogs}}
-- {{{this}}}
-{{/each}}
-
-Based on these results, write a compelling, 2-3 sentence narrative describing what happens. The tone should be consistent with the scene. It is crucial that your response provides clear hints about what the player can interact with next by subtly weaving in items from the 'Known Interaction Targets' list.
-
-Known Interaction Targets:
-{{#each knownTargets}}
-- {{{this}}}
-{{/each}}
-
-Generate the action-result narrative now.
-{{/if}}
-`,
-});
-
 const generateActionNarrativeFlow = ai.defineFlow(
   {
     name: 'generateActionNarrativeFlow',
     inputSchema: GenerateActionNarrativeInputSchema,
     outputSchema: GenerateActionNarrativeOutputSchema,
   },
-  async input => {
+  async (input) => {
     const isZh = input.language === 'zh';
-    const {output} = await prompt({...input, isZh});
+
+    const promptText = isZh ? `
+你是一个互动叙事游戏的地下城主。你的任务是描述玩家行动的结果。
+
+玩家目前处于这种情况：
+情境：${input.situationLabel}
+场景：${input.sceneDescription}
+
+玩家采取了此行动：
+行动：${input.actionTaken}
+
+游戏引擎确定了此行动的具体结果如下：
+${input.proceduralLogs.map(log => `- ${log}`).join('\n')}
+
+根据这些结果，写一个引人入胜的、2-3句话的叙述，描述发生了什么。基调应与场景一致。至关重要的是，你的回应必须通过巧妙地编织“已知互动目标”列表中的项目，为玩家下一步可以与什么互动提供清晰的提示。
+
+已知互动目标：
+${input.knownTargets.map(target => `- ${target}`).join('\n')}
+
+现在生成行动结果的叙述。
+` : `
+You are a game master for an interactive narrative game. Your task is to describe the outcome of the player's action.
+
+The player is currently in this situation:
+Situation: ${input.situationLabel}
+Scene: ${input.sceneDescription}
+
+The player took this action:
+Action: ${input.actionTaken}
+
+The game engine determined the following concrete results from this action:
+${input.proceduralLogs.map(log => `- ${log}`).join('\n')}
+
+Based on these results, write a compelling, 2-3 sentence narrative describing what happens. The tone should be consistent with the scene. It is crucial that your response provides clear hints about what the player can interact with next by subtly weaving in items from the 'Known Interaction Targets' list.
+
+Known Interaction Targets:
+${input.knownTargets.map(target => `- ${target}`).join('\n')}
+
+Generate the action-result narrative now.
+`;
+    const { output } = await ai.generate({
+        prompt: promptText,
+        output: { schema: GenerateActionNarrativeOutputSchema },
+    });
     return output!;
   }
 );
-

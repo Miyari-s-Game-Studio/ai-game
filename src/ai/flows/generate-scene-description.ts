@@ -28,50 +28,41 @@ export async function generateSceneDescription(input: GenerateSceneDescriptionIn
   return generateSceneDescriptionFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateSceneDescriptionPrompt',
-  input: {schema: GenerateSceneDescriptionInputSchema.extend({ isZh: z.boolean() })},
-  output: {schema: GenerateSceneDescriptionOutputSchema},
-  prompt: `
-{{#if isZh}}
-你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
-
-当前情境：{{{situationLabel}}}
-
-你必须创造一个引人入胜的、多段落的叙述，描述环境、氛围和关键元素。至关重要的是，你必须将以下所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
-
-互动目标：
-{{#each knownTargets}}
-- {{{this}}}
-{{/each}}
-
-现在生成场景描述。
-{{else}}
-You are a game master for an interactive narrative game. Your task is to craft a compelling scene description for the player. This description sets the stage for the current situation.
-
-Current Situation: {{{situationLabel}}}
-
-You must create a captivating, multi-paragraph narrative that describes the environment, atmosphere, and key elements. Crucially, you MUST naturally weave all of the following interaction targets into your description to ensure the player knows what they can interact with.
-
-Interaction Targets:
-{{#each knownTargets}}
-- {{{this}}}
-{{/each}}
-
-Generate the scene description now.
-{{/if}}
-`,
-});
-
 const generateSceneDescriptionFlow = ai.defineFlow(
   {
     name: 'generateSceneDescriptionFlow',
     inputSchema: GenerateSceneDescriptionInputSchema,
     outputSchema: GenerateSceneDescriptionOutputSchema,
   },
-  async input => {
+  async (input) => {
     const isZh = input.language === 'zh';
-    const {output} = await prompt({...input, isZh});
+    const promptText = isZh ? `
+你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
+
+当前情境：${input.situationLabel}
+
+你必须创造一个引人入胜的、多段落的叙述，描述环境、氛围和关键元素。至关重要的是，你必须将以下所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
+
+互动目标：
+${input.knownTargets.map(target => `- ${target}`).join('\n')}
+
+现在生成场景描述。
+` : `
+You are a game master for an interactive narrative game. Your task is to craft a compelling scene description for the player. This description sets the stage for the current situation.
+
+Current Situation: ${input.situationLabel}
+
+You must create a captivating, multi-paragraph narrative that describes the environment, atmosphere, and key elements. Crucially, you MUST naturally weave all of the following interaction targets into your description to ensure the player knows what they can interact with.
+
+Interaction Targets:
+${input.knownTargets.map(target => `- ${target}`).join('\n')}
+
+Generate the scene description now.
+`;
+    const { output } = await ai.generate({
+        prompt: promptText,
+        output: { schema: GenerateSceneDescriptionOutputSchema },
+    });
     return output!;
   }
 );
