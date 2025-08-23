@@ -22,17 +22,11 @@ import { ActionLogDialog } from './ActionLogDialog';
 import { TalkDialog } from './TalkDialog';
 import { produce } from 'immer';
 import { getTranslator } from '@/lib/i18n';
+import { Sidebar } from '../layout/Sidebar';
 
 
 interface GameUIProps {
     rules: GameRules;
-    setGameControlHandlers: (handlers: {
-        handleSave: () => void;
-        handleLoad: () => void;
-        isPending: boolean;
-        isGenerating: boolean;
-    }) => void;
-    setPlayerStats: (stats: PlayerStats) => void;
     initialStateOverride?: GameState | null;
     initialPlayerStats?: PlayerStats | null;
 }
@@ -51,7 +45,7 @@ const getInitialState = (rules: GameRules, playerStats: PlayerStats): GameState 
 
 const SAVE_PREFIX = 'narrativeGameSave_';
 
-export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialStateOverride, initialPlayerStats }: GameUIProps) {
+export function GameUI({ rules, initialStateOverride, initialPlayerStats }: GameUIProps) {
   const [gameState, setGameState] = useState<GameState>(() => {
     if (initialStateOverride) {
       return initialStateOverride;
@@ -61,7 +55,7 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
     }
     // This should ideally not be reached if the parent page redirects correctly,
     // but provides a fallback.
-    const fallbackPlayer: PlayerStats = { name: 'Fallback', identity: 'Player', attributes: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10}, equipment: {}};
+    const fallbackPlayer: PlayerStats = { name: 'Fallback', identity: 'Player', language: 'en', attributes: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10}, equipment: {}};
     return getInitialState(rules, fallbackPlayer);
   });
   const [sceneDescription, setSceneDescription] = useState('');
@@ -107,18 +101,10 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
 
   const latestNarrativeLog = gameState.log.filter(entry => entry.type === 'narrative').slice(-1);
 
-  // Effect to handle initial state override changing after mount
-  useEffect(() => {
-    if (initialStateOverride) {
-      setGameState(initialStateOverride);
-    }
-  }, [initialStateOverride]);
-
   useEffect(() => {
     if (currentSituation) {
       generateNewScene(gameState.situation, currentSituation);
     }
-    setPlayerStats(gameState.player);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.situation, currentSituation]);
   
@@ -213,18 +199,6 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
       findSaveFiles();
       setIsLoadDialogOpen(true);
   }
-
-  useEffect(() => {
-    setGameControlHandlers({
-        handleSave: handleSaveGame,
-        handleLoad: handleOpenLoadDialog,
-        isPending: isPending,
-        isGenerating: isGeneratingScene || isGeneratingCharacter,
-    });
-    setPlayerStats(gameState.player);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPending, isGeneratingScene, isGeneratingCharacter, gameState, rules]);
-
 
   const handleLoadGame = (saveFile: SaveFile) => {
     setGameState(saveFile.state);
@@ -458,129 +432,138 @@ export function GameUI({ rules, setGameControlHandlers, setPlayerStats, initialS
 
   return (
     <>
-    <LoadGameDialog 
-        isOpen={isLoadDialogOpen} 
-        onOpenChange={setIsLoadDialogOpen}
-        saveFiles={saveFiles}
-        onLoad={handleLoadGame}
-        onDelete={handleDeleteSave}
-        language={rules.language}
-    />
-    <ActionLogDialog
-        isOpen={isLogDialogOpen}
-        onOpenChange={setIsLogDialogOpen}
-        log={gameState.log}
-        knownTargets={knownTargets}
-        actionRules={currentSituation.on_action}
-        actionDetails={rules.actions}
-        allowedActions={allowedActions}
-        onTargetClick={handleTargetClick}
-        language={rules.language}
-    />
-    <TalkDialog
-        isOpen={isTalkDialogOpen}
-        onOpenChange={setIsTalkDialogOpen}
-        target={talkTarget}
-        objective={talkObjective}
-        conversationType={conversationType}
-        characterProfile={characterProfile}
-        isGenerating={isGeneratingCharacter}
-        onConversationEnd={handleEndTalk}
-        conversationFlow={conversationFlow}
-        language={rules.language}
-    />
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-headline">
-              {t.currentSituation}: {currentSituation.label}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-             {isGeneratingScene ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-5/6" />
-                </div>
-              ) : (
-                <div className="text-foreground/90 whitespace-pre-wrap">
+      <Sidebar
+        rules={rules}
+        playerStats={gameState.player}
+        onSave={handleSaveGame}
+        onLoad={handleOpenLoadDialog}
+        isPending={isPending || isGeneratingScene || isGeneratingCharacter}
+      />
+      <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <LoadGameDialog 
+            isOpen={isLoadDialogOpen} 
+            onOpenChange={setIsLoadDialogOpen}
+            saveFiles={saveFiles}
+            onLoad={handleLoadGame}
+            onDelete={handleDeleteSave}
+            language={rules.language}
+        />
+        <ActionLogDialog
+            isOpen={isLogDialogOpen}
+            onOpenChange={setIsLogDialogOpen}
+            log={gameState.log}
+            knownTargets={knownTargets}
+            actionRules={currentSituation.on_action}
+            actionDetails={rules.actions}
+            allowedActions={allowedActions}
+            onTargetClick={handleTargetClick}
+            language={rules.language}
+        />
+        <TalkDialog
+            isOpen={isTalkDialogOpen}
+            onOpenChange={setIsTalkDialogOpen}
+            target={talkTarget}
+            objective={talkObjective}
+            conversationType={conversationType}
+            characterProfile={characterProfile}
+            isGenerating={isGeneratingCharacter}
+            onConversationEnd={handleEndTalk}
+            conversationFlow={conversationFlow}
+            language={rules.language}
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-headline">
+                  {t.currentSituation}: {currentSituation.label}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                 {isGeneratingScene ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-5/6" />
+                    </div>
+                  ) : (
+                    <div className="text-foreground/90 whitespace-pre-wrap">
+                      <NarrativeLog
+                          log={[{ id: 0, type: 'narrative', message: sceneDescription }]}
+                          knownTargets={knownTargets}
+                          actionRules={currentSituation.on_action}
+                          actionDetails={rules.actions}
+                          allowedActions={allowedActions}
+                          onTargetClick={handleTargetClick}
+                          language={rules.language}
+                      />
+                    </div>
+                  )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-end py-3 px-4">
+                <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {t.viewFullLog}
+                </Button>
+              </CardHeader>
+              <CardContent className="min-h-[100px] pt-0">
+                 {latestNarrativeLog.length === 0 && (
+                    <div className="text-center text-muted-foreground italic py-4">
+                        {t.storyWillUnfold}
+                    </div>
+                 )}
                   <NarrativeLog
-                      log={[{ id: 0, type: 'narrative', message: sceneDescription }]}
+                      log={latestNarrativeLog}
                       knownTargets={knownTargets}
                       actionRules={currentSituation.on_action}
                       actionDetails={rules.actions}
                       allowedActions={allowedActions}
                       onTargetClick={handleTargetClick}
                       language={rules.language}
-                  />
-                </div>
-              )}
-          </CardContent>
-        </Card>
+                    />
+              </CardContent>
+            </Card>
+            
+            <div>
+                {isPending || isGeneratingScene || isGeneratingCharacter ? (
+                    <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="ml-4 text-lg">
+                          {isGeneratingScene ? t.loadingScene : isGeneratingCharacter ? t.characterApproaching : t.aiCraftingStory}
+                        </p>
+                    </div>
+                ) : (
+                    <ActionPanel
+                        allowedActions={allowedActions}
+                        actionDetails={rules.actions}
+                        actionRules={currentSituation.on_action}
+                        onAction={handleAction}
+                        onTalk={handleTalk}
+                        disabled={isPending}
+                        actionTarget={actionTarget}
+                    />
+                )}
+            </div>
+          </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-end py-3 px-4">
-            <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
-                <BookOpen className="mr-2 h-4 w-4" />
-                {t.viewFullLog}
-            </Button>
-          </CardHeader>
-          <CardContent className="min-h-[100px] pt-0">
-             {latestNarrativeLog.length === 0 && (
-                <div className="text-center text-muted-foreground italic py-4">
-                    {t.storyWillUnfold}
-                </div>
-             )}
-              <NarrativeLog
-                  log={latestNarrativeLog}
-                  knownTargets={knownTargets}
-                  actionRules={currentSituation.on_action}
-                  actionDetails={rules.actions}
-                  allowedActions={allowedActions}
-                  onTargetClick={handleTargetClick}
-                  language={rules.language}
-                />
-          </CardContent>
-        </Card>
-        
-        <div>
-            {isPending || isGeneratingScene || isGeneratingCharacter ? (
-                <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="ml-4 text-lg">
-                      {isGeneratingScene ? t.loadingScene : isGeneratingCharacter ? t.characterApproaching : t.aiCraftingStory}
-                    </p>
-                </div>
-            ) : (
-                <ActionPanel
-                    allowedActions={allowedActions}
-                    actionDetails={rules.actions}
-                    actionRules={currentSituation.on_action}
-                    onAction={handleAction}
-                    onTalk={handleTalk}
-                    disabled={isPending}
-                    actionTarget={actionTarget}
-                />
-            )}
+          <div className="space-y-6 lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.entries(gameState.tracks).map(([id, track]) => (
+                  <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
+                ))}
+              </CardContent>
+            </Card>
+            <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} title={t.keyItemsAndInfo} />
+          </div>
         </div>
-      </div>
-
-      <div className="space-y-6 lg:col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {Object.entries(gameState.tracks).map(([id, track]) => (
-              <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
-            ))}
-          </CardContent>
-        </Card>
-        <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} title={t.keyItemsAndInfo} />
-      </div>
-    </div>
+      </main>
     </>
   );
 }

@@ -2,7 +2,6 @@
 // src/app/play/[rulesId]/page.tsx
 'use client';
 import {GameUI} from '@/components/game/GameUI';
-import {Sidebar} from '@/components/layout/Sidebar';
 import {getRuleset} from '@/lib/rulesets';
 import {useState, useEffect} from 'react';
 import type {PlayerStats, GameRules, GameState} from '@/types/game';
@@ -19,28 +18,12 @@ const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
 const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
 export default function PlayPage({params: {rulesId}}: PlayPageProps) {
-  const router = useRouter();
   const [rules, setRules] = useState<GameRules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initialStateOverride, setInitialStateOverride] = useState<GameState | null>(null);
   const [initialPlayerStats, setInitialPlayerStats] = useState<PlayerStats | null>(null);
   const {initializeTheme} = useTheme();
   
-  const [gameControlHandlers, setGameControlHandlers] = useState({
-    handleSave: () => {},
-    handleLoad: () => {},
-    isPending: false,
-    isGenerating: false,
-  });
-
-  const [playerStats, setPlayerStats] = useState<PlayerStats>({
-    name: 'Player',
-    identity: 'Adventurer',
-    language: 'en',
-    attributes: {strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10},
-    equipment: {}
-  });
-
   useEffect(() => {
     const loadedRules = getRuleset(rulesId);
     if (!loadedRules) {
@@ -58,7 +41,7 @@ export default function PlayPage({params: {rulesId}}: PlayPageProps) {
       try {
         const stateToLoad: GameState = JSON.parse(stateToLoadJson);
         setInitialStateOverride(stateToLoad);
-        setPlayerStats(stateToLoad.player); // Set player stats from the loaded state
+        setInitialPlayerStats(stateToLoad.player); // Set player stats from the loaded state
         sessionStorage.removeItem(STATE_TO_LOAD_KEY);
         setIsLoading(false);
         return;
@@ -74,7 +57,6 @@ export default function PlayPage({params: {rulesId}}: PlayPageProps) {
         try {
             const playerStatsToLoad: PlayerStats = JSON.parse(playerStatsToLoadJson);
             setInitialPlayerStats(playerStatsToLoad);
-            setPlayerStats(playerStatsToLoad); // Set player stats for the sidebar
             sessionStorage.removeItem(PLAYER_STATS_TO_LOAD_KEY);
         } catch (e) {
             console.error("Failed to parse player stats from session storage", e);
@@ -103,22 +85,11 @@ export default function PlayPage({params: {rulesId}}: PlayPageProps) {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar
+      <GameUI
         rules={rules}
-        playerStats={playerStats}
-        onSave={gameControlHandlers.handleSave}
-        onLoad={gameControlHandlers.handleLoad}
-        isPending={gameControlHandlers.isPending || gameControlHandlers.isGenerating}
+        initialStateOverride={initialStateOverride}
+        initialPlayerStats={initialPlayerStats}
       />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
-        <GameUI
-          rules={rules}
-          setGameControlHandlers={setGameControlHandlers}
-          setPlayerStats={setPlayerStats}
-          initialStateOverride={initialStateOverride}
-          initialPlayerStats={initialPlayerStats}
-        />
-      </main>
     </div>
   );
 }
