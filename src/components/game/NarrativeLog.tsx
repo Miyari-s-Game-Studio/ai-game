@@ -46,63 +46,72 @@ const MarkdownRenderer: React.FC<{
 }> = ({ text, targets, rules, actionDetails, allowedActions, onTargetClick, language }) => {
     
   // Custom renderer for text nodes to handle highlighting
-  const TextRenderer = ({ children }: { children: React.ReactNode }) => {
-    const textContent = String(children);
-    if (targets.length === 0) {
-      return <>{textContent}</>;
-    }
+  const renderers = {
+      text: ({children}: {children: React.ReactNode}) => {
+        const textContent = String(children);
+        if (targets.length === 0) {
+          return <>{textContent}</>;
+        }
+        
+        // Use word boundaries for English, but not for Chinese which doesn't use spaces.
+        const wordBoundary = language === 'zh' ? '' : '\\b';
+        // Create a regex that finds any of the target words.
+        const regex = new RegExp(`(${wordBoundary}(?:${targets.join('|')})${wordBoundary})`, 'gi');
+        const parts = textContent.split(regex);
+        
+        return (
+          <>
+            {parts.map((part, index) => {
+              // Check if the current part is one of the targets (case-insensitive)
+              const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
+              
+              if (isTarget) {
+                // Find all valid actions for this specific target
+                const validActions = rules.filter(rule => {
+                  if (!allowedActions.includes(rule.when.actionId)) return false;
+                  if (!rule.when.targetPattern) return false;
+                  // Check if the rule's target pattern matches the current part
+                  const targetPatterns = rule.when.targetPattern.split('|').map(p => p.trim());
+                  return targetPatterns.some(p => new RegExp(`^${p}$`, 'i').test(part));
+                });
     
-    const wordBoundary = language === 'zh' ? '' : '\\b';
-    const regex = new RegExp(`(${wordBoundary}(?:${targets.join('|')})${wordBoundary})`, 'gi');
-    const parts = textContent.split(regex);
+                if (validActions.length === 0) {
+                  return <span key={index}>{part}</span>;
+                }
     
-    return (
-      <>
-        {parts.map((part, index) => {
-          const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
-          if (isTarget) {
-            const validActions = rules.filter(rule => {
-              if (!allowedActions.includes(rule.when.actionId)) return false;
-              if (!rule.when.targetPattern) return false;
-              return rule.when.targetPattern.split('|').some(p => new RegExp(`^${p.trim()}$`, 'i').test(part));
-            });
-
-            if (validActions.length === 0) {
+                return (
+                  <Popover key={index}>
+                    <PopoverTrigger asChild>
+                      <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
+                        {part}
+                      </span>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-2">
+                      <div className="flex flex-col gap-1">
+                        {validActions.map(rule => (
+                          <Button
+                            key={rule.when.actionId}
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onTargetClick(rule.when.actionId, part)}
+                            className="justify-start"
+                          >
+                            <ChevronRight className="w-4 h-4 mr-2" />
+                            <span>
+                              {actionDetails[rule.when.actionId]?.label || rule.when.actionId}
+                            </span>
+                          </Button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                );
+              }
               return <span key={index}>{part}</span>;
-            }
-
-            return (
-              <Popover key={index}>
-                <PopoverTrigger asChild>
-                  <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
-                    {part}
-                  </span>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-2">
-                  <div className="flex flex-col gap-1">
-                    {validActions.map(rule => (
-                      <Button
-                        key={rule.when.actionId}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onTargetClick(rule.when.actionId, part)}
-                        className="justify-start"
-                      >
-                        <ChevronRight className="w-4 h-4 mr-2" />
-                        <span>
-                          {actionDetails[rule.when.actionId]?.label || rule.when.actionId}
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            );
-          }
-          return <span key={index}>{part}</span>;
-        })}
-      </>
-    );
+            })}
+          </>
+        );
+      }
   };
 
   return (
@@ -110,13 +119,15 @@ const MarkdownRenderer: React.FC<{
         remarkPlugins={[remarkGfm]}
         components={{
             p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-            text: ({ children }) => <TextRenderer>{children}</TextRenderer>,
+            // Pass through our custom text renderer to handle highlighting inside paragraphs, bold text, etc.
+            text: renderers.text,
         }}
     >
         {text}
     </ReactMarkdown>
   );
 };
+
 
 const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, actionDetails, allowedActions, onTargetClick, isScrollable = false, language = 'en' }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -163,7 +174,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                 </p>
               )}
               <div className="text-foreground/90 whitespace-pre-wrap">
-                 {entry.type === 'narrative' ? (
+                 {entry.type === 'narrative' || entry.type === 'procedural' ? (
                   <MarkdownRenderer
                     text={entry.message}
                     targets={knownTargets}
