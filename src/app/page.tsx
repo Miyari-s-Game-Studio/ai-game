@@ -16,6 +16,17 @@ import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog'
 import { getTranslator } from '@/lib/i18n';
 import PlayerStatsComponent from '@/components/game/PlayerStats';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 
 const SAVE_PREFIX = 'narrativeGameSave_';
@@ -26,6 +37,7 @@ const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
 export default function GameSelectionPage() {
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const router = useRouter();
 
@@ -141,14 +153,13 @@ export default function GameSelectionPage() {
       }
   };
   
-  const handleDeleteCharacter = () => {
-      if (window.confirm("Are you sure you want to delete this character? This cannot be undone.")) {
-          localStorage.removeItem(PLAYER_STATS_KEY);
-          setPlayerStats(null);
-          setPlayerName('');
-          setPlayerIdentity('');
-          setIsEditingCharacter(false);
-      }
+  const confirmDeleteCharacter = () => {
+    localStorage.removeItem(PLAYER_STATS_KEY);
+    setPlayerStats(null);
+    setPlayerName('');
+    setPlayerIdentity('');
+    setIsEditingCharacter(false);
+    setIsDeleteDialogOpen(false);
   }
 
   return (
@@ -161,6 +172,23 @@ export default function GameSelectionPage() {
         onDelete={handleDeleteSave}
         language={playerStats?.language || 'en'}
     />
+    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t.deleteCharacterConfirmation}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDeleteCharacter}>
+            {t.continue}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 md:p-8">
       
       {!playerStats || isEditingCharacter ? (
@@ -208,7 +236,7 @@ export default function GameSelectionPage() {
                     <PlayerStatsComponent stats={playerStats} />
                     <div className="absolute top-2 right-2 flex gap-2">
                         <Button variant="outline" size="icon" onClick={handleEditCharacter}><Edit className="h-4 w-4" /></Button>
-                        <Button variant="destructive" size="icon" onClick={handleDeleteCharacter}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="destructive" size="icon" onClick={() => setIsDeleteDialogOpen(true)}><Trash2 className="h-4 w-4" /></Button>
                     </div>
                 </div>
             </header>
