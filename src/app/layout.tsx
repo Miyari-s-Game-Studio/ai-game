@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 
 export const metadata: Metadata = {
-  title: 'EcoTrouble',
-  description: 'An environmental crisis simulation game.',
+  title: 'Your Story',
+  description: 'An AI-powered interactive storytelling game.',
 };
 
 export default function RootLayout({

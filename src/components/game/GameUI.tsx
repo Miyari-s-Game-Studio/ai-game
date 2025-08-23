@@ -12,14 +12,12 @@ import type {
   Situation
 } from '@/types/game';
 import {processAction} from '@/lib/game-engine';
-import {generateActionNarrative} from '@/ai/flows/generate-action-narrative';
-import {generateSceneDescription} from '@/ai/flows/generate-scene-description';
 import {
   type ConversationOutput,
   extractSecret,
   generateCharacter,
   reachAgreement
-} from '@/ai/flows/generate-conversation';
+} from '@/ai/simple/generate-conversation';
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useToast} from '@/hooks/use-toast';
@@ -36,6 +34,8 @@ import {TalkDialog} from './TalkDialog';
 import {produce} from 'immer';
 import {getTranslator} from '@/lib/i18n';
 import {Sidebar} from '../layout/Sidebar';
+import {generateSceneDescription} from "@/ai/simple/generate-scene-description";
+import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
 
 
 interface GameUIProps {
@@ -142,11 +142,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     setIsGeneratingScene(true);
     setSceneDescription('');
     try {
-      const targets = knownTargets;
       const result = await generateSceneDescription({
         language: rules.language,
         situationLabel: situation.label,
-        knownTargets: targets,
+        knownTargets: knownTargets,
       });
       const newDescription = result.sceneDescription;
       setSceneDescription(newDescription);
@@ -397,7 +396,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     startTransition(async () => {
       try {
         const oldState = gameState;
-        
+
         const actionLog: LogEntry = {
           id: Date.now(),
           type: 'action',
@@ -433,23 +432,23 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         Object.entries(newState.counters).forEach(([counterId, newValue]) => {
           const oldValue = oldState.counters[counterId];
           if (oldValue !== undefined && oldValue !== newValue) {
-             const formattedId = counterId.replace(/_/g, ' ');
-             if (typeof newValue === 'number' && typeof oldValue === 'number') {
-                const diff = newValue - oldValue;
-                if (diff !== 0) {
-                    const icon = rules.ui?.counterIcons?.[counterId] || rules.ui?.counterIcons?.default || 'Star';
-                    changes.push({
-                        id: counterId,
-                        name: formattedId,
-                        delta: diff,
-                        icon: icon,
-                        color: 'text-primary'
-                    });
-                }
-             }
+            const formattedId = counterId.replace(/_/g, ' ');
+            if (typeof newValue === 'number' && typeof oldValue === 'number') {
+              const diff = newValue - oldValue;
+              if (diff !== 0) {
+                const icon = rules.ui?.counterIcons?.[counterId] || rules.ui?.counterIcons?.default || 'Star';
+                changes.push({
+                  id: counterId,
+                  name: formattedId,
+                  delta: diff,
+                  icon: icon,
+                  color: 'text-primary'
+                });
+              }
+            }
           }
         });
-        
+
         const newSituation = rules.situations[newState.situation];
         const newActionRules = newSituation.on_action;
         const newTargets = newActionRules.flatMap(rule => rule.when.targetPattern?.split('|') || []);
@@ -468,13 +467,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         const narrativeLog: LogEntry = {
           id: Date.now() + 1,
           type: 'narrative',
-          message: narrativeOutput.narrative,
+          message: narrativeOutput.narrative + "\n" + engineLogs.map(l => l.message).join('\n'),
           changes: changes.length > 0 ? changes : undefined,
         };
 
         setGameState(prevState => ({
           ...newState,
-          log: [...prevState.log, actionLog, ...engineLogs, narrativeLog],
+          log: [...prevState.log, actionLog, narrativeLog],
         }));
 
       } catch (error) {

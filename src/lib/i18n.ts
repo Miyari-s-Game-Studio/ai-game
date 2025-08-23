@@ -1,6 +1,12 @@
-
 // src/lib/i18n.ts
-import type { GameRules, GenerateActionNarrativeInput, GenerateCharacterInput, GenerateSceneDescriptionInput, ReachAgreementInput, ExtractSecretInput } from "@/types/game";
+import type {
+  GameRules,
+  GenerateActionNarrativeInput,
+  GenerateCharacterInput,
+  GenerateSceneDescriptionInput,
+  ReachAgreementInput,
+  ExtractSecretInput
+} from "@/types/game";
 
 type Language = 'en' | 'zh';
 
@@ -82,7 +88,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 Generate the scene description now.
 `,
         schema: {
-            sceneDescription: "A compelling, multi-paragraph narrative that describes the scene. It MUST naturally weave in all of the provided 'knownTargets' to introduce them to the player."
+          sceneDescription: "A compelling, multi-paragraph narrative that describes the scene. It MUST naturally weave in all of the provided 'knownTargets' to introduce them to the player."
         }
       },
       generateActionNarrative: {
@@ -107,7 +113,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 Generate the action-result narrative now.
 `,
         schema: {
-            narrative: "A compelling, 2-3 sentence narrative describing the result of the player's action. It must be based on the procedural logs and fit the scene description. It must also subtly weave in the known interaction targets."
+          narrative: "A compelling, 2-3 sentence narrative describing the result of the player's action. It must be based on the procedural logs and fit the scene description. It must also subtly weave in the known interaction targets."
         }
       },
       generateCharacter: {
@@ -120,13 +126,13 @@ The player wants to talk to a person described as: ${input.target}
 Generate a character profile for this NPC. Make them feel like a real, unique person. Avoid clichés.
 `,
         schema: {
-            language: "The language for the character profile.",
-            situationLabel: "The label of the current situation or chapter.",
-            target: "The role or type of person the player is talking to (e.g., 'fisherman', 'guard', 'factory manager').",
-            name: "A common, realistic name for the character.",
-            personality: "A brief, 1-2 sentence description of the character's personality (e.g., 'grumpy but helpful,' 'nervous and evasive').",
-            dialogStyle: "A description of how the character speaks (e.g., 'uses short, clipped sentences,' 'speaks very formally,' 'has a thick local accent').",
-            openingLine: "The first thing the character says to the player to start the conversation."
+          language: "The language for the character profile.",
+          situationLabel: "The label of the current situation or chapter.",
+          target: "The role or type of person the player is talking to (e.g., 'fisherman', 'guard', 'factory manager').",
+          name: "A common, realistic name for the character.",
+          personality: "A brief, 1-2 sentence description of the character's personality (e.g., 'grumpy but helpful,' 'nervous and evasive').",
+          dialogStyle: "A description of how the character speaks (e.g., 'uses short, clipped sentences,' 'speaks very formally,' 'has a thick local accent').",
+          openingLine: "The first thing the character says to the player to start the conversation."
         }
       },
       extractSecret: {
@@ -146,12 +152,12 @@ Do NOT reveal the secret unless the player's dialogue skillfully and naturally l
 Respond to the player's message based on your personality and the conversation so far. Your response must include what you say, your current expression, and any physical action you take.
 `,
         schema: {
-            playerInput: "The latest message from the player.",
-            objective: "The secret information the player is trying to get the character to reveal.",
-            sceneDescription: "The description of the scene where the conversation is happening.",
-            dialogue: "What the character says in response. This is the speech part only.",
-            expression: "The character's current facial expression or emotional state (e.g., 'looks nervous', 'frowns', 'seems thoughtful').",
-            action: "A brief description of the character's physical action (e.g., 'glances around', 'wrings their hands', 'leans forward')."
+          playerInput: "The latest message from the player.",
+          objective: "The secret information the player is trying to get the character to reveal.",
+          sceneDescription: "The description of the scene where the conversation is happening.",
+          dialogue: "What the character says in response. This is the speech part only.",
+          expression: "The character's current facial expression or emotional state (e.g., 'looks nervous', 'frowns', 'seems thoughtful').",
+          action: "A brief description of the character's physical action (e.g., 'glances around', 'wrings their hands', 'leans forward')."
         }
       },
       reachAgreement: {
@@ -167,17 +173,17 @@ You must stay in character at all times. The player is trying to get you to agre
 The objective is: "${input.objective}"
 
 Do NOT agree to the proposal unless the player's dialogue skillfully and naturally persuades you.
-If you are agreeing to the proposal, your dialogue MUST include the words "I agree to...".
+If you are agreeing to the proposal, your dialogue MUST include the words "I agree to ${input.objective}".
 
 Respond to the player's message based on your personality and the conversation so far. Your response must include what you say, your current expression, and any physical action you take.
 `,
         schema: {
-            playerInput: "The latest message from the player.",
-            objective: "A negotiation point the player wants the character to agree to.",
-            sceneDescription: "The description of the scene where the conversation is happening.",
-            dialogue: "What the character says in response. This is the speech part only. If agreeing, it must contain 'I agree to...'",
-            expression: "The character's current facial expression or emotional state (e.g., 'looks skeptical', 'nods slowly', 'looks relieved').",
-            action: "A brief description of the character's physical action (e.g., 'crosses their arms', 'taps their finger on the table', 'stands up')."
+          playerInput: "The latest message from the player.",
+          objective: "A negotiation point the player wants the character to agree to.",
+          sceneDescription: "The description of the scene where the conversation is happening.",
+          dialogue: "What the character says in response. This is the speech part only. If agreeing, it must contain 'I agree to...'",
+          expression: "The character's current facial expression or emotional state (e.g., 'looks skeptical', 'nods slowly', 'looks relieved').",
+          action: "A brief description of the character's physical action (e.g., 'crosses their arms', 'taps their finger on the table', 'stands up')."
         }
       }
     }
@@ -258,7 +264,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 现在生成场景描述。
 `,
         schema: {
-            sceneDescription: "一个引人-入胜的、多段落的叙述，描述了场景。它必须自然地编织入所有提供的“已知目标”，以将它们介绍给玩家。"
+          sceneDescription: "一个引人-入胜的、多段落的叙述，描述了场景。它必须自然地编织入所有提供的“已知目标”，以将它们介绍给玩家。"
         }
       },
       generateActionNarrative: {
@@ -283,7 +289,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 现在生成行动结果的叙述。
 `,
         schema: {
-            narrative: "一个引人入胜的、2-3句话的叙述，描述玩家行动的结果。它必须基于程序日志，并与场景描述相符。它还必须巧妙地编织入已知的互动目标。"
+          narrative: "一个引人入胜的、2-3句话的叙述，描述玩家行动的结果。它必须基于程序日志，并与场景描述相符。它还必须巧妙地编织入已知的互动目标。"
         }
       },
       generateCharacter: {
@@ -296,13 +302,13 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 为此NPC生成一个角色简介。让他们感觉像一个真实的、独特的人。避免陈词滥调。
 `,
         schema: {
-            language: "角色简介的语言。",
-            situationLabel: "当前情境或章节的标签。",
-            target: "玩家正在交谈的人的角色或类型（例如，‘渔夫’、‘保安’、‘工厂经理’）。",
-            name: "角色的一个常见、现实的名字。",
-            personality: "关于角色个性的简短一两句话描述（例如，“脾气暴躁但乐于助人”，“紧张而回避”）。",
-            dialogStyle: "角色说话方式的描述（例如，“使用简短、生硬的句子”，“说话非常正式”，“带有浓厚的地方口音”）。",
-            openingLine: "角色对玩家说的第一句话，以开始对话。"
+          language: "角色简介的语言。",
+          situationLabel: "当前情境或章节的标签。",
+          target: "玩家正在交谈的人的角色或类型（例如，‘渔夫’、‘保安’、‘工厂经理’）。",
+          name: "角色的一个常见、现实的名字。",
+          personality: "关于角色个性的简短一两句话描述（例如，“脾气暴躁但乐于助人”，“紧张而回避”）。",
+          dialogStyle: "角色说话方式的描述（例如，“使用简短、生硬的句子”，“说话非常正式”，“带有浓厚的地方口音”）。",
+          openingLine: "角色对玩家说的第一句话，以开始对话。"
         }
       },
       extractSecret: {
@@ -322,12 +328,12 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 根据你的个性和目前的对话情况，回应玩家的信息。你的回应必须包括你说的话、你当前的神态和你的任何身体动作。
 `,
         schema: {
-            playerInput: "来自玩家的最新消息。",
-            objective: "玩家试图让角色揭示的秘密信息。",
-            sceneDescription: "对话发生的场景描述。",
-            dialogue: "角色回应时说的话。这只是语音部分。",
-            expression: "角色当前的面部表情或情绪状态（例如，‘看起来很紧张’，‘皱眉’，‘似乎在思考’）。",
-            action: "角色身体动作的简短描述（例如，‘环顾四周’，‘绞着双手’，‘身体前倾’）。"
+          playerInput: "来自玩家的最新消息。",
+          objective: "玩家试图让角色揭示的秘密信息。",
+          sceneDescription: "对话发生的场景描述。",
+          dialogue: "角色回应时说的话。这只是语音部分。",
+          expression: "角色当前的面部表情或情绪状态（例如，‘看起来很紧张’，‘皱眉’，‘似乎在思考’）。",
+          action: "角色身体动作的简短描述（例如，‘环顾四周’，‘绞着双手’，‘身体前倾’）。"
         }
       },
       reachAgreement: {
@@ -343,17 +349,17 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 目标是：“${input.objective}”
 
 除非玩家的对话技巧娴熟自然地说服你，否则不要同意这个提议。
-如果你同意这个提议，你的对话必须包含“我同意...”这句话。
+如果你同意这个提议，你的对话必须包含“我同意${input.objective}”这句话。
 
 根据你的个性和目前的对话情况，回应玩家的信息。你的回应必须包括你说的话、你当前的神态和你的任何身体动作。
 `,
         schema: {
-            playerInput: "来自玩家的最新消息。",
-            objective: "玩家希望角色同意的谈判要点。",
-            sceneDescription: "对话发生的场景描述。",
-            dialogue: "角色回应时说的话。这只是语音部分。如果同意，必须包含“我同意...”。",
-            expression: "角色当前的面部表情或情绪状态（例如，“看起来很怀疑”，“慢慢点头”，“看起来松了一口气”）。",
-            action: "角色身体动作的简短描述（例如，“双臂交叉”，“用手指敲桌子”，“站起来”）。"
+          playerInput: "来自玩家的最新消息。",
+          objective: "玩家希望角色同意的谈判要点。",
+          sceneDescription: "对话发生的场景描述。",
+          dialogue: "角色回应时说的话。这只是语音部分。如果同意，必须包含“我同意...”。",
+          expression: "角色当前的面部表情或情绪状态（例如，“看起来很怀疑”，“慢慢点头”，“看起来松了一口气”）。",
+          action: "角色身体动作的简短描述（例如，“双臂交叉”，“用手指敲桌子”，“站起来”）。"
         }
       }
     }
@@ -361,5 +367,5 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 };
 
 export function getTranslator(language: Language) {
-    return translations[language] || translations.en;
+  return translations[language] || translations.en;
 }

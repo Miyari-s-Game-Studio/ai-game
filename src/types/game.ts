@@ -118,8 +118,8 @@ export type CharacterProfile = {
 };
 
 export type ConversationHistory = {
-  role: 'user' | 'model';
-  content: { text: string }[];
+  role: 'user' | 'model' | 'assistant' | 'system';
+  content: string;
 }[];
 
 
