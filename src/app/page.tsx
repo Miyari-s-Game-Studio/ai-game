@@ -15,6 +15,8 @@ import { useRouter } from 'next/navigation';
 import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
 import { getTranslator } from '@/lib/i18n';
 import PlayerStatsComponent from '@/components/game/PlayerStats';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 const SAVE_PREFIX = 'narrativeGameSave_';
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
@@ -23,7 +25,6 @@ const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
 
 export default function GameSelectionPage() {
-  const allRules: GameRules[] = gameRulesets.map(id => getRuleset(id)).filter(Boolean) as GameRules[];
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const router = useRouter();
@@ -32,10 +33,16 @@ export default function GameSelectionPage() {
   const [isEditingCharacter, setIsEditingCharacter] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [playerIdentity, setPlayerIdentity] = useState('');
+  const [playerLanguage, setPlayerLanguage] = useState<'en' | 'zh'>('en');
   
-  // A bit of a hack for the main page. We'll default to English.
-  // The language will be properly set once a scenario is loaded.
-  const t = useMemo(() => getTranslator('en'), []);
+  const t = useMemo(() => getTranslator(playerStats?.language || playerLanguage), [playerStats, playerLanguage]);
+
+  const allRules: GameRules[] = useMemo(() => {
+    if (!playerStats) return [];
+    return gameRulesets
+        .map(id => getRuleset(id))
+        .filter(rules => rules && rules.language === playerStats.language) as GameRules[];
+  }, [playerStats]);
 
   useEffect(() => {
     try {
@@ -52,12 +59,14 @@ export default function GameSelectionPage() {
 
   const findSaveFiles = () => {
     const saves: SaveFile[] = [];
+    const language = playerStats?.language || 'en';
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith(SAVE_PREFIX)) {
         try {
           const state: GameState = JSON.parse(localStorage.getItem(key) || '{}');
-          
+          if (state.player.language !== language) continue;
+
           const keyWithoutPrefix = key.substring(SAVE_PREFIX.length);
           const lastUnderscoreIndex = keyWithoutPrefix.lastIndexOf('_');
           if (lastUnderscoreIndex === -1) continue; 
@@ -109,6 +118,7 @@ export default function GameSelectionPage() {
     const newPlayerStats: PlayerStats = {
       name: playerName,
       identity: playerIdentity,
+      language: playerLanguage,
       attributes: { strength: 10, dexterity: 12, constitution: 11, intelligence: 14, wisdom: 13, charisma: 12 },
       equipment: { top: 'Sturdy Jacket', bottom: 'Cargo Pants', shoes: 'Work Boots', accessory: 'ID Badge' },
     };
@@ -126,6 +136,7 @@ export default function GameSelectionPage() {
       if (playerStats) {
           setPlayerName(playerStats.name);
           setPlayerIdentity(playerStats.identity);
+          setPlayerLanguage(playerStats.language);
           setIsEditingCharacter(true);
       }
   };
@@ -148,7 +159,7 @@ export default function GameSelectionPage() {
         saveFiles={saveFiles}
         onLoad={handleLoadGame}
         onDelete={handleDeleteSave}
-        language='en' // Hardcoded for this page
+        language={playerStats?.language || 'en'}
     />
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 md:p-8">
       
@@ -159,6 +170,18 @@ export default function GameSelectionPage() {
               <CardDescription>{t.defineYourRoleIn} the adventures to come.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+               <div className="space-y-2">
+                <Label htmlFor="playerLanguage" className="text-lg">{t.language}</Label>
+                <Select value={playerLanguage} onValueChange={(value) => setPlayerLanguage(value as 'en' | 'zh')}>
+                    <SelectTrigger id="playerLanguage" className="text-base">
+                        <SelectValue placeholder="Select a language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="en">{t.languageEnglish}</SelectItem>
+                        <SelectItem value="zh">{t.languageChinese}</SelectItem>
+                    </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="playerName" className="text-lg">{t.characterName}</Label>
                 <Input id="playerName" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder={t.enterNamePlaceholder} className="text-base" />
@@ -217,7 +240,7 @@ export default function GameSelectionPage() {
                 </CardHeader>
                 <CardContent>
                     <Button asChild variant="outline">
-                        <Link href="/admin/rules">{t.createNew}</Link>
+                        <Link href="/admin/rules">{t.manageRules}</Link>
                     </Button>
                 </CardContent>
             </Card>
@@ -239,4 +262,3 @@ export default function GameSelectionPage() {
     </>
   );
 }
-

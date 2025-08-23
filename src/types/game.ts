@@ -22,6 +22,7 @@ export type Equipment = {
 export type PlayerStats = {
   name: string;
   identity: string;
+  language: 'en' | 'zh';
   attributes: PlayerAttributes;
   equipment: Equipment;
 };
