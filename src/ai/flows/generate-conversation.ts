@@ -105,7 +105,7 @@ const extractSecretFlow = ai.defineFlow(
     const systemPrompt = t.ai.extractSecret.systemPrompt(input);
 
     const { output } = await ai.generate({
-      history: input.conversationHistory,
+      messages: input.conversationHistory,
       system: systemPrompt,
       prompt: input.playerInput,
       output: {
@@ -151,7 +151,7 @@ const reachAgreementFlow = ai.defineFlow(
     const systemPrompt = t.ai.reachAgreement.systemPrompt(input);
     
     const { output } = await ai.generate({
-      history: input.conversationHistory,
+      messages: input.conversationHistory,
       system: systemPrompt,
       prompt: input.playerInput,
       output: {
