@@ -107,7 +107,7 @@ export function TalkDialog({
     try {
         const history: ConversationHistory = currentHistory.map(entry => ({
             role: entry.type === 'player' ? 'user' : 'model',
-            parts: [{ text: entry.message }]
+            content: [{ text: entry.message }]
         }));
 
         const result = await conversationFlow({
