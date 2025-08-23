@@ -123,6 +123,9 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
         const Icon = details.icon;
         const isSingleNarrative = log.length === 1 && entry.type === 'narrative';
 
+        // Custom styling for procedural messages showing gains/losses
+        const isStatChange = entry.type === 'procedural' && (entry.message.includes('+') || entry.message.includes('-'));
+
         return (
           <div
             key={entry.id || index}
@@ -143,7 +146,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                   {details.label}
                 </p>
               )}
-              <div className="text-foreground/90 whitespace-pre-wrap">
+              <div className={cn("text-foreground/90 whitespace-pre-wrap", isStatChange && "font-mono text-sm tracking-wider")}>
                  {entry.type === 'narrative' ? (
                   <HighlightableText
                     text={entry.message}

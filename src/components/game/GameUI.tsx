@@ -126,7 +126,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
       generateNewScene(gameState.situation, currentSituation);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState.situation, currentSituation]);
+  }, [gameState.situation]);
 
   const generateNewScene = async (situationId: string, situation: Situation) => {
     // Check cache first
@@ -395,18 +395,60 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const handleAction = (actionId: string, target?: string) => {
     startTransition(async () => {
       try {
+        const oldState = gameState;
+        
         const actionLog: LogEntry = {
           id: Date.now(),
           type: 'action',
           message: `Action: ${actionId}` + (target ? ` - Target: ${target}` : ''),
         };
 
-        const {newState, proceduralLogs} = await processAction(
+        const {newState, proceduralLogs: engineLogs} = await processAction(
           rules,
-          gameState,
+          oldState,
           actionId,
           target
         );
+
+        const changeLogs: LogEntry[] = [];
+        // Compare tracks
+        Object.entries(newState.tracks).forEach(([trackId, newTrack]) => {
+          const oldTrack = oldState.tracks[trackId];
+          if (oldTrack && oldTrack.value !== newTrack.value) {
+            const diff = newTrack.value - oldTrack.value;
+            changeLogs.push({
+              id: Date.now() + engineLogs.length + changeLogs.length,
+              type: 'procedural',
+              message: `${newTrack.name} ${diff > 0 ? '+' : ''}${diff}`
+            });
+          }
+        });
+
+        // Compare counters
+        Object.entries(newState.counters).forEach(([counterId, newValue]) => {
+          const oldValue = oldState.counters[counterId];
+          if (oldValue !== undefined && oldValue !== newValue) {
+            const formattedId = counterId.replace(/_/g, ' ');
+            if (typeof newValue === 'boolean') {
+              changeLogs.push({
+                id: Date.now() + engineLogs.length + changeLogs.length,
+                type: 'procedural',
+                message: `Status updated: ${formattedId} is now ${newValue ? 'true' : 'false'}.`
+              });
+            } else if (typeof newValue === 'number' && typeof oldValue === 'number') {
+              const diff = newValue - oldValue;
+              if (diff !== 0) {
+                 changeLogs.push({
+                    id: Date.now() + engineLogs.length + changeLogs.length,
+                    type: 'procedural',
+                    message: `${formattedId} ${diff > 0 ? '+' : ''}${diff}`
+                });
+              }
+            }
+          }
+        });
+        
+        const allProceduralLogs = [...engineLogs, ...changeLogs];
 
         const newSituation = rules.situations[newState.situation];
         const newActionRules = newSituation.on_action;
@@ -417,7 +459,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           situationLabel: newSituation.label,
           sceneDescription: sceneDescription, // Use existing scene description
           actionTaken: `${actionId} ${target || ''}`.trim(),
-          proceduralLogs: proceduralLogs.map(l => l.message),
+          proceduralLogs: allProceduralLogs.map(l => l.message),
           knownTargets: [...new Set(newTargets)],
         };
 
@@ -431,7 +473,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
         setGameState(prevState => ({
           ...newState,
-          log: [...prevState.log, actionLog, ...proceduralLogs, narrativeLog],
+          log: [...prevState.log, actionLog, ...allProceduralLogs, narrativeLog],
         }));
 
       } catch (error) {
