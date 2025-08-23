@@ -45,11 +45,20 @@ export type Track = {
   max: number;
 };
 
+export type LogEntryChange = {
+  id: string;
+  name: string;
+  delta: number;
+  icon: string;
+  color: string;
+};
+
 export type LogEntry = {
   id: number;
   type: 'action' | 'procedural' | 'narrative' | 'error' | 'player' | 'npc';
   message: string;
   actor?: string; // For conversation logs
+  changes?: LogEntryChange[];
 };
 
 export type ActionRule = {

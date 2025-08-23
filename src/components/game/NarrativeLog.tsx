@@ -1,11 +1,12 @@
-
 import React, { useRef, useEffect } from 'react';
 import type { ActionRule, ActionDetail, LogEntry } from '@/types/game';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Terminal, Bot, User, AlertCircle, ChevronRight } from 'lucide-react';
+import { Terminal, Bot, User, AlertCircle, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import * as LucideIcons from 'lucide-react';
+import { Separator } from '../ui/separator';
 
 interface NarrativeLogProps {
   log: LogEntry[];
@@ -17,6 +18,11 @@ interface NarrativeLogProps {
   isScrollable?: boolean;
   language?: 'en' | 'zh';
 }
+
+const getDynamicIcon = (iconName: string): React.ElementType => {
+  const Icon = LucideIcons[iconName as keyof typeof LucideIcons] as React.ElementType;
+  return Icon || LucideIcons.Star;
+};
 
 const logTypeDetails = {
   action: { icon: User, color: 'text-accent', bgColor: 'bg-accent/10', label: 'Player Action' },
@@ -123,9 +129,6 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
         const Icon = details.icon;
         const isSingleNarrative = log.length === 1 && entry.type === 'narrative';
 
-        // Custom styling for procedural messages showing gains/losses
-        const isStatChange = entry.type === 'procedural' && (entry.message.includes('+') || entry.message.includes('-'));
-
         return (
           <div
             key={entry.id || index}
@@ -146,7 +149,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                   {details.label}
                 </p>
               )}
-              <div className={cn("text-foreground/90 whitespace-pre-wrap", isStatChange && "font-mono text-sm tracking-wider")}>
+              <div className="text-foreground/90 whitespace-pre-wrap">
                  {entry.type === 'narrative' ? (
                   <HighlightableText
                     text={entry.message}
@@ -161,6 +164,27 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                   entry.message
                 )}
               </div>
+              {entry.changes && entry.changes.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/50">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                        {entry.changes.map(change => {
+                            const ChangeIcon = getDynamicIcon(change.icon);
+                            const deltaColor = change.delta > 0 ? 'text-emerald-500' : 'text-rose-500';
+                            const DeltaIcon = change.delta > 0 ? ArrowUp : ArrowDown;
+                            return (
+                                <div key={change.id} className="flex items-center gap-2 text-sm">
+                                    <ChangeIcon className={cn("w-4 h-4", change.color)} />
+                                    <span className="font-medium capitalize">{change.name}</span>
+                                    <div className={cn("flex items-center font-semibold ml-auto", deltaColor)}>
+                                        <DeltaIcon className="w-4 h-4 mr-0.5" />
+                                        <span>{Math.abs(change.delta)}</span>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+              )}
             </div>
           </div>
         );

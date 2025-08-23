@@ -6,6 +6,7 @@ import type {
   GameRules,
   GameState,
   LogEntry,
+  LogEntryChange,
   PlayerStats,
   ReachAgreementInput,
   Situation
@@ -410,46 +411,45 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           target
         );
 
-        const changeLogs: LogEntry[] = [];
-        // Compare tracks
+        const changes: LogEntryChange[] = [];
+
+        // Compare tracks for changes
         Object.entries(newState.tracks).forEach(([trackId, newTrack]) => {
           const oldTrack = oldState.tracks[trackId];
           if (oldTrack && oldTrack.value !== newTrack.value) {
             const diff = newTrack.value - oldTrack.value;
-            changeLogs.push({
-              id: Date.now() + engineLogs.length + changeLogs.length,
-              type: 'procedural',
-              message: `${newTrack.name} ${diff > 0 ? '+' : ''}${diff}`
+            const style = rules.ui?.trackStyles?.[trackId];
+            changes.push({
+              id: trackId,
+              name: newTrack.name,
+              delta: diff,
+              icon: style?.icon || 'TrendingUp',
+              color: style?.color || 'text-primary',
             });
           }
         });
 
-        // Compare counters
+        // Compare counters for changes
         Object.entries(newState.counters).forEach(([counterId, newValue]) => {
           const oldValue = oldState.counters[counterId];
           if (oldValue !== undefined && oldValue !== newValue) {
-            const formattedId = counterId.replace(/_/g, ' ');
-            if (typeof newValue === 'boolean') {
-              changeLogs.push({
-                id: Date.now() + engineLogs.length + changeLogs.length,
-                type: 'procedural',
-                message: `Status updated: ${formattedId} is now ${newValue ? 'true' : 'false'}.`
-              });
-            } else if (typeof newValue === 'number' && typeof oldValue === 'number') {
-              const diff = newValue - oldValue;
-              if (diff !== 0) {
-                 changeLogs.push({
-                    id: Date.now() + engineLogs.length + changeLogs.length,
-                    type: 'procedural',
-                    message: `${formattedId} ${diff > 0 ? '+' : ''}${diff}`
-                });
-              }
-            }
+             const formattedId = counterId.replace(/_/g, ' ');
+             if (typeof newValue === 'number' && typeof oldValue === 'number') {
+                const diff = newValue - oldValue;
+                if (diff !== 0) {
+                    const icon = rules.ui?.counterIcons?.[counterId] || rules.ui?.counterIcons?.default || 'Star';
+                    changes.push({
+                        id: counterId,
+                        name: formattedId,
+                        delta: diff,
+                        icon: icon,
+                        color: 'text-primary'
+                    });
+                }
+             }
           }
         });
         
-        const allProceduralLogs = [...engineLogs, ...changeLogs];
-
         const newSituation = rules.situations[newState.situation];
         const newActionRules = newSituation.on_action;
         const newTargets = newActionRules.flatMap(rule => rule.when.targetPattern?.split('|') || []);
@@ -459,7 +459,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           situationLabel: newSituation.label,
           sceneDescription: sceneDescription, // Use existing scene description
           actionTaken: `${actionId} ${target || ''}`.trim(),
-          proceduralLogs: allProceduralLogs.map(l => l.message),
+          proceduralLogs: engineLogs.map(l => l.message),
           knownTargets: [...new Set(newTargets)],
         };
 
@@ -469,11 +469,12 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           id: Date.now() + 1,
           type: 'narrative',
           message: narrativeOutput.narrative,
+          changes: changes.length > 0 ? changes : undefined,
         };
 
         setGameState(prevState => ({
           ...newState,
-          log: [...prevState.log, actionLog, ...allProceduralLogs, narrativeLog],
+          log: [...prevState.log, actionLog, ...engineLogs, narrativeLog],
         }));
 
       } catch (error) {
