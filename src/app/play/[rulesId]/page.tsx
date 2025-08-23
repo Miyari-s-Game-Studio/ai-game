@@ -6,7 +6,7 @@ import {getRuleset} from '@/lib/rulesets';
 import {useState, useEffect} from 'react';
 import type {PlayerStats, GameRules, GameState} from '@/types/game';
 import {useTheme} from '@/components/layout/ThemeProvider';
-import {notFound, useRouter, redirect} from 'next/navigation';
+import {notFound, useRouter, redirect, useParams} from 'next/navigation';
 
 interface PlayPageProps {
   params: {
@@ -17,7 +17,8 @@ interface PlayPageProps {
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
 const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
-export default function PlayPage({params: {rulesId}}: PlayPageProps) {
+export default function PlayPage() {
+  const {rulesId} = useParams();
   const [rules, setRules] = useState<GameRules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initialStateOverride, setInitialStateOverride] = useState<GameState | null>(null);
