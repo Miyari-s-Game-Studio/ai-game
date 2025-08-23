@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import type { ActionRule, ActionDetail, LogEntry } from '@/types/game';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Terminal, Bot, User, AlertCircle, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
@@ -44,86 +44,83 @@ const MarkdownRenderer: React.FC<{
   onTargetClick: (actionId: string, target: string) => void;
   language?: 'en' | 'zh';
 }> = ({ text, targets, rules, actionDetails, allowedActions, onTargetClick, language }) => {
-    
-  // Custom renderer for text nodes to handle highlighting
-  const renderers = {
-      text: ({children}: {children: React.ReactNode}) => {
-        const textContent = String(children);
-        if (targets.length === 0) {
-          return <>{textContent}</>;
-        }
-        
-        // Use word boundaries for English, but not for Chinese which doesn't use spaces.
-        const wordBoundary = language === 'zh' ? '' : '\\b';
-        // Create a regex that finds any of the target words.
-        const regex = new RegExp(`(${wordBoundary}(?:${targets.join('|')})${wordBoundary})`, 'gi');
-        const parts = textContent.split(regex);
-        
-        return (
-          <>
-            {parts.map((part, index) => {
-              // Check if the current part is one of the targets (case-insensitive)
-              const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
-              
-              if (isTarget) {
-                // Find all valid actions for this specific target
-                const validActions = rules.filter(rule => {
-                  if (!allowedActions.includes(rule.when.actionId)) return false;
-                  if (!rule.when.targetPattern) return false;
-                  // Check if the rule's target pattern matches the current part
-                  const targetPatterns = rule.when.targetPattern.split('|').map(p => p.trim());
-                  return targetPatterns.some(p => new RegExp(`^${p}$`, 'i').test(part));
-                });
-    
-                if (validActions.length === 0) {
-                  return <span key={index}>{part}</span>;
-                }
-    
-                return (
-                  <Popover key={index}>
-                    <PopoverTrigger asChild>
-                      <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
-                        {part}
-                      </span>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-2">
-                      <div className="flex flex-col gap-1">
-                        {validActions.map(rule => (
-                          <Button
-                            key={rule.when.actionId}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onTargetClick(rule.when.actionId, part)}
-                            className="justify-start"
-                          >
-                            <ChevronRight className="w-4 h-4 mr-2" />
-                            <span>
-                              {actionDetails[rule.when.actionId]?.label || rule.when.actionId}
-                            </span>
-                          </Button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                );
-              }
-              return <span key={index}>{part}</span>;
-            })}
-          </>
-        );
+
+  const processNode = (node: React.ReactNode, key: number): React.ReactNode => {
+    if (typeof node === 'string') {
+      if (targets.length === 0) {
+        return node;
       }
+      
+      const wordBoundary = language === 'zh' ? '' : '\\b';
+      const regex = new RegExp(`(${wordBoundary}(?:${targets.join('|')})${wordBoundary})`, 'gi');
+      const parts = node.split(regex);
+      
+      return parts.map((part, index) => {
+        const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
+        
+        if (isTarget) {
+          const validActions = rules.filter(rule => {
+            if (!allowedActions.includes(rule.when.actionId)) return false;
+            if (!rule.when.targetPattern) return false;
+            const targetPatterns = rule.when.targetPattern.split('|').map(p => p.trim());
+            return targetPatterns.some(p => new RegExp(`^${p}$`, 'i').test(part));
+          });
+
+          if (validActions.length === 0) {
+            return <span key={index}>{part}</span>;
+          }
+
+          return (
+            <Popover key={index}>
+              <PopoverTrigger asChild>
+                <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
+                  {part}
+                </span>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2">
+                <div className="flex flex-col gap-1">
+                  {validActions.map(rule => (
+                    <Button
+                      key={rule.when.actionId}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onTargetClick(rule.when.actionId, part)}
+                      className="justify-start"
+                    >
+                      <ChevronRight className="w-4 h-4 mr-2" />
+                      <span>
+                        {actionDetails[rule.when.actionId]?.label || rule.when.actionId}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          );
+        }
+        return part;
+      });
+    }
+
+    if (React.isValidElement(node) && node.props.children) {
+      const children = React.Children.map(node.props.children, (child, index) => processNode(child, index));
+      return React.cloneElement(node, { ...node.props, key }, children);
+    }
+    
+    return node;
+  };
+
+  const customRenderers = {
+    p: ({node, children, ...props}: any) => (
+      <p {...props} className="mb-2 last:mb-0">
+        {React.Children.map(children, (child, index) => processNode(child, index))}
+      </p>
+    ),
   };
 
   return (
-    <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-            p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-            // Pass through our custom text renderer to handle highlighting inside paragraphs, bold text, etc.
-            text: renderers.text,
-        }}
-    >
-        {text}
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={customRenderers}>
+      {text}
     </ReactMarkdown>
   );
 };
