@@ -24,14 +24,14 @@ export default function PlayPage() {
   const [initialStateOverride, setInitialStateOverride] = useState<GameState | null>(null);
   const [initialPlayerStats, setInitialPlayerStats] = useState<PlayerStats | null>(null);
   const {initializeTheme} = useTheme();
-  
+
   useEffect(() => {
-    const loadedRules = getRuleset(rulesId);
+    const loadedRules = getRuleset(rulesId as string);
     if (!loadedRules) {
       notFound();
       return;
     }
-    
+
     setRules(loadedRules);
     initializeTheme(loadedRules);
 

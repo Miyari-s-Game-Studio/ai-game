@@ -16,8 +16,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, SendHorizontal, User, Bot, XCircle, CheckCircle, Target } from 'lucide-react';
-import type { CharacterProfile, LogEntry, ConversationHistory } from '@/types/game';
-import type { ConversationOutput, ExtractSecretInput, ReachAgreementInput } from '@/ai/flows/generate-conversation';
+import type { CharacterProfile, LogEntry, ConversationHistory, ExtractSecretInput, ReachAgreementInput } from '@/types/game';
+import type { ConversationOutput } from '@/ai/flows/generate-conversation';
 import { getTranslator } from '@/lib/i18n';
 
 type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
@@ -53,7 +53,7 @@ export function TalkDialog({
   const [isReplying, setIsReplying] = useState(false);
   const [objectiveAchieved, setObjectiveAchieved] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  
+
   const t = useMemo(() => getTranslator(language), [language]);
 
   useEffect(() => {
@@ -123,7 +123,7 @@ export function TalkDialog({
             message: result.response,
         };
         setConversation(prev => [...prev, newNpcEntry]);
-        
+
         let achieved = false;
         const responseLower = result.response.toLowerCase();
         const agreementPhrase = language === 'zh' ? '我同意' : 'i agree to';
@@ -155,7 +155,7 @@ export function TalkDialog({
         setIsReplying(false);
     }
   };
-  
+
   const handleClose = (achieved: boolean) => {
     onConversationEnd(conversation, achieved);
     onOpenChange(false);
@@ -184,7 +184,7 @@ export function TalkDialog({
             </div>
           )}
         </DialogHeader>
-        
+
         <div className="flex-grow overflow-hidden px-6 pt-4">
             <ScrollArea className="h-full pr-4" ref={scrollAreaRef}>
                 {isGenerating || !characterProfile ? (
