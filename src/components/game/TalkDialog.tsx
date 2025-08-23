@@ -28,6 +28,7 @@ interface TalkDialogProps {
   onOpenChange: (isOpen: boolean) => void;
   target: string;
   objective: string;
+  sceneDescription: string;
   conversationType: ConversationType;
   characterProfile: CharacterProfile | null;
   isGenerating: boolean;
@@ -41,6 +42,7 @@ export function TalkDialog({
   onOpenChange,
   target,
   objective,
+  sceneDescription,
   conversationType,
   characterProfile,
   isGenerating,
@@ -114,18 +116,21 @@ export function TalkDialog({
             conversationHistory: history,
             playerInput: sentInput,
             objective,
+            sceneDescription,
         } as ExtractSecretInput | ReachAgreementInput); // Cast to allow either type
+        
+        const fullResponse = `*${result.action}* "${result.dialogue}"`;
 
         const newNpcEntry: LogEntry = {
             id: Date.now() + 1,
             type: 'npc',
             actor: characterProfile.name,
-            message: result.response,
+            message: fullResponse,
         };
         setConversation(prev => [...prev, newNpcEntry]);
 
         let achieved = false;
-        const responseLower = result.response.toLowerCase();
+        const responseLower = result.dialogue.toLowerCase();
         const agreementPhrase = language === 'zh' ? '我同意' : 'i agree to';
 
         if (conversationType === 'agreement') {

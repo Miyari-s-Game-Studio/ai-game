@@ -146,18 +146,20 @@ export interface GenerateCharacterInput {
   target: string;
 };
 
-export interface ExtractSecretInput {
-  language: 'en' | 'zh';
-  characterProfile: CharacterProfile;
-  conversationHistory: ConversationHistory;
-  playerInput: string;
-  objective: string;
-};
+export interface ConversationInput {
+    language: 'en' | 'zh';
+    characterProfile: CharacterProfile;
+    conversationHistory: ConversationHistory;
+    playerInput: string;
+    objective: string;
+    sceneDescription: string;
+}
 
-export interface ReachAgreementInput {
-  language: 'en' | 'zh';
-  characterProfile: CharacterProfile;
-  conversationHistory: ConversationHistory;
-  playerInput: string;
-  objective: string;
-};
+export interface ExtractSecretInput extends ConversationInput {};
+export interface ReachAgreementInput extends ConversationInput {};
+
+export interface ConversationOutput {
+    dialogue: string;
+    expression: string;
+    action: string;
+}

@@ -240,7 +240,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   }
 
   const handleTalk = async (target: string) => {
-    if (!currentSituation) return;
+    if (!currentSituation || !sceneDescription) return;
 
     const talkRule = currentSituation.on_action.find(rule =>
       rule.when.actionId === 'talk' &&
@@ -531,6 +531,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           onOpenChange={setIsTalkDialogOpen}
           target={talkTarget}
           objective={talkObjective}
+          sceneDescription={sceneDescription}
           conversationType={conversationType}
           characterProfile={characterProfile}
           isGenerating={isGeneratingCharacter}

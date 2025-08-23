@@ -68,7 +68,9 @@ const generateCharacterFlow = ai.defineFlow(
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 const ConversationOutputSchema = z.object({
-  response: z.string(),
+  dialogue: z.string(),
+  expression: z.string(),
+  action: z.string(),
 });
 export type ConversationOutput = z.infer<typeof ConversationOutputSchema>;
 
@@ -91,10 +93,13 @@ const extractSecretFlow = ai.defineFlow(
       conversationHistory: z.custom<ConversationHistory>(),
       playerInput: z.string().describe(t.ai.extractSecret.schema.playerInput),
       objective: z.string().describe(t.ai.extractSecret.schema.objective),
+      sceneDescription: z.string().describe(t.ai.extractSecret.schema.sceneDescription),
     });
 
     const outputSchema = z.object({
-        response: z.string().describe(t.ai.extractSecret.schema.response),
+        dialogue: z.string().describe(t.ai.extractSecret.schema.dialogue),
+        expression: z.string().describe(t.ai.extractSecret.schema.expression),
+        action: z.string().describe(t.ai.extractSecret.schema.action),
     });
 
     const systemPrompt = t.ai.extractSecret.systemPrompt(input);
@@ -134,10 +139,13 @@ const reachAgreementFlow = ai.defineFlow(
       conversationHistory: z.custom<ConversationHistory>(),
       playerInput: z.string().describe(t.ai.reachAgreement.schema.playerInput),
       objective: z.string().describe(t.ai.reachAgreement.schema.objective),
+      sceneDescription: z.string().describe(t.ai.reachAgreement.schema.sceneDescription),
     });
     
     const outputSchema = z.object({
-        response: z.string().describe(t.ai.reachAgreement.schema.response),
+        dialogue: z.string().describe(t.ai.reachAgreement.schema.dialogue),
+        expression: z.string().describe(t.ai.reachAgreement.schema.expression),
+        action: z.string().describe(t.ai.reachAgreement.schema.action),
     });
 
     const systemPrompt = t.ai.reachAgreement.systemPrompt(input);

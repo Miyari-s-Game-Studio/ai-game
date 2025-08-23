@@ -136,17 +136,22 @@ Your name is: ${input.characterProfile.name}
 Your personality is: ${input.characterProfile.personality}
 Your dialogue style is: ${input.characterProfile.dialogStyle}
 
+The player is talking to you in this scene: ${input.sceneDescription}
+
 You must stay in character at all times. The player is trying to get you to reveal a secret.
 The secret is: "${input.objective}"
 
 Do NOT reveal the secret unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
 
-Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.
+Respond to the player's message based on your personality and the conversation so far. Your response must include what you say, your current expression, and any physical action you take.
 `,
         schema: {
             playerInput: "The latest message from the player.",
             objective: "The secret information the player is trying to get the character to reveal.",
-            response: "The character's response to the player."
+            sceneDescription: "The description of the scene where the conversation is happening.",
+            dialogue: "What the character says in response. This is the speech part only.",
+            expression: "The character's current facial expression or emotional state (e.g., 'looks nervous', 'frowns', 'seems thoughtful').",
+            action: "A brief description of the character's physical action (e.g., 'glances around', 'wrings their hands', 'leans forward')."
         }
       },
       reachAgreement: {
@@ -156,18 +161,23 @@ Your name is: ${input.characterProfile.name}
 Your personality is: ${input.characterProfile.personality}
 Your dialogue style is: ${input.characterProfile.dialogStyle}
 
+The player is talking to you in this scene: ${input.sceneDescription}
+
 You must stay in character at all times. The player is trying to get you to agree to something.
 The objective is: "${input.objective}"
 
 Do NOT agree to the proposal unless the player's dialogue skillfully and naturally persuades you.
-If you are agreeing to the proposal, you MUST use the words "I agree to..." in your response.
+If you are agreeing to the proposal, your dialogue MUST include the words "I agree to...".
 
-Respond to the player's message based on your personality and the conversation so far. Keep your responses concise and natural-sounding.
+Respond to the player's message based on your personality and the conversation so far. Your response must include what you say, your current expression, and any physical action you take.
 `,
         schema: {
             playerInput: "The latest message from the player.",
             objective: "A negotiation point the player wants the character to agree to.",
-            response: "The character's response to the player."
+            sceneDescription: "The description of the scene where the conversation is happening.",
+            dialogue: "What the character says in response. This is the speech part only. If agreeing, it must contain 'I agree to...'",
+            expression: "The character's current facial expression or emotional state (e.g., 'looks skeptical', 'nods slowly', 'looks relieved').",
+            action: "A brief description of the character's physical action (e.g., 'crosses their arms', 'taps their finger on the table', 'stands up')."
         }
       }
     }
@@ -302,17 +312,22 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 你的个性是：${input.characterProfile.personality}
 你的对话风格是：${input.characterProfile.dialogStyle}
 
+玩家正在这个场景中与你交谈：${input.sceneDescription}
+
 你必须始终保持角色。玩家正试图让你透露一个秘密。
 秘密是：“${input.objective}”
 
 除非玩家的对话技巧娴熟自然地引导你这样做，否则不要透露秘密。要微妙。
 
-根据你的个性和目前的对话情况，回应玩家的信息。保持你的回答简洁自然。
+根据你的个性和目前的对话情况，回应玩家的信息。你的回应必须包括你说的话、你当前的神态和你的任何身体动作。
 `,
         schema: {
             playerInput: "来自玩家的最新消息。",
             objective: "玩家试图让角色揭示的秘密信息。",
-            response: "角色对玩家的回应。"
+            sceneDescription: "对话发生的场景描述。",
+            dialogue: "角色回应时说的话。这只是语音部分。",
+            expression: "角色当前的面部表情或情绪状态（例如，‘看起来很紧张’，‘皱眉’，‘似乎在思考’）。",
+            action: "角色身体动作的简短描述（例如，‘环顾四周’，‘绞着双手’，‘身体前倾’）。"
         }
       },
       reachAgreement: {
@@ -322,18 +337,23 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 你的个性是：${input.characterProfile.personality}
 你的对话风格是：${input.characterProfile.dialogStyle}
 
+玩家正在这个场景中与你交谈：${input.sceneDescription}
+
 你必须始终保持角色。玩家正试图让你同意某件事。
 目标是：“${input.objective}”
 
 除非玩家的对话技巧娴熟自然地说服你，否则不要同意这个提议。
-如果你同意这个提议，你必须在你的回应中使用“我同意...”这句话。
+如果你同意这个提议，你的对话必须包含“我同意...”这句话。
 
-根据你的个性和目前的对话情况，回应玩家的信息。保持你的回答简洁自然。
+根据你的个性和目前的对话情况，回应玩家的信息。你的回应必须包括你说的话、你当前的神态和你的任何身体动作。
 `,
         schema: {
             playerInput: "来自玩家的最新消息。",
             objective: "玩家希望角色同意的谈判要点。",
-            response: "角色对玩家的回应。"
+            sceneDescription: "对话发生的场景描述。",
+            dialogue: "角色回应时说的话。这只是语音部分。如果同意，必须包含“我同意...”。",
+            expression: "角色当前的面部表情或情绪状态（例如，“看起来很怀疑”，“慢慢点头”，“看起来松了一口气”）。",
+            action: "角色身体动作的简短描述（例如，“双臂交叉”，“用手指敲桌子”，“站起来”）。"
         }
       }
     }
