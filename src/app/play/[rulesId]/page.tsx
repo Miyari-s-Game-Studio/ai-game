@@ -10,14 +10,15 @@ import {useTheme} from '@/components/layout/ThemeProvider';
 import {notFound, useRouter, redirect} from 'next/navigation';
 
 interface PlayPageProps {
-  rulesId: string;
+  params: {
+    rulesId: string;
+  }
 }
 
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
 const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
-export default function PlayPage({params}: { params: PlayPageProps }) {
-  const {rulesId} = params;
+export default function PlayPage({params: {rulesId}}: PlayPageProps) {
   const router = useRouter();
   const [rules, setRules] = useState<GameRules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +36,7 @@ export default function PlayPage({params}: { params: PlayPageProps }) {
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     name: 'Player',
     identity: 'Adventurer',
+    language: 'en',
     attributes: {strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10},
     equipment: {}
   });
