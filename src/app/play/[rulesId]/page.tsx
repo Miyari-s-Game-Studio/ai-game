@@ -4,10 +4,10 @@
 import {GameUI} from '@/components/game/GameUI';
 import {Sidebar} from '@/components/layout/Sidebar';
 import {getRuleset} from '@/lib/rulesets';
-import {useState, useEffect, use} from 'react';
+import {useState, useEffect} from 'react';
 import type {PlayerStats, GameRules, GameState} from '@/types/game';
 import {useTheme} from '@/components/layout/ThemeProvider';
-import {notFound, useRouter} from 'next/navigation';
+import {notFound, useRouter, redirect} from 'next/navigation';
 
 interface PlayPageProps {
   rulesId: string;
@@ -16,8 +16,8 @@ interface PlayPageProps {
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
 const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
-export default function PlayPage({params}: { params: Promise<PlayPageProps> }) {
-  const {rulesId} = use(params);
+export default function PlayPage({params}: { params: PlayPageProps }) {
+  const {rulesId} = params;
   const router = useRouter();
   const [rules, setRules] = useState<GameRules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,13 +42,14 @@ export default function PlayPage({params}: { params: Promise<PlayPageProps> }) {
   useEffect(() => {
     const loadedRules = getRuleset(rulesId);
     if (!loadedRules) {
-      setIsLoading(false);
+      notFound();
       return;
     }
     
     setRules(loadedRules);
     initializeTheme(loadedRules);
 
+    // This logic runs on the client after hydration
     // Check for a full game state to load (from a save file)
     const stateToLoadJson = sessionStorage.getItem(STATE_TO_LOAD_KEY);
     if (stateToLoadJson) {
@@ -65,7 +66,7 @@ export default function PlayPage({params}: { params: Promise<PlayPageProps> }) {
       }
     }
 
-    // If no full state, check for new player stats (from the start page)
+    // If no full state, check for new player stats (from the home page)
     const playerStatsToLoadJson = sessionStorage.getItem(PLAYER_STATS_TO_LOAD_KEY);
     if (playerStatsToLoadJson) {
         try {
@@ -76,18 +77,18 @@ export default function PlayPage({params}: { params: Promise<PlayPageProps> }) {
         } catch (e) {
             console.error("Failed to parse player stats from session storage", e);
             sessionStorage.removeItem(PLAYER_STATS_TO_LOAD_KEY);
-            // If parsing fails, redirect to start to be safe
-            router.replace(`/play/${rulesId}/start`);
+            // If parsing fails, redirect to home to be safe
+            redirect('/');
             return;
         }
     } else {
-        // If there's no saved state and no new player info, it's a new game. Redirect to start page.
-        router.replace(`/play/${rulesId}/start`);
+        // If there's no saved state and no new player info, it's an invalid entry. Redirect to home.
+        redirect('/');
         return;
     }
 
     setIsLoading(false);
-  }, [rulesId, initializeTheme, router]);
+  }, [rulesId, initializeTheme]);
 
 
   if (isLoading) {

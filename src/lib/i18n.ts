@@ -51,9 +51,10 @@ const translations = {
     gameLoaded: 'Game Loaded',
     saveDeleted: 'Save Deleted',
     createYourCharacter: 'Create Your Character',
+    editYourCharacter: 'Edit Your Character',
     defineYourRoleIn: 'Define your role in',
     characterName: 'Character Name',
-    enterNamePlaceholder: 'e.g., Alex Ryder',
+    enterNameplaceholder: 'e.g., Alex Ryder',
     characterIdentity: 'Character Identity / Role',
     enterIdentityPlaceholder: 'e.g., Freelance Investigator',
     beginAdventure: 'Begin Adventure',
@@ -211,6 +212,7 @@ Respond to the player's message based on your personality and the conversation s
     gameLoaded: '游戏已读取',
     saveDeleted: '存档已删除',
     createYourCharacter: '创建你的角色',
+    editYourCharacter: '编辑你的角色',
     defineYourRoleIn: '在...中定义你的角色',
     characterName: '角色名称',
     enterNamePlaceholder: '例如，莱德·亚历克斯',
@@ -234,7 +236,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 现在生成场景描述。
 `,
         schema: {
-            sceneDescription: "一个引人入胜的、多段落的叙述，描述了场景。它必须自然地编织入所有提供的“已知目标”，以将它们介绍给玩家。"
+            sceneDescription: "一个引人-入胜的、多段落的叙述，描述了场景。它必须自然地编织入所有提供的“已知目标”，以将它们介绍给玩家。"
         }
       },
       generateActionNarrative: {
