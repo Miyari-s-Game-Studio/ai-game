@@ -6,7 +6,9 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import * as LucideIcons from 'lucide-react';
-import { Separator } from '../ui/separator';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 
 interface NarrativeLogProps {
   log: LogEntry[];
@@ -33,7 +35,7 @@ const logTypeDetails = {
   npc: { icon: Bot, color: 'text-primary', bgColor: 'bg-primary/10', label: 'NPC' },
 };
 
-const HighlightableText: React.FC<{
+const MarkdownRenderer: React.FC<{
   text: string;
   targets: string[];
   rules: ActionRule[];
@@ -42,66 +44,77 @@ const HighlightableText: React.FC<{
   onTargetClick: (actionId: string, target: string) => void;
   language?: 'en' | 'zh';
 }> = ({ text, targets, rules, actionDetails, allowedActions, onTargetClick, language }) => {
+    
+  // Custom renderer for text nodes to handle highlighting
+  const TextRenderer = ({ children }: { children: React.ReactNode }) => {
+    const textContent = String(children);
     if (targets.length === 0) {
-      return <>{text}</>;
+      return <>{textContent}</>;
     }
+    
+    const wordBoundary = language === 'zh' ? '' : '\\b';
+    const regex = new RegExp(`(${wordBoundary}(?:${targets.join('|')})${wordBoundary})`, 'gi');
+    const parts = textContent.split(regex);
+    
+    return (
+      <>
+        {parts.map((part, index) => {
+          const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
+          if (isTarget) {
+            const validActions = rules.filter(rule => {
+              if (!allowedActions.includes(rule.when.actionId)) return false;
+              if (!rule.when.targetPattern) return false;
+              return rule.when.targetPattern.split('|').some(p => new RegExp(`^${p.trim()}$`, 'i').test(part));
+            });
 
-  // Create a regex to find all targets. Remove word boundaries for Chinese.
-  const wordBoundary = language === 'zh' ? '' : '\\b';
-  const regex = new RegExp(`(${wordBoundary}(?:${targets.join('|')})${wordBoundary})`, 'gi');
-  const parts = text.split(regex);
+            if (validActions.length === 0) {
+              return <span key={index}>{part}</span>;
+            }
+
+            return (
+              <Popover key={index}>
+                <PopoverTrigger asChild>
+                  <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
+                    {part}
+                  </span>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2">
+                  <div className="flex flex-col gap-1">
+                    {validActions.map(rule => (
+                      <Button
+                        key={rule.when.actionId}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onTargetClick(rule.when.actionId, part)}
+                        className="justify-start"
+                      >
+                        <ChevronRight className="w-4 h-4 mr-2" />
+                        <span>
+                          {actionDetails[rule.when.actionId]?.label || rule.when.actionId}
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            );
+          }
+          return <span key={index}>{part}</span>;
+        })}
+      </>
+    );
+  };
 
   return (
-    <>
-      {parts.map((part, index) => {
-        const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
-        if (isTarget) {
-          const validActions = rules.filter(rule => {
-            // Rule must be for an allowed action
-            if (!allowedActions.includes(rule.when.actionId)) {
-                return false;
-            }
-            if (!rule.when.targetPattern) return false;
-            
-            // Check if the target part matches one of the patterns in the rule
-            return rule.when.targetPattern.split('|').some(p => new RegExp(`^${p.trim()}$`, 'i').test(part));
-          });
-
-          if (validActions.length === 0) {
-            return <span key={index}>{part}</span>;
-          }
-
-          return (
-            <Popover key={index}>
-              <PopoverTrigger asChild>
-                <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
-                  {part}
-                </span>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-2">
-                <div className="flex flex-col gap-1">
-                  {validActions.map(rule => (
-                    <Button
-                      key={rule.when.actionId}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onTargetClick(rule.when.actionId, part)}
-                      className="justify-start"
-                    >
-                      <ChevronRight className="w-4 h-4 mr-2" />
-                      <span>
-                        {actionDetails[rule.when.actionId]?.label || rule.when.actionId}
-                      </span>
-                    </Button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          );
-        }
-        return <span key={index}>{part}</span>;
-      })}
-    </>
+    <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+            p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+            text: ({ children }) => <TextRenderer>{children}</TextRenderer>,
+        }}
+    >
+        {text}
+    </ReactMarkdown>
   );
 };
 
@@ -151,7 +164,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
               )}
               <div className="text-foreground/90 whitespace-pre-wrap">
                  {entry.type === 'narrative' ? (
-                  <HighlightableText
+                  <MarkdownRenderer
                     text={entry.message}
                     targets={knownTargets}
                     rules={actionRules}
