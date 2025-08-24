@@ -1,11 +1,9 @@
-
-// src/app/admin/rules/page.tsx
 'use client';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { RulesEditor } from '@/components/admin/RulesEditor';
-import { gameRulesets, getRuleset } from '@/lib/rulesets';
-import { Home, PlusCircle } from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import {RulesEditor} from '@/components/admin/RulesEditor';
+import {gameRulesets, getRuleset} from '@/lib/rulesets';
+import {Home, PlusCircle} from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -13,11 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import type { GameRules } from '@/types/game';
+import {useState, useEffect} from 'react';
+import {useRouter, useSearchParams} from 'next/navigation';
+import type {GameRules} from '@/types/game';
+import { Suspense } from 'react'
 
-export default function AdminRulesPage() {
+
+
+
+
+function AdminRulesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialRulesId = searchParams.get('id');
@@ -28,11 +31,11 @@ export default function AdminRulesPage() {
 
   useEffect(() => {
     if (initialRulesId && gameRulesets.includes(initialRulesId)) {
-        setSelectedRulesId(initialRulesId);
+      setSelectedRulesId(initialRulesId);
     } else if (gameRulesets.length > 0) {
-        setSelectedRulesId(gameRulesets[0]);
+      setSelectedRulesId(gameRulesets[0]);
     } else {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   }, [initialRulesId]);
 
@@ -46,15 +49,15 @@ export default function AdminRulesPage() {
         setRules("{}");
       }
       setIsLoading(false);
-      
+
       // Update URL without navigating
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.set('id', selectedRulesId);
-      router.replace(newUrl.toString(), { scroll: false });
+      router.replace(newUrl.toString(), {scroll: false});
 
     }
   }, [selectedRulesId, router]);
-  
+
   const handleCreateNew = () => {
     // This would ideally involve a prompt for a new ID and creating a new file.
     // For now, we can link to a "new" page or have a modal here.
@@ -67,47 +70,56 @@ export default function AdminRulesPage() {
     <main className="container mx-auto p-4 md:p-8">
       <header className="mb-8">
         <div className="flex justify-between items-center mb-4">
-            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-              Game Rules Management
-            </h1>
-            <Button asChild>
-              <Link href="/">
-                <Home className="mr-2"/>
-                Back to Scenarios
-              </Link>
-            </Button>
+          <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+            Game Rules Management
+          </h1>
+          <Button asChild>
+            <Link href="/">
+              <Home className="mr-2"/>
+              Back to Scenarios
+            </Link>
+          </Button>
         </div>
         <div className="flex items-center gap-4">
-            <Select onValueChange={setSelectedRulesId} value={selectedRulesId || ''} disabled={isLoading}>
-                <SelectTrigger className="w-[280px]">
-                    <SelectValue placeholder="Select a ruleset to edit..." />
-                </SelectTrigger>
-                <SelectContent>
-                    {gameRulesets.map(id => (
-                        <SelectItem key={id} value={id}>{id}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-             <Button variant="outline" onClick={handleCreateNew}>
-                <PlusCircle className="mr-2" />
-                Create New
-            </Button>
+          <Select onValueChange={setSelectedRulesId} value={selectedRulesId || ''} disabled={isLoading}>
+            <SelectTrigger className="w-[280px]">
+              <SelectValue placeholder="Select a ruleset to edit..."/>
+            </SelectTrigger>
+            <SelectContent>
+              {gameRulesets.map(id => (
+                <SelectItem key={id} value={id}>{id}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={handleCreateNew}>
+            <PlusCircle className="mr-2"/>
+            Create New
+          </Button>
         </div>
       </header>
       {isLoading ? (
-          <p>Loading rules...</p>
+        <p>Loading rules...</p>
       ) : selectedRulesId ? (
-          <RulesEditor 
-            key={selectedRulesId} // Force re-mount on change
-            rulesId={selectedRulesId} 
-            initialRules={rules} 
-          />
+        <RulesEditor
+          key={selectedRulesId} // Force re-mount on change
+          rulesId={selectedRulesId}
+          initialRules={rules}
+        />
       ) : (
-          <div className="text-center p-8 border-dashed border-2 rounded-lg">
-              <p className="text-muted-foreground">No rulesets found.</p>
-              <p className="text-muted-foreground mt-2">Create a new JSON file in <code>/src/lib/rulesets</code> to get started.</p>
-          </div>
+        <div className="text-center p-8 border-dashed border-2 rounded-lg">
+          <p className="text-muted-foreground">No rulesets found.</p>
+          <p className="text-muted-foreground mt-2">Create a new JSON file in <code>/src/lib/rulesets</code> to get
+            started.</p>
+        </div>
       )}
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <AdminRulesPage />
+    </Suspense>
   );
 }
