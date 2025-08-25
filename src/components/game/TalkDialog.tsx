@@ -14,7 +14,7 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Skeleton} from '@/components/ui/skeleton';
-import {Loader2, SendHorizontal, User, Bot, XCircle, CheckCircle, Target} from 'lucide-react';
+import {Loader2, SendHorizontal, User, Bot, XCircle, CheckCircle, Target, KeyRound} from 'lucide-react';
 import type {
   CharacterProfile,
   LogEntry,
@@ -24,6 +24,9 @@ import type {
 } from '@/types/game';
 import type {ConversationOutput} from '@/ai/simple/generate-conversation';
 import {getTranslator} from '@/lib/i18n';
+import {ValidateSecretDialog} from './ValidateSecretDialog';
+import {validateSecret} from '@/ai/simple/validate-secret';
+import {useToast} from '@/hooks/use-toast';
 
 type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Promise<ConversationOutput>;
 type ConversationType = 'secret' | 'agreement';
@@ -59,6 +62,8 @@ export function TalkDialog({
   const [playerInput, setPlayerInput] = useState('');
   const [isReplying, setIsReplying] = useState(false);
   const [objectiveAchieved, setObjectiveAchieved] = useState(false);
+  const [isValidateSecretDialogOpen, setIsValidateSecretDialogOpen] = useState(false);
+  const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const t = useMemo(() => getTranslator(language), [language]);
@@ -142,10 +147,6 @@ export function TalkDialog({
         if (responseLower.includes(agreementPhrase)) {
           achieved = true;
         }
-      } else if (conversationType === 'secret') {
-        if (responseLower.includes(objective.toLowerCase())) {
-          achieved = true;
-        }
       }
 
       if (achieved) {
@@ -171,8 +172,47 @@ export function TalkDialog({
     onOpenChange(false);
   };
 
+  const handleSecretValidation = async (guessedSecret: string) => {
+      setIsReplying(true);
+      try {
+        const result = await validateSecret({
+            language,
+            guessedSecret,
+            actualSecret: objective,
+        });
+
+        toast({
+            title: result.isCorrect ? t.guessCorrectTitle : t.guessIncorrectTitle,
+            variant: result.isCorrect ? 'default' : 'destructive',
+        });
+
+        if (result.isCorrect) {
+            setObjectiveAchieved(true);
+            setTimeout(() => handleClose(true), 2000);
+        }
+      } catch (error) {
+          console.error("Failed to validate secret:", error);
+          toast({
+              title: t.error,
+              description: t.secretValidationFailed,
+              variant: 'destructive',
+          });
+      } finally {
+          setIsReplying(false);
+          setIsValidateSecretDialogOpen(false);
+      }
+  }
+
 
   return (
+    <>
+    <ValidateSecretDialog
+        isOpen={isValidateSecretDialogOpen}
+        onOpenChange={setIsValidateSecretDialogOpen}
+        onValidate={handleSecretValidation}
+        isSubmitting={isReplying}
+        language={language}
+    />
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4 border-b">
@@ -186,7 +226,17 @@ export function TalkDialog({
               </div>
               <div className="text-muted-foreground pl-7">
                 {conversationType === 'secret' ? (
+                  <>
                   <p>{t.uncoverSecret}</p>
+                    <Button
+                        variant="link"
+                        className="p-0 h-auto mt-1"
+                        onClick={() => setIsValidateSecretDialogOpen(true)}
+                    >
+                        <KeyRound className="mr-2"/>
+                        {t.iKnowTheSecret}
+                    </Button>
+                  </>
                 ) : (
                   <p>{t.getThemToAgree} <em className="font-medium text-foreground">"{objective}"</em></p>
                 )}
@@ -225,7 +275,7 @@ export function TalkDialog({
                     )}
                   </div>
                 ))}
-                {isReplying && (
+                {isReplying && !isValidateSecretDialogOpen && (
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                       <Bot className="w-6 h-6 text-muted-foreground"/>
@@ -270,5 +320,6 @@ export function TalkDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

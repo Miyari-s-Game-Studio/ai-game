@@ -5,7 +5,8 @@ import type {
   GenerateCharacterInput,
   GenerateSceneDescriptionInput,
   ReachAgreementInput,
-  ExtractSecretInput
+  ExtractSecretInput,
+  ValidateSecretInput
 } from "@/types/game";
 
 type Language = 'en' | 'zh';
@@ -28,7 +29,8 @@ const translations = {
     storyWillUnfold: 'The story will unfold here...',
     talkingTo: 'Talking to',
     yourObjective: 'Your Objective',
-    uncoverSecret: 'Uncover the secret.',
+    uncoverSecret: 'Your goal is to figure out the secret this person is hiding.',
+    iKnowTheSecret: "I know the secret...",
     getThemToAgree: 'Get them to agree to the following:',
     saySomething: 'Say something...',
     send: 'Send',
@@ -70,6 +72,13 @@ const translations = {
     characterIdentity: 'Character Identity / Role',
     enterIdentityPlaceholder: 'e.g., Freelance Investigator',
     beginAdventure: 'Begin Adventure',
+    validateSecretTitle: 'Validate Secret',
+    validateSecretDescription: 'What do you believe the secret is? Enter it below. The AI will determine if your guess is correct.',
+    enterSecretPlaceholder: 'Type your guess here...',
+    submitGuess: 'Submit Guess',
+    guessCorrectTitle: 'Guess Correct!',
+    guessIncorrectTitle: 'Guess Incorrect',
+    secretValidationFailed: 'Could not validate your secret. Please try again.',
 
 
     // AI Flow Translations
@@ -185,6 +194,20 @@ Respond to the player's message based on your personality and the conversation s
           expression: "The character's current facial expression or emotional state (e.g., 'looks skeptical', 'nods slowly', 'looks relieved').",
           action: "A brief description of the character's physical action (e.g., 'crosses their arms', 'taps their finger on the table', 'stands up')."
         }
+      },
+      validateSecret: {
+        prompt: (input: ValidateSecretInput) => `
+You are an impartial judge in a narrative game. Your task is to determine if the player's guess about a secret is correct.
+Your judgment should not be overly strict. The player's guess does not need to be a word-for-word match, but it must capture the core meaning of the secret.
+
+The Actual Secret: "${input.actualSecret}"
+The Player's Guess: "${input.guessedSecret}"
+
+Based on a lenient, semantic comparison, is the player's guess correct?
+`,
+        schema: {
+          isCorrect: "A boolean value. True if the player's guess is semantically close enough to the actual secret, otherwise false."
+        }
       }
     }
   },
@@ -205,7 +228,8 @@ Respond to the player's message based on your personality and the conversation s
     storyWillUnfold: '故事将在这里展开...',
     talkingTo: '与...交谈',
     yourObjective: '你的目标',
-    uncoverSecret: '揭开秘密。',
+    uncoverSecret: '你的目标是揭开此人隐藏的秘密。',
+    iKnowTheSecret: "我知道秘密了...",
     getThemToAgree: '让他们同意以下内容：',
     saySomething: '说点什么...',
     send: '发送',
@@ -247,6 +271,14 @@ Respond to the player's message based on your personality and the conversation s
     characterIdentity: '角色身份/职业',
     enterIdentityPlaceholder: '例如，自由调查员',
     beginAdventure: '开始冒险',
+    validateSecretTitle: '验证秘密',
+    validateSecretDescription: '你认为秘密是什么？在下面输入。AI将判断你的猜测是否正确。',
+    enterSecretPlaceholder: '在此输入你的猜测...',
+    submitGuess: '提交猜测',
+    guessCorrectTitle: '猜对了！',
+    guessIncorrectTitle: '猜错了',
+    secretValidationFailed: '无法验证你的秘密。请重试。',
+
 
     // AI Flow Translations
     ai: {
@@ -360,6 +392,20 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
           dialogue: "角色回应时说的话。这只是语音部分。如果同意，必须包含“我同意...”。",
           expression: "角色当前的面部表情或情绪状态（例如，“看起来很怀疑”，“慢慢点头”，“看起来松了一口气”）。",
           action: "角色身体动作的简短描述（例如，“双臂交叉”，“用手指敲桌子”，“站起来”）。"
+        }
+      },
+      validateSecret: {
+        prompt: (input: ValidateSecretInput) => `
+你是一个叙事游戏中的公正法官。你的任务是判断玩家关于秘密的猜测是否正确。
+你的判断不应该过于严格。玩家的猜测不必与实际秘密一字不差，但必须抓住秘密的核心含义。
+
+实际秘密：“${input.actualSecret}”
+玩家的猜测：“${input.guessedSecret}”
+
+根据宽松的、语义上的比较，玩家的猜测是否正确？
+`,
+        schema: {
+          isCorrect: "一个布尔值。如果玩家的猜测在语义上足够接近实际秘密，则为True，否则为false。"
         }
       }
     }

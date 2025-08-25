@@ -163,3 +163,13 @@ export interface ConversationOutput {
     expression: string;
     action: string;
 }
+
+export interface ValidateSecretInput {
+    language: 'en' | 'zh';
+    guessedSecret: string;
+    actualSecret: string;
+}
+
+export interface ValidateSecretOutput {
+    isCorrect: boolean;
+}
