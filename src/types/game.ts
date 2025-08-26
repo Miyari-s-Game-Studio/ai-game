@@ -26,9 +26,9 @@ export type PlayerStats = {
 };
 
 export type ActionCheckState = {
-    relevantAttributes: (keyof PlayerAttributes)[];
-    difficultyClass: number;
-    hasPassed: boolean;
+  relevantAttributes: (keyof PlayerAttributes)[];
+  difficultyClass: number;
+  hasPassed: boolean;
 };
 
 export type GameState = {
@@ -74,6 +74,16 @@ export type ActionRule = {
     textRegex?: string;
   };
   do: Array<{
+    add?: string;
+    set?: string;
+    track?: string;
+    log?: string;
+    secret?: string;
+    agreement?: string;
+    if?: string;
+    cap?: number;
+  }>;
+  fail?: Array<{
     add?: string;
     set?: string;
     track?: string;
@@ -187,15 +197,15 @@ export interface ValidateSecretOutput {
 
 // Dice Roll AI Flows
 export interface GenerateRelevantAttributesInput {
-    language: 'en' | 'zh';
-    player: PlayerStats;
-    action: ActionDetail;
-    situation: Situation;
+  language: 'en' | 'zh';
+  player: PlayerStats;
+  action: ActionDetail;
+  situation: Situation;
 }
 
 export interface GenerateDifficultyClassInput {
-    language: 'en' | 'zh';
-    action: ActionDetail;
-    situation: Situation;
-    relevantAttributes: (keyof PlayerAttributes)[];
+  language: 'en' | 'zh';
+  action: ActionDetail;
+  situation: Situation;
+  relevantAttributes: (keyof PlayerAttributes)[];
 }

@@ -4,53 +4,22 @@
   "title": "环境危机",
   "language": "zh",
   "theme": "theme-default",
-  "description": "一个互动叙事游戏，玩家扮演一名环保官员，负责解决一起神秘的河流污染事件。",
+  "description": "你是市级环保应急负责人，处理突发河流污染事件。多条路线可达成不同结局：证据→执法→治理、媒体推进的应急治理、或直接开工的冒险治理。",
   "actions": {
-    "observe": {
-      "icon": "Eye",
-      "label": "观察"
-    },
-    "investigate": {
-      "icon": "Search",
-      "label": "调查"
-    },
-    "sample": {
-      "icon": "FlaskConical",
-      "label": "取样"
-    },
-    "talk": {
-      "icon": "MessageSquare",
-      "label": "交谈"
-    },
-    "announce": {
-      "icon": "Megaphone",
-      "label": "公布"
-    },
-    "declare": {
-      "icon": "Flag",
-      "label": "宣布策略"
-    },
-    "negotiate": {
-      "icon": "Handshake",
-      "label": "谈判"
-    },
-    "build": {
-      "icon": "Building",
-      "label": "建造"
-    },
-    "clean": {
-      "icon": "Wrench",
-      "label": "清理"
-    },
-    "reflect": {
-      "icon": "Archive",
-      "label": "反思"
-    },
-    "celebrate": {
-      "icon": "PartyPopper",
-      "label": "庆祝"
-    }
+    "observe":   { "icon": "Eye",            "label": "观察" },
+    "investigate": { "icon": "Search",       "label": "调查" },
+    "sample":    { "icon": "FlaskConical",   "label": "取样" },
+    "talk":      { "icon": "MessageSquare",  "label": "交谈" },
+    "announce":  { "icon": "Megaphone",      "label": "发布信息" },
+    "declare":   { "icon": "Flag",           "label": "宣布策略" },
+    "negotiate": { "icon": "Handshake",      "label": "约谈/谈判" },
+    "build":     { "icon": "Building",       "label": "建设工程" },
+    "clean":     { "icon": "Wrench",         "label": "净化清理" },
+    "reflect":   { "icon": "Archive",        "label": "复盘反思" },
+    "celebrate": { "icon": "PartyPopper",    "label": "庆祝" },
+    "revisit":   { "icon": "Undo2",          "label": "回退" }
   },
+
   "ui": {
     "counterIcons": {
       "clues": "FileText",
@@ -60,402 +29,497 @@
       "default": "Star"
     },
     "trackStyles": {
-      "eco.pollution": {
-        "icon": "AlertTriangle",
-        "color": "text-rose-500",
-        "progressColor": "[&>div]:bg-rose-500"
-      },
-      "eco.governance": {
-        "icon": "Shield",
-        "color": "text-emerald-500",
-        "progressColor": "[&>div]:bg-emerald-500"
-      },
-      "eco.media": {
-        "icon": "Megaphone",
-        "color": "text-sky-500",
-        "progressColor": "[&>div]:bg-sky-500"
-      }
+      "eco.pollution":  { "icon": "AlertTriangle", "color": "text-rose-500",   "progressColor": "[&>div]:bg-rose-500" },
+      "eco.governance": { "icon": "Shield",        "color": "text-emerald-500","progressColor": "[&>div]:bg-emerald-500" },
+      "eco.media":      { "icon": "Megaphone",     "color": "text-sky-500",    "progressColor": "[&>div]:bg-sky-500" }
     }
   },
+
   "initial": {
-    "situation": "investigate_area",
-    "counters": {
-      "clues": 0,
-      "samples": 0,
-      "testimony": false,
-      "shutdown_ok": false
-    }
+    "situation": "prologue",
+    "counters": { "clues": 0, "samples": 0, "testimony": false, "shutdown_ok": false }
   },
+
   "tracks": {
-    "eco.pollution": {
-      "name": "污染指数",
-      "value": 2,
-      "max": 10
-    },
-    "eco.governance": {
-      "name": "治理水平",
-      "value": 0,
-      "max": 8
-    },
-    "eco.media": {
-      "name": "媒体关注度",
-      "value": 3,
-      "max": 10
-    }
+    "eco.pollution":  { "name": "污染指数",   "value": 3, "max": 10 },
+    "eco.governance": { "name": "治理水平",   "value": 1, "max": 8 },
+    "eco.media":      { "name": "媒体关注度", "value": 2, "max": 10 }
   },
+
   "situations": {
-    "investigate_area": {
-      "label": "现场调查",
+
+    "prologue": {
+      "label": "开场简报",
       "on_action": [
         {
-          "when": {
-            "actionId": "observe"
-          },
-          "do": [
-            {
-              "add": "counters.clues,1",
-              "cap": 2
-            },
-            {
-              "log": "你记录了水的颜色、气味和流速，形成了一份基本的勘查记录。"
-            }
-          ]
+          "when": { "actionId": "announce" },
+          "do":  [
+            { "track": "eco.media,1" },
+            { "set": "next_situation,survey" },
+            { "log": "你对外发布启动信息，转入现场勘查。" }
+          ],
+          "fail": []
         },
         {
-          "when": {
-            "actionId": "investigate",
-            "targetPattern": "排污口|油污|死鱼"
-          },
-          "do": [
-            {
-              "add": "counters.clues,1"
-            },
-            {
-              "log": "你锁定了污染的关键迹象，现在可以着手处理排污口了。"
-            }
-          ]
+          "when": { "actionId": "declare" },
+          "do":  [
+            { "set": "route,policy.engineering", "if": "text && text.match('工程')" },
+            { "set": "route,policy.enforcement", "if": "text && text.match('执法')" },
+            { "set": "route,policy.pr",          "if": "text && text.match('公关')" },
+            { "log": "已设定处置取向：根据你的表述更新作战路线。" }
+          ],
+          "fail": []
         },
         {
-          "when": {
-            "actionId": "investigate",
-            "targetPattern": "上游工厂"
-          },
-          "do": [
-            {
-              "add": "counters.clues,1"
-            },
-            {
-              "set": "next_situation,interview_industry",
-              "if": "counters.clues >= 2"
-            },
-            {
-              "log": "工厂现在是重点调查对象。你应该去那里收集更直接的证据。"
-            }
-          ]
+          "when": { "actionId": "observe" },
+          "do":  [
+            { "set": "next_situation,survey" },
+            { "log": "你决定先去现场看看再说。" }
+          ],
+          "fail": []
         },
         {
-          "when": {
-            "actionId": "sample"
-          },
-          "do": [
-            {
-              "add": "counters.samples,1"
-            },
-            {
-              "track": "eco.pollution,1"
-            },
-            {
-              "set": "next_situation,technical_ops",
-              "if": "counters.samples >= 2"
-            },
-            {
-              "log": "取样搅动了沉积物，导致短期内污染升高；这些数据将为后续治理提供支持。"
-            }
-          ]
-        },
-        {
-          "when": {
-            "actionId": "talk",
-            "targetPattern": "渔夫|居民|保安"
-          },
-          "do": [
-            {
-              "secret": "工厂在夜间有可疑的排放。"
-            },
-            {
-              "set": "counters.testimony,true"
-            }
-          ]
-        },
-        {
-          "when": {
-            "actionId": "announce"
-          },
-          "do": [
-            {
-              "track": "eco.media,-1"
-            },
-            {
-              "log": "舆论暂时降温。"
-            },
-            {
-              "track": "eco.media,2",
-              "if": "tracks['eco.pollution'].value >= 7"
-            },
-            {
-              "log": "有外国媒体质疑数据的真实性，舆论反弹。",
-              "if": "tracks['eco.pollution'].value >= 7"
-            }
-          ]
-        },
-        {
-          "when": {
-            "actionId": "declare",
-            "textRegex": "(工程)"
-          },
-          "do": [
-            {
-              "set": "route,policy.engineering"
-            },
-            {
-              "log": "[路线] 工程优先：优先进行建设和技术治理。"
-            }
-          ]
-        },
-        {
-          "when": {
-            "actionId": "declare",
-            "textRegex": "(执法)"
-          },
-          "do": [
-            {
-              "set": "route,policy.enforcement"
-            },
-            {
-              "log": "[路线] 强制执法：优先进行取证/关停。"
-            }
-          ]
-        },
-        {
-          "when": {
-            "actionId": "declare",
-            "textRegex": "(公关)"
-          },
-          "do": [
-            {
-              "set": "route,policy.pr"
-            },
-            {
-              "log": "[路线] 公关掩盖：优先稳定舆论。"
-            }
-          ]
+          "when": { "actionId": "investigate" },
+          "do":  [
+            { "set": "next_situation,survey" },
+            { "log": "带队出发，准备在现场展开调查。" }
+          ],
+          "fail": []
         }
       ]
     },
-    "interview_industry": {
-      "label": "约谈工厂",
+
+    "survey": {
+      "label": "现场勘查",
       "on_action": [
         {
-          "when": {
-            "actionId": "talk",
-            "targetPattern": "经理|保安|工头",
-            "require": "counters.testimony == true"
-          },
-          "do": [
-            {
-              "agreement": "工厂将停产整改。"
-            },
-            {
-              "set": "counters.shutdown_ok,true"
-            },
-            {
-              "track": "eco.pollution,-2"
-            },
-            {
-              "track": "eco.governance,1"
-            }
+          "when": { "actionId": "observe" },
+          "do":  [
+            { "add": "counters.clues,1", "cap": 2 },
+            { "track": "eco.media,-1", "if": "tracks['eco.media'].value > 0" },
+            { "log": "完成基础巡查，记录水色/气味/流速并标注疑点。" }
+          ],
+          "fail": []
+        },
+        {
+          "when": { "actionId": "investigate", "targetPattern": "排污口|油污|死鱼|黑色水团" },
+          "do":  [
+            { "add": "counters.clues,1" },
+            { "log": "命中关键迹象，线索增加。" }
+          ],
+          "fail": [
+            { "track": "eco.media,1" },
+            { "log": "你走错了方向，媒体开始猜测你们在拖延。" }
           ]
         },
         {
-          "when": {
-            "actionId": "investigate"
-          },
-          "do": [
-            {
-              "set": "next_situation,technical_ops",
-              "if": "counters.samples >= 2 && counters.shutdown_ok == false"
-            },
-            {
-              "log": "进一步调查没有发现新线索。"
-            }
+          "when": { "actionId": "investigate", "targetPattern": "上游工厂|化工|造纸|电镀" },
+          "do":  [
+            { "add": "counters.clues,1" },
+            { "set": "next_situation,evidence", "if": "counters.clues >= 2" },
+            { "log": "锁定可疑企业；若线索充分将进入取证阶段。" }
+          ],
+          "fail": [
+            { "track": "eco.media,1" },
+            { "log": "企业线索尚不清晰，社会关注升温。" }
           ]
         },
         {
-          "when": {
-            "actionId": "sample"
-          },
-          "do": [
-            {
-              "log": "这里不再需要取样。"
-            }
+          "when": { "actionId": "talk", "targetPattern": "渔民|居民|保安|环卫|巡河员", "require": "tracks['eco.media'].value < 7" },
+          "do":  [
+            { "secret": "夜间02:00-04:00有可疑排放，方向为上游东岸支渠口。" },
+            { "set": "counters.testimony,true" },
+            { "track": "eco.governance,1" },
+            { "log": "居民提供了关键口供与时窗信息。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "在高压舆情下，群众谨慎沉默，未获得口供。" }
           ]
         },
         {
-          "when": {
-            "actionId": "announce"
-          },
-          "do": [
-            {
-              "log": "应在主要现场发布公告。"
-            }
+          "when": { "actionId": "announce", "require": "tracks['eco.pollution'].value < 7" },
+          "do":  [
+            { "track": "eco.media,1" },
+            { "set": "next_situation,remediation_fast", "if": "tracks['eco.media'].value >= 5" },
+            { "log": "你披露阶段进展，若热度足够将被迫转入应急治理。" }
+          ],
+          "fail":[
+            { "track": "eco.media,2" },
+            { "log": "污染偏高时发布信息引发质疑，热度快速攀升。" }
           ]
+        },
+        {
+          "when": { "actionId": "sample" },
+          "do":  [
+            { "add": "counters.samples,1" },
+            { "track": "eco.pollution,1" },
+            { "set": "next_situation,remediation_fast", "if": "counters.samples >= 2" },
+            { "log": "采样扰动沉积物，短时污染上扬；样本累积为后续方案提供依据。" }
+          ],
+          "fail":[]
+        },
+        {
+          "when": { "actionId": "revisit" },
+          "do":  [
+            { "track": "eco.media,1" },
+            { "set": "next_situation,prologue" },
+            { "log": "你决定回到指挥部，调整策略与口径。" }
+          ],
+          "fail":[]
         }
       ]
     },
-    "technical_ops": {
-      "label": "技术治理",
+
+    "evidence": {
+      "label": "证据收集",
+      "auto_enter_if": "counters.clues >= 2 && counters.testimony == true",
+      "auto_priority": 50,
       "on_action": [
         {
-          "when": {
-            "actionId": "build"
-          },
-          "do": [
-            {
-              "track": "eco.governance,2"
-            },
-            {
-              "track": "eco.media,1"
-            },
-            {
-              "log": "项目进展显著，但施工吸引了注意力。"
-            }
+          "when": { "actionId": "sample", "require": "counters.samples < 3" },
+          "do":  [
+            { "add": "counters.samples,1" },
+            { "track": "eco.governance,1" },
+            { "log": "完成复核采样，证据链更加牢靠。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "样本已足，继续采样被质疑为作秀。" }
           ]
         },
         {
-          "when": {
-            "actionId": "clean"
-          },
-          "do": [
-            {
-              "track": "eco.pollution,-1"
-            },
-            {
-              "track": "eco.governance,1"
-            },
-            {
-              "log": "净化作业降低了污染，稳步推进了治理。"
-            }
+          "when": { "actionId": "investigate", "targetPattern": "监控|台账|流量计|COD|氨氮" },
+          "do":  [
+            { "track": "eco.governance,1" },
+            { "log": "调取监控与排放台账，纸证与数证合一。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "对方以流程为由拒绝配合，舆论升温。" }
           ]
         },
         {
-          "when": {
-            "actionId": "announce"
-          },
-          "do": [
-            {
-              "log": "现在的重点是行动，不是言语。"
-            }
+          "when": { "actionId": "talk", "targetPattern": "监管|环保|街道|园区|水务|城管" },
+          "do":  [
+            { "agreement": "联合执法工作组会商纪要：可夜查、封存、调取监控/排放台账。" },
+            { "track": "eco.governance,1" },
+            { "log": "达成跨部门会商纪要，权限与程序到位。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "会商受阻，各方相互观望，外界质疑加深。" }
           ]
         },
         {
-          "when": {
-            "actionId": "investigate"
-          },
-          "do": [
-            {
-              "log": "调查阶段已经结束。"
-            }
+          "when": { "actionId": "negotiate", "require": "counters.clues >= 2 && counters.samples >= 1" },
+          "do":  [
+            { "set": "counters.shutdown_ok,true" },
+            { "track": "eco.pollution,-1" },
+            { "track": "eco.governance,1" },
+            { "set": "next_situation,enforcement" },
+            { "log": "企业同意限产/停产接受检查，进入执法落地。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "证据不足，企业拒绝配合，媒体聚焦谈判破裂。" }
           ]
+        },
+        {
+          "when": { "actionId": "announce", "require": "tracks['eco.pollution'].value < 7" },
+          "do":  [
+            { "track": "eco.media,1" },
+            { "set": "next_situation,remediation_fast", "if": "tracks['eco.media'].value >= 6" },
+            { "log": "对外通报阶段进度；热度过高将触发应急治理。" }
+          ],
+          "fail":[
+            { "track": "eco.media,2" },
+            { "log": "污染偏高仍频繁发布，被指转移视线。" }
+          ]
+        },
+        {
+          "when": { "actionId": "revisit" },
+          "do":  [
+            { "track": "eco.media,1" },
+            { "set": "next_situation,survey" },
+            { "log": "你回撤到现场，准备补齐一手证据。" }
+          ],
+          "fail":[]
         }
       ]
     },
-    "wrap_up": {
-      "label": "收尾",
+
+    "enforcement": {
+      "label": "执法落地",
+      "auto_enter_if": "counters.shutdown_ok == true",
+      "auto_priority": 60,
       "on_action": [
         {
-          "when": {
-            "actionId": "reflect"
-          },
-          "do": [
-            {
-              "log": "你整理了完整的证据链和治理数据，进入了长期监测期。"
-            }
+          "when": { "actionId": "negotiate", "require": "tracks['eco.governance'].value >= 2" },
+          "do":  [
+            { "track": "eco.pollution,-2" },
+            { "track": "eco.governance,2" },
+            { "log": "停产/封存决定书落地，污染开始快速回落。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "执法推进遇阻，企业寻求拖延或上诉。" }
           ]
         },
         {
-          "when": {
-            "actionId": "celebrate"
-          },
-          "do": [
-            {
-              "log": "危机已经解决。你和团队庆祝，并回访了当地居民，他们对环境改善表示感谢。"
-            }
+          "when": { "actionId": "talk", "targetPattern": "企业|法务|园区|公安|法院|检察", "require": "tracks['eco.governance'].value >= 3" },
+          "do":  [
+            { "agreement": "确立处罚/追偿与先予执行路径，配合财产保全。" },
+            { "track": "eco.governance,1" },
+            { "log": "法务与司法路径明确，后续执行更顺畅。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "法务协调受阻，执行路径不明朗，舆论抨击低效。" }
           ]
+        },
+        {
+          "when": { "actionId": "announce", "require": "tracks['eco.pollution'].value < 6" },
+          "do":  [
+            { "track": "eco.media,-1" },
+            { "log": "选择性披露执法进展，社会关注趋缓。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "污染仍高，你的通报反而招来质疑。" }
+          ]
+        },
+        {
+          "when": { "actionId": "build", "require": "tracks['eco.governance'].value >= 3" },
+          "do":  [
+            { "set": "next_situation,remediation" },
+            { "log": "启动常规治理立项，转入工程与清理。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "条件未备齐，立项被打回要求补件。" }
+          ]
+        },
+        {
+          "when": { "actionId": "revisit" },
+          "do":  [
+            { "track": "eco.media,1" },
+            { "set": "next_situation,evidence" },
+            { "log": "你决定回到取证环节，补强证据支撑。" }
+          ],
+          "fail":[]
         }
       ]
     },
+
+    "remediation": {
+      "label": "工程治理",
+      "on_action": [
+        {
+          "when": { "actionId": "build", "require": "tracks['eco.governance'].value >= 3" },
+          "do":  [
+            { "track": "eco.governance,2" },
+            { "track": "eco.media,1" },
+            { "log": "处理站/拦截系统加速推进，治理能力提升。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "资金/审批未到位，工程推进受阻。" }
+          ]
+        },
+        {
+          "when": { "actionId": "clean", "require": "counters.shutdown_ok == true || tracks['eco.governance'].value >= 4" },
+          "do":  [
+            { "track": "eco.pollution,-2" },
+            { "track": "eco.governance,1" },
+            { "log": "清淤/投药净化见效，水质稳步回升。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "源头未控或条件不足，清理成效甚微。" }
+          ]
+        },
+        {
+          "when": { "actionId": "investigate", "targetPattern": "复检|验收|监测", "require": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5" },
+          "do":  [
+            { "track": "eco.governance,1" },
+            { "set": "next_situation,monitoring" },
+            { "log": "阶段复检通过，进入监测收尾。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "尚未达标，复检未通过，需要继续治理。" }
+          ]
+        },
+        {
+          "when": { "actionId": "announce", "require": "tracks['eco.pollution'].value <= 5" },
+          "do":  [
+            { "track": "eco.media,-1" },
+            { "log": "发布阶段性结果与后续计划，外界情绪趋稳。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "指标仍偏高，此时发布引发新的质疑。" }
+          ]
+        },
+        {
+          "when": { "actionId": "revisit" },
+          "do":  [
+            { "set": "next_situation,enforcement" },
+            { "log": "你回到执法阶段，完善配套与执行。" }
+          ],
+          "fail":[]
+        }
+      ]
+    },
+
+    "remediation_fast": {
+      "label": "应急治理",
+      "on_action": [
+        {
+          "when": { "actionId": "build", "require": "tracks['eco.governance'].value >= 2" },
+          "do":  [
+            { "track": "eco.governance,1" },
+            { "track": "eco.media,1" },
+            { "log": "应急设施快速搭建，效率高但曝光也高。" }
+          ],
+          "fail":[
+            { "track": "eco.media,2" },
+            { "log": "审批/资源不足，仓促推进遭到舆论抨击。" }
+          ]
+        },
+        {
+          "when": { "actionId": "clean", "require": "tracks['eco.governance'].value >= 2" },
+          "do":  [
+            { "track": "eco.pollution,-1" },
+            { "track": "eco.governance,1" },
+            { "log": "快速清理起效有限，但趋势转好。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "准备不足，清理扰动徒增争议。" }
+          ]
+        },
+        {
+          "when": { "actionId": "talk", "targetPattern": "媒体|志愿者|社区|公益|协会", "require": "tracks['eco.media'].value <= 6" },
+          "do":  [
+            { "agreement": "建立公众巡河与在线公示机制，志愿者协助上报异常点位。" },
+            { "track": "eco.media,-1" },
+            { "track": "eco.governance,1" },
+            { "log": "公众参与启动，透明度提高，舆情缓和。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "在高热环境下沟通失败，反而被解读为公关作秀。" }
+          ]
+        },
+        {
+          "when": { "actionId": "investigate", "targetPattern": "复检|验收|监测", "require": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5" },
+          "do":  [
+            { "track": "eco.governance,1" },
+            { "set": "next_situation,monitoring" },
+            { "log": "应急治理效果达到转段标准，进入监测收尾。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "尚未达标，无法转入监测收尾。" }
+          ]
+        },
+        {
+          "when": { "actionId": "announce", "require": "tracks['eco.pollution'].value <= 5" },
+          "do":  [
+            { "track": "eco.media,-1" },
+            { "log": "谨慎披露应急成效，控制情绪波动。" }
+          ],
+          "fail":[
+            { "track": "eco.media,2" },
+            { "log": "效果不稳妥即对外宣传，舆论迅速反噬。" }
+          ]
+        },
+        {
+          "when": { "actionId": "negotiate", "require": "counters.clues >= 2" },
+          "do":  [
+            { "set": "counters.shutdown_ok,true" },
+            { "track": "eco.governance,1" },
+            { "set": "next_situation,enforcement" },
+            { "log": "补齐证据后补票执法，转回正统路线。" }
+          ],
+          "fail":[
+            { "track": "eco.media,1" },
+            { "log": "证据不足，企业拒绝补签承诺。" }
+          ]
+        },
+        {
+          "when": { "actionId": "revisit" },
+          "do":  [
+            { "set": "next_situation,survey" },
+            { "log": "你折返现场，准备重新组织取证与沟通。" }
+          ],
+          "fail":[]
+        }
+      ]
+    },
+
+    "monitoring": {
+      "label": "监测收尾",
+      "on_action": [
+        {
+          "when": { "actionId": "reflect" },
+          "do":  [
+            { "track": "eco.governance,1" },
+            { "log": "整理复盘材料，纳入常态化监测清单。" }
+          ],
+          "fail":[]
+        },
+        {
+          "when": { "actionId": "celebrate" },
+          "do":  [
+            { "track": "eco.media,-1" },
+            { "log": "与团队和社区简短庆祝，告一段落。" }
+          ],
+          "fail":[]
+        },
+        {
+          "when": { "actionId": "revisit" },
+          "do":  [
+            { "set": "next_situation,remediation" },
+            { "log": "如需巩固成效，返回治理阶段继续优化。" }
+          ],
+          "fail":[]
+        }
+      ]
+    },
+
     "disaster": {
       "label": "生态崩溃",
       "auto_enter_if": "tracks['eco.pollution'].value >= tracks['eco.pollution'].max",
+      "auto_priority": 100,
       "on_action": [
-        {
-          "when": {
-            "actionId": "reflect"
-          },
-          "do": [
-            {
-              "log": "污染失控，饮用水被波及。团队将提交事故复盘并承担问责。"
-            }
-          ]
-        }
+        { "when": { "actionId": "reflect" }, "do": [ { "track": "eco.media,1" }, { "log": "污染失控，饮用水受波及；进入追责与修复专项。" } ], "fail": [] }
       ]
     },
     "scandal": {
       "label": "舆论反噬",
       "auto_enter_if": "tracks['eco.media'].value >= tracks['eco.media'].max && tracks['eco.governance'].value < 5",
+      "auto_priority": 90,
       "on_action": [
-        {
-          "when": {
-            "actionId": "reflect"
-          },
-          "do": [
-            {
-              "log": "媒体热度冲顶而治理不足，触发信任危机与审计。"
-            }
-          ]
-        }
+        { "when": { "actionId": "reflect" }, "do": [ { "track": "eco.governance,-1" }, { "log": "舆情冲顶且治理不足，引发信任危机与审计。" } ], "fail": [] }
       ]
     },
     "restored": {
       "label": "治理成功",
       "auto_enter_if": "tracks['eco.pollution'].value <= 2 && tracks['eco.governance'].value >= 7",
+      "auto_priority": 80,
       "on_action": [
-        {
-          "when": {
-            "actionId": "celebrate"
-          },
-          "do": [
-            {
-              "log": "污染回到安全线以下且体系稳定运转，形成示范案例。"
-            }
-          ]
-        }
+        { "when": { "actionId": "celebrate" }, "do": [ { "track": "eco.governance,1" }, { "log": "水质达标且机制稳定运行，形成示范案例。" } ], "fail": [] }
       ]
     },
     "partial_success": {
       "label": "阶段性成果",
-      "auto_enter_if": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5 && tracks['eco.media'].value <= 6",
+      "auto_enter_if": "(tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5) || (tracks['eco.media'].value <= 4 && tracks['eco.pollution'].value <= 5) || (tracks['eco.governance'].value >= 6 && tracks['eco.pollution'].value <= 6)",
+      "auto_priority": 70,
       "on_action": [
-        {
-          "when": {
-            "actionId": "reflect"
-          },
-          "do": [
-            {
-              "log": "趋势明显改善但尚需工程与执法协同巩固。"
-            }
-          ]
-        }
+        { "when": { "actionId": "reflect" }, "do": [ { "track": "eco.media,-1" }, { "log": "成果初显但尚需巩固，进入常态化复检。" } ], "fail": [] }
       ]
     }
   }
