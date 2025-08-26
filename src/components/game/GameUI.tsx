@@ -87,6 +87,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   });
   const [sceneDescription, setSceneDescription] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
+  const [latestNarrative, setLatestNarrative] = useState<LogEntry[]>([]);
   const [actionTarget, setActionTarget] = useState<{ actionId: string, target: string }>();
   const [isPending, startTransition] = useTransition();
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
@@ -135,10 +136,9 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     return Array.from(targets);
   }, [currentSituation]);
 
-  const latestNarrativeLog = gameState.log.filter(entry => entry.type === 'narrative').slice(-1);
-
   useEffect(() => {
     if (currentSituation) {
+      setLatestNarrative([]); // Clear previous narrative on situation change
       generateNewScene(gameState.situation, currentSituation);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -579,6 +579,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           changes: changes.length > 0 ? changes : undefined,
         };
 
+        setLatestNarrative([narrativeLog]);
         setGameState(prevState => ({
           ...newState,
           log: [...prevState.log, actionLog, ...engineLogs, narrativeLog],
@@ -700,13 +701,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                 </Button>
               </CardHeader>
               <CardContent className="min-h-[100px] pt-0">
-                {latestNarrativeLog.length === 0 && (
+                {latestNarrative.length === 0 && (
                   <div className="text-center text-muted-foreground italic py-4">
                     {t.storyWillUnfold}
                   </div>
                 )}
                 <NarrativeLog
-                  log={latestNarrativeLog}
+                  log={latestNarrative}
                   knownTargets={knownTargets}
                   actionRules={currentSituation.on_action}
                   actionDetails={rules.actions}
