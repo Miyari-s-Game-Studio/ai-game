@@ -90,7 +90,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [actionTarget, setActionTarget] = useState<{ actionId: string, target: string }>();
   const [isPending, startTransition] = useTransition();
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
-  const [isLogDialogOpen, setIsLogDialogOpen] useState(false);
+  const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
 
