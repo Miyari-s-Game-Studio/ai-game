@@ -85,6 +85,30 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
   return (
     <TooltipProvider>
       <div className="space-y-4">
+        {selectedAction && currentActionDetails && doesActionRequireTarget(selectedAction) && (
+             <div className="rounded-lg border bg-background/60 p-4 shadow-sm animate-in fade-in-50">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-lg font-semibold text-primary">
+                        {React.createElement(getDynamicIcon(currentActionDetails.icon), { className: 'h-6 w-6' })}
+                        <span>{currentActionDetails.label}</span>
+                    </div>
+                     <Input
+                        type="text"
+                        placeholder="Specify target..."
+                        value={target}
+                        onChange={(e) => setTarget(e.target.value)}
+                        disabled={disabled}
+                        className="flex-grow bg-background text-base"
+                        onKeyDown={(e) => e.key === 'Enter' && target && handleExecute()}
+                    />
+                    <Button onClick={handleExecute} disabled={disabled || !target}>
+                        <ChevronRight className="mr-2" />
+                        Execute
+                    </Button>
+                </div>
+             </div>
+        )}
+
         <div className="flex flex-wrap gap-2 rounded-lg border bg-background/60 p-2 shadow-sm">
             {allowedActions.map(actionId => {
               const details = actionDetails[actionId];
@@ -112,30 +136,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
               )
             })}
         </div>
-
-        {selectedAction && currentActionDetails && doesActionRequireTarget(selectedAction) && (
-             <div className="rounded-lg border bg-background/60 p-4 shadow-sm animate-in fade-in-50">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-lg font-semibold text-primary">
-                        {React.createElement(getDynamicIcon(currentActionDetails.icon), { className: 'h-6 w-6' })}
-                        <span>{currentActionDetails.label}</span>
-                    </div>
-                     <Input
-                        type="text"
-                        placeholder="Specify target..."
-                        value={target}
-                        onChange={(e) => setTarget(e.target.value)}
-                        disabled={disabled}
-                        className="flex-grow bg-background text-base"
-                        onKeyDown={(e) => e.key === 'Enter' && target && handleExecute()}
-                    />
-                    <Button onClick={handleExecute} disabled={disabled || !target}>
-                        <ChevronRight className="mr-2" />
-                        Execute
-                    </Button>
-                </div>
-             </div>
-        )}
       </div>
     </TooltipProvider>
   );
