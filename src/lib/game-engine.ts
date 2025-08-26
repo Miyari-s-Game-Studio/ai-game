@@ -154,8 +154,25 @@ export async function processAction(
     }
   });
 
-  // After processing, check if a situation transition is pending and apply it.
-  if (newState.next_situation && rules.situations[newState.next_situation]) {
+  // After processing actions, check for automatic situation transitions
+  let autoTransitioned = false;
+  for (const situationId in rules.situations) {
+    const situation = rules.situations[situationId];
+    if (situation.auto_enter_if && evaluateCondition(situation.auto_enter_if, newState)) {
+      newState = produce(newState, draft => {
+        draft.situation = situationId;
+        // Clear any pending 'next_situation' since this auto-transition takes precedence
+        if (draft.next_situation) {
+          delete draft.next_situation;
+        }
+      });
+      autoTransitioned = true;
+      break; // Stop after the first one matches
+    }
+  }
+
+  // If no auto-transition happened, check for a pending manual transition.
+  if (!autoTransitioned && newState.next_situation && rules.situations[newState.next_situation]) {
     newState = produce(newState, draft => {
       draft.situation = draft.next_situation!;
       delete draft.next_situation;
