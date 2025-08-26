@@ -59,7 +59,7 @@ export async function processAction(
       }
 
       // Rule matches (or is an override), execute actions
-      const actions = actionRulesOverride || rule.do;
+      const actions = rule.do;
       for (const action of actions) {
         const actionDef = action as any;
 

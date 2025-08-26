@@ -1,12 +1,14 @@
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
+  ActionCheckState,
   CharacterProfile,
   ExtractSecretInput,
   GameRules,
   GameState,
   LogEntry,
   LogEntryChange,
+  PlayerAttributes,
   PlayerStats,
   ReachAgreementInput,
   Situation
@@ -36,6 +38,8 @@ import {getTranslator} from '@/lib/i18n';
 import {Sidebar} from '../layout/Sidebar';
 import {generateSceneDescription} from "@/ai/simple/generate-scene-description";
 import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
+import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
+import {DiceRollDialog} from "@/components/game/DiceRollDialog";
 
 
 interface GameUIProps {
@@ -53,6 +57,7 @@ const getInitialState = (rules: GameRules, playerStats: PlayerStats): GameState 
     player: playerStats,
     characters: {},
     sceneDescriptions: {},
+    actionChecks: {},
   };
 };
 
@@ -86,6 +91,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
+  const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
+
 
   // State for the talk dialog
   const [talkTarget, setTalkTarget] = useState('');
@@ -95,6 +102,12 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [talkFollowUpActions, setTalkFollowUpActions] = useState<Record<string, any>[]>([]);
   const [characterProfile, setCharacterProfile] = useState<CharacterProfile | null>(null);
   const [isGeneratingCharacter, setIsGeneratingCharacter] = useState(false);
+
+  // State for Dice Roll
+  const [diceRollActionId, setDiceRollActionId] = useState<string | null>(null);
+  const [diceRollActionCheck, setDiceRollActionCheck] = useState<ActionCheckState | null>(null);
+  const [isGeneratingDiceCheck, setIsGeneratingDiceCheck] = useState(false);
+
 
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const {toast} = useToast();
@@ -329,35 +342,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     if (objectiveAchieved) {
       startTransition(async () => {
-        const {newState, proceduralLogs} = await processAction(
-          rules,
-          gameState,
-          'talk-objective-complete',
-          undefined,
-          talkFollowUpActions
-        );
-
-        const narrativeInput = {
-          language: rules.language,
-          situationLabel: currentSituation?.label || '',
-          sceneDescription: sceneDescription,
-          actionTaken: `Succeeded in conversation with ${talkTarget}`,
-          proceduralLogs: proceduralLogs.map(l => l.message),
-          knownTargets: knownTargets,
-        };
-
-        const narrativeOutput = await generateActionNarrative(narrativeInput);
-
-        const narrativeLog: LogEntry = {
-          id: Date.now() + 1,
-          type: 'narrative',
-          message: narrativeOutput.narrative,
-        };
-
-        setGameState(prevState => ({
-          ...newState,
-          log: [...prevState.log, ...proceduralLogs, narrativeLog],
-        }));
+        await executeAction('talk-objective-complete', undefined, talkFollowUpActions);
       });
     } else {
       startTransition(async () => {
@@ -392,7 +377,95 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     );
   }
 
-  const handleAction = (actionId: string, target?: string) => {
+  const handleAction = async (actionId: string, target?: string) => {
+    // Talk has its own handler
+    if (actionId === 'talk') {
+      if (target) handleTalk(target);
+      return;
+    }
+
+    // 1. Check if a dice roll is needed
+    const checkId = `${actionId}${target ? `_${target}` : ''}`;
+    const existingCheck = gameState.actionChecks[checkId];
+
+    if (!existingCheck || !existingCheck.hasPassed) {
+      // 2. If no check exists, or it hasn't been passed, initiate dice roll
+      setIsGeneratingDiceCheck(true);
+      setDiceRollActionId(checkId);
+
+      try {
+        let checkToUse = existingCheck;
+        // If check doesn't exist at all, generate it
+        if (!checkToUse) {
+          const actionDetail = rules.actions[actionId];
+          const {relevantAttributes} = await generateRelevantAttributes({
+            language: rules.language,
+            player: gameState.player,
+            action: actionDetail,
+            situation: currentSituation
+          });
+          const {difficultyClass} = await generateDifficultyClass({
+            language: rules.language,
+            action: actionDetail,
+            situation: currentSituation,
+            relevantAttributes,
+          });
+          checkToUse = {relevantAttributes, difficultyClass, hasPassed: false};
+        }
+
+        setDiceRollActionCheck(checkToUse);
+        setIsDiceRollDialogOpen(true);
+
+      } catch (error) {
+        console.error("Failed to generate dice check parameters:", error);
+        toast({variant: 'destructive', title: 'AI Error', description: 'Could not prepare the action check.'});
+      } finally {
+        setIsGeneratingDiceCheck(false);
+      }
+    } else {
+      // 3. If check has been passed, execute the action directly
+      startTransition(() => {
+        executeAction(actionId, target);
+      });
+    }
+  };
+
+
+  const handleDiceRollComplete = (passed: boolean) => {
+    if (!diceRollActionId || !diceRollActionCheck) return;
+
+    const newCheckState = {...diceRollActionCheck, hasPassed: passed};
+
+    // Update game state with the result
+    setGameState(produce(draft => {
+      draft.actionChecks[diceRollActionId] = newCheckState;
+    }));
+
+    setIsDiceRollDialogOpen(false);
+    setDiceRollActionId(null);
+    setDiceRollActionCheck(null);
+
+    // If passed, execute the action
+    if (passed) {
+      // Extract original actionId and target from the composite diceRollActionId
+      const parts = diceRollActionId.split('_');
+      const actionId = parts[0];
+      const target = parts.length > 1 ? parts.slice(1).join('_') : undefined;
+
+      startTransition(() => {
+        executeAction(actionId, target);
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: "Check Failed",
+        description: "You failed the skill check for this action.",
+      });
+    }
+  };
+
+
+  const executeAction = async (actionId: string, target?: string, actionRulesOverride?: any[]) => {
     startTransition(async () => {
       try {
         const oldState = gameState;
@@ -407,7 +480,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           rules,
           oldState,
           actionId,
-          target
+          target,
+          actionRulesOverride
         );
 
         const changes: LogEntryChange[] = [];
@@ -445,6 +519,15 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   color: 'text-primary'
                 });
               }
+            } else if (typeof newValue === 'boolean' && newValue !== oldValue) {
+               const icon = rules.ui?.counterIcons?.[counterId] || rules.ui?.counterIcons?.default || 'Star';
+               changes.push({
+                 id: counterId,
+                 name: formattedId,
+                 delta: newValue ? 1 : -1, // Represent boolean change as +/- 1
+                 icon: icon,
+                 color: 'text-primary'
+               });
             }
           }
         });
@@ -467,13 +550,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         const narrativeLog: LogEntry = {
           id: Date.now() + 1,
           type: 'narrative',
-          message: narrativeOutput.narrative + "\n" + engineLogs.map(l => l.message).join('\n'),
+          message: narrativeOutput.narrative,
           changes: changes.length > 0 ? changes : undefined,
         };
 
         setGameState(prevState => ({
           ...newState,
-          log: [...prevState.log, actionLog, narrativeLog],
+          log: [...prevState.log, actionLog, ...engineLogs, narrativeLog],
         }));
 
       } catch (error) {
@@ -487,6 +570,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     });
   };
 
+
   const handleTargetClick = (actionId: string, target: string) => {
     if (actionId === 'talk') {
       handleTalk(target);
@@ -496,6 +580,9 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     setIsLogDialogOpen(false); // Close log if open
   };
 
+  const isLoading = isPending || isGeneratingScene || isGeneratingCharacter || isGeneratingDiceCheck;
+
+
   return (
     <>
       <Sidebar
@@ -503,7 +590,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         playerStats={gameState.player}
         onSave={handleSaveGame}
         onLoad={handleOpenLoadDialog}
-        isPending={isPending || isGeneratingScene || isGeneratingCharacter}
+        isPending={isLoading}
       />
       <main className="flex-1 overflow-y-auto p-4 md:p-8">
         <LoadGameDialog
@@ -538,6 +625,17 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           conversationFlow={conversationFlow}
           language={rules.language}
         />
+        <DiceRollDialog
+          isOpen={isDiceRollDialogOpen}
+          onOpenChange={setIsDiceRollDialogOpen}
+          actionId={diceRollActionId || ''}
+          actionCheck={diceRollActionCheck}
+          playerStats={gameState.player}
+          isGenerating={isGeneratingDiceCheck}
+          onRollComplete={handleDiceRollComplete}
+          language={rules.language}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           <div className="lg:col-span-2 space-y-6">
             <Card>
@@ -595,11 +693,14 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             </Card>
 
             <div>
-              {isPending || isGeneratingScene || isGeneratingCharacter ? (
+              {isLoading ? (
                 <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
                   <Loader2 className="h-8 w-8 animate-spin text-primary"/>
                   <p className="ml-4 text-lg">
-                    {isGeneratingScene ? t.loadingScene : isGeneratingCharacter ? t.characterApproaching : t.aiCraftingStory}
+                    {isGeneratingScene ? t.loadingScene :
+                      isGeneratingCharacter ? t.characterApproaching :
+                        isGeneratingDiceCheck ? t.aiCalculatingAction :
+                          t.aiCraftingStory}
                   </p>
                 </div>
               ) : (
@@ -609,7 +710,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   actionRules={currentSituation.on_action}
                   onAction={handleAction}
                   onTalk={handleTalk}
-                  disabled={isPending}
+                  disabled={isLoading}
                   actionTarget={actionTarget}
                 />
               )}

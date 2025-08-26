@@ -25,6 +25,12 @@ export type PlayerStats = {
   equipment: Equipment;
 };
 
+export type ActionCheckState = {
+    relevantAttributes: (keyof PlayerAttributes)[];
+    difficultyClass: number;
+    hasPassed: boolean;
+};
+
 export type GameState = {
   player: PlayerStats;
   situation: string;
@@ -35,6 +41,7 @@ export type GameState = {
   next_situation?: string;
   characters?: Record<string, CharacterProfile>;
   sceneDescriptions: Record<string, string>; // Cache for generated scene descriptions
+  actionChecks: Record<string, ActionCheckState>;
 };
 
 export type Track = {
@@ -87,6 +94,7 @@ export type Situation = {
 export type ActionDetail = {
   icon: string;
   label: string;
+  description?: string;
 };
 
 export type GameRules = {
@@ -174,4 +182,20 @@ export interface ValidateSecretInput {
 
 export interface ValidateSecretOutput {
   isCorrect: boolean;
+}
+
+
+// Dice Roll AI Flows
+export interface GenerateRelevantAttributesInput {
+    language: 'en' | 'zh';
+    player: PlayerStats;
+    action: ActionDetail;
+    situation: Situation;
+}
+
+export interface GenerateDifficultyClassInput {
+    language: 'en' | 'zh';
+    action: ActionDetail;
+    situation: Situation;
+    relevantAttributes: (keyof PlayerAttributes)[];
 }

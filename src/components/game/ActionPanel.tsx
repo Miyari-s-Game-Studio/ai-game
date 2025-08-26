@@ -106,6 +106,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
                     </TooltipTrigger>
                     <TooltipContent>
                         <p className="font-semibold">{details.label}</p>
+                         {details.description && <p className="text-xs text-muted-foreground">{details.description}</p>}
                     </TooltipContent>
                 </Tooltip>
               )

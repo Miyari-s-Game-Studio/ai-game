@@ -6,7 +6,9 @@ import type {
   GenerateSceneDescriptionInput,
   ReachAgreementInput,
   ExtractSecretInput,
-  ValidateSecretInput
+  ValidateSecretInput,
+  GenerateRelevantAttributesInput,
+  GenerateDifficultyClassInput,
 } from "@/types/game";
 
 type Language = 'en' | 'zh';
@@ -17,6 +19,7 @@ const translations = {
     loadingScene: 'Generating scene...',
     characterApproaching: 'Character is approaching...',
     aiCraftingStory: 'AI is crafting the next part of your story...',
+    aiCalculatingAction: 'AI is calculating the action...',
     currentSituation: 'Current Situation',
     error: 'Error',
     failedToGenerateScene: 'Could not generate the scene description.',
@@ -79,6 +82,16 @@ const translations = {
     guessCorrectTitle: 'Guess Correct!',
     guessIncorrectTitle: 'Guess Incorrect',
     secretValidationFailed: 'Could not validate your secret. Please try again.',
+    diceRollTitle: 'Action Check',
+    diceRollDescription: 'Your action requires a skill check to succeed. The AI has determined the most relevant attributes for this task. Choose one to add its modifier to your roll.',
+    difficultyClass: 'Difficulty Class (DC)',
+    relevantAttributes: 'Relevant Attributes',
+    yourRoll: 'Your Roll (1-20)',
+    attributeBonus: 'Attribute Bonus',
+    total: 'Total',
+    roll: 'Roll',
+    success: 'Success!',
+    failure: 'Failure!',
 
 
     // AI Flow Translations
@@ -208,6 +221,49 @@ Based on a lenient, semantic comparison, is the player's guess correct?
         schema: {
           isCorrect: "A boolean value. True if the player's guess is semantically close enough to the actual secret, otherwise false."
         }
+      },
+       generateRelevantAttributes: {
+        prompt: (input: GenerateRelevantAttributesInput) => `
+You are a game master AI for a narrative RPG. Your task is to determine which player attributes are relevant for a skill check.
+
+Player's Role: ${input.player.identity}
+Action being attempted: ${input.action.label} (${input.action.description || 'No description'})
+Current Situation: ${input.situation.label}
+
+Based on the action and the situation, select the 2 or 3 most relevant attributes from the following list that would influence the outcome of this action:
+- strength: Physical power, brute force.
+- dexterity: Agility, sleight of hand, stealth.
+- constitution: Endurance, health, resistance.
+- intelligence: Logic, knowledge, investigation, technical skills.
+- wisdom: Perception, intuition, willpower.
+- charisma: Persuasion, deception, leadership.
+
+Return only the names of the attributes.
+`,
+        schema: {
+          relevantAttributes: "An array of 2 or 3 attribute names (e.g., ['intelligence', 'wisdom']) that are most relevant for the skill check."
+        }
+      },
+      generateDifficultyClass: {
+        prompt: (input: GenerateDifficultyClassInput) => `
+You are a game master AI for a narrative RPG. Your task is to set a fair Difficulty Class (DC) for a skill check. The DC represents how hard the task is.
+
+Action being attempted: ${input.action.label} (${input.action.description || 'No description'})
+Current Situation: ${input.situation.label}
+The key attributes for this check are: ${input.relevantAttributes.join(', ')}
+
+Consider the inherent difficulty of the action in the current context.
+- Trivial actions: DC 5-8
+- Easy actions: DC 9-12
+- Medium actions: DC 13-16
+- Hard actions: DC 17-20
+- Very Hard actions: DC 21+
+
+Generate a single number for the Difficulty Class.
+`,
+        schema: {
+          difficultyClass: "A single integer representing the Difficulty Class (DC) for the skill check."
+        }
       }
     }
   },
@@ -216,6 +272,7 @@ Based on a lenient, semantic comparison, is the player's guess correct?
     loadingScene: '正在生成场景...',
     characterApproaching: '角色正在走来...',
     aiCraftingStory: 'AI正在创作你的下一个故事...',
+    aiCalculatingAction: 'AI正在计算行动...',
     currentSituation: '当前状况',
     error: '错误',
     failedToGenerateScene: '无法生成场景描述。',
@@ -278,6 +335,16 @@ Based on a lenient, semantic comparison, is the player's guess correct?
     guessCorrectTitle: '猜对了！',
     guessIncorrectTitle: '猜错了',
     secretValidationFailed: '无法验证你的秘密。请重试。',
+    diceRollTitle: '行动检定',
+    diceRollDescription: '你的行动需要进行一次技能检定才能成功。AI已经为此任务确定了最相关的属性。选择一个属性以将其修正值加到你的骰子点数上。',
+    difficultyClass: '难度等级 (DC)',
+    relevantAttributes: '相关属性',
+    yourRoll: '你的掷骰 (1-20)',
+    attributeBonus: '属性加成',
+    total: '总计',
+    roll: '掷骰',
+    success: '成功！',
+    failure: '失败！',
 
 
     // AI Flow Translations
@@ -406,6 +473,49 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 `,
         schema: {
           isCorrect: "一个布尔值。如果玩家的猜测在语义上足够接近实际秘密，则为True，否则为false。"
+        }
+      },
+      generateRelevantAttributes: {
+        prompt: (input: GenerateRelevantAttributesInput) => `
+你是一款叙事角色扮演游戏的游戏大师AI。你的任务是确定哪些玩家属性与技能检定相关。
+
+玩家角色：${input.player.identity}
+尝试的行动：${input.action.label} (${input.action.description || '无描述'})
+当前情境：${input.situation.label}
+
+根据行动和情境，从以下列表中选择2到3个最相关的属性，这些属性会影响此行动的结果：
+- strength (力量): 体力，蛮力。
+- dexterity (敏捷): 敏捷度，手上功夫，潜行。
+- constitution (体质): 耐力，健康，抵抗力。
+- intelligence (智力): 逻辑，知识，调查，技术技能。
+- wisdom (感知): 洞察力，直觉，意志力。
+- charisma (魅力): 说服，欺骗，领导力。
+
+只返回属性的名称。
+`,
+        schema: {
+          relevantAttributes: "一个包含2到3个属性名称的数组（例如，['intelligence', 'wisdom']），这些属性与技能检定最相关。"
+        }
+      },
+      generateDifficultyClass: {
+        prompt: (input: GenerateDifficultyClassInput) => `
+你是一款叙事角色扮演游戏的游戏大师AI。你的任务是为技能检定设置一个公平的难度等级（DC）。DC代表任务的困难程度。
+
+尝试的行动：${input.action.label} (${input.action.description || '无描述'})
+当前情境：${input.situation.label}
+此检定的关键属性是: ${input.relevantAttributes.join(', ')}
+
+在当前背景下考虑行动的内在难度。
+- 微不足道的行动: DC 5-8
+- 简单的行动: DC 9-12
+- 中等难度的行动: DC 13-16
+- 困难的行动: DC 17-20
+- 非常困难的行动: DC 21+
+
+为难度等级生成一个单一的数字。
+`,
+        schema: {
+          difficultyClass: "一个表示技能检定难度等级（DC）的单一整数。"
         }
       }
     }
