@@ -50,6 +50,7 @@
 
     "prologue": {
       "label": "开场简报",
+      "description": "市政府临时指挥部里人声嘈杂，作战地图与报表铺满桌面。",
       "on_action": [
         {
           "when": { "actionId": "announce" },
@@ -57,16 +58,6 @@
             { "track": "eco.media,1" },
             { "set": "next_situation,survey" },
             { "log": "你对外发布启动信息，转入现场勘查。" }
-          ],
-          "fail": []
-        },
-        {
-          "when": { "actionId": "declare" },
-          "do":  [
-            { "set": "route,policy.engineering", "if": "text && text.match('工程')" },
-            { "set": "route,policy.enforcement", "if": "text && text.match('执法')" },
-            { "set": "route,policy.pr",          "if": "text && text.match('公关')" },
-            { "log": "已设定处置取向：根据你的表述更新作战路线。" }
           ],
           "fail": []
         },
@@ -91,6 +82,7 @@
 
     "survey": {
       "label": "现场勘查",
+      "description": "河岸边弥漫刺鼻气味，水面漂着几条死鱼，围观群众议论纷纷。",
       "on_action": [
         {
           "when": { "actionId": "observe" },
@@ -173,6 +165,7 @@
 
     "evidence": {
       "label": "证据收集",
+      "description": "临时执法帐篷里堆满采样瓶与打印的监控截图，人员神情专注。",
       "auto_enter_if": "counters.clues >= 2 && counters.testimony == true",
       "auto_priority": 50,
       "on_action": [
@@ -251,6 +244,7 @@
 
     "enforcement": {
       "label": "执法落地",
+      "description": "厂区门口停着执法车辆与媒体采访车，人群与喇叭声此起彼伏。",
       "auto_enter_if": "counters.shutdown_ok == true",
       "auto_priority": 60,
       "on_action": [
@@ -314,6 +308,7 @@
 
     "remediation": {
       "label": "工程治理",
+      "description": "河岸边架起机械，临时处理站正在安装，工人穿梭其间。",
       "on_action": [
         {
           "when": { "actionId": "build", "require": "tracks['eco.governance'].value >= 3" },
@@ -375,6 +370,7 @@
 
     "remediation_fast": {
       "label": "应急治理",
+      "description": "挖掘机与投药车昼夜作业，警戒线外媒体与群众不断聚拢。",
       "on_action": [
         {
           "when": { "actionId": "build", "require": "tracks['eco.governance'].value >= 2" },
@@ -462,6 +458,7 @@
 
     "monitoring": {
       "label": "监测收尾",
+      "description": "实验室屏幕上的曲线逐渐走低，巡河志愿者的日报变得简短。",
       "on_action": [
         {
           "when": { "actionId": "reflect" },
@@ -492,34 +489,31 @@
 
     "disaster": {
       "label": "生态崩溃",
+      "description": "河水漆黑发臭、白沫翻滚，取水口关闭，居民临时撤离。",
       "auto_enter_if": "tracks['eco.pollution'].value >= tracks['eco.pollution'].max",
       "auto_priority": 100,
       "on_action": [
         { "when": { "actionId": "reflect" }, "do": [ { "track": "eco.media,1" }, { "log": "污染失控，饮用水受波及；进入追责与修复专项。" } ], "fail": [] }
       ]
     },
+
     "scandal": {
       "label": "舆论反噬",
+      "description": "镜头与话筒对准指挥部，质疑声与审计通知接踵而至。",
       "auto_enter_if": "tracks['eco.media'].value >= tracks['eco.media'].max && tracks['eco.governance'].value < 5",
       "auto_priority": 90,
       "on_action": [
         { "when": { "actionId": "reflect" }, "do": [ { "track": "eco.governance,-1" }, { "log": "舆情冲顶且治理不足，引发信任危机与审计。" } ], "fail": [] }
       ]
     },
+
     "restored": {
       "label": "治理成功",
+      "description": "河面恢复清澈，岸边重现孩童嬉戏与渔民撒网的景象。",
       "auto_enter_if": "tracks['eco.pollution'].value <= 2 && tracks['eco.governance'].value >= 7",
       "auto_priority": 80,
       "on_action": [
         { "when": { "actionId": "celebrate" }, "do": [ { "track": "eco.governance,1" }, { "log": "水质达标且机制稳定运行，形成示范案例。" } ], "fail": [] }
-      ]
-    },
-    "partial_success": {
-      "label": "阶段性成果",
-      "auto_enter_if": "(tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5) || (tracks['eco.media'].value <= 4 && tracks['eco.pollution'].value <= 5) || (tracks['eco.governance'].value >= 6 && tracks['eco.pollution'].value <= 6)",
-      "auto_priority": 70,
-      "on_action": [
-        { "when": { "actionId": "reflect" }, "do": [ { "track": "eco.media,-1" }, { "log": "成果初显但尚需巩固，进入常态化复检。" } ], "fail": [] }
       ]
     }
   }

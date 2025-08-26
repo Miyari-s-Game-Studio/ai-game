@@ -97,6 +97,7 @@ export type ActionRule = {
 
 export type Situation = {
   label: string;
+  description: string;
   auto_enter_if?: string; // condition to auto enter this situation
   on_action: ActionRule[];
 };
@@ -144,7 +145,7 @@ export type ConversationHistory = {
 
 export interface GenerateSceneDescriptionInput {
   language: 'en' | 'zh';
-  situationLabel: string;
+  situation: string;
   knownTargets: string[];
 };
 

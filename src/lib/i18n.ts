@@ -100,7 +100,7 @@ const translations = {
         prompt: (input: GenerateSceneDescriptionInput) => `
 You are a game master for an interactive narrative game. Your task is to craft a compelling scene description for the player. This description sets the stage for the current situation.
 
-Current Situation: ${input.situationLabel}
+Current Situation: ${input.situation}
 
 You must create a captivating, multi-paragraph narrative that describes the environment, atmosphere, and key elements. Crucially, you MUST naturally weave all of the following interaction targets into your description to ensure the player knows what they can interact with.
 
@@ -353,7 +353,7 @@ Generate a single number for the Difficulty Class.
         prompt: (input: GenerateSceneDescriptionInput) => `
 你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
 
-当前情境：${input.situationLabel}
+当前情境：${input.situation}
 
 你必须创造一个引人入胜的、多段落的叙述，描述环境、氛围和关键元素。至关重要的是，你必须将以下所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
 

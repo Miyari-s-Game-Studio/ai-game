@@ -1,4 +1,3 @@
-
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
@@ -159,7 +158,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     try {
       const result = await generateSceneDescription({
         language: rules.language,
-        situationLabel: situation.label,
+        situation: situation.description,
         knownTargets: knownTargets,
       });
       const newDescription = result.sceneDescription;
@@ -388,21 +387,21 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     // Find the relevant action rule to see if a dice roll is needed.
     const actionRule = currentSituation?.on_action.find(r => {
-        if (r.when.actionId !== actionId) return false;
-        if (!r.when.targetPattern && target) return false; // Rule needs no target, but one was provided
-        if (r.when.targetPattern && !target) return false; // Rule needs a target, but none provided
-        if (r.when.targetPattern && target && !new RegExp(`^(${r.when.targetPattern})$`, 'i').test(target)) return false; // Target doesn't match pattern
-        return true;
+      if (r.when.actionId !== actionId) return false;
+      if (!r.when.targetPattern && target) return false; // Rule needs no target, but one was provided
+      if (r.when.targetPattern && !target) return false; // Rule needs a target, but none provided
+      if (r.when.targetPattern && target && !new RegExp(`^(${r.when.targetPattern})$`, 'i').test(target)) return false; // Target doesn't match pattern
+      return true;
     });
 
     const requiresDiceRoll = actionRule && actionRule.fail && actionRule.fail.length > 0;
 
     if (!requiresDiceRoll) {
-        // No dice roll needed, execute action directly as success.
-        startTransition(() => {
-            executeAction(actionId, target, true);
-        });
-        return;
+      // No dice roll needed, execute action directly as success.
+      startTransition(() => {
+        executeAction(actionId, target, true);
+      });
+      return;
     }
 
 
@@ -545,14 +544,14 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                 });
               }
             } else if (typeof newValue === 'boolean' && newValue !== oldValue) {
-               const icon = rules.ui?.counterIcons?.[counterId] || rules.ui?.counterIcons?.default || 'Star';
-               changes.push({
-                 id: counterId,
-                 name: formattedId,
-                 delta: newValue ? 1 : -1, // Represent boolean change as +/- 1
-                 icon: icon,
-                 color: 'text-primary'
-               });
+              const icon = rules.ui?.counterIcons?.[counterId] || rules.ui?.counterIcons?.default || 'Star';
+              changes.push({
+                id: counterId,
+                name: formattedId,
+                delta: newValue ? 1 : -1, // Represent boolean change as +/- 1
+                icon: icon,
+                color: 'text-primary'
+              });
             }
           }
         });
