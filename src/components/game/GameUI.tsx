@@ -1,3 +1,4 @@
+
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
@@ -89,7 +90,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [actionTarget, setActionTarget] = useState<{ actionId: string, target: string }>();
   const [isPending, startTransition] = useTransition();
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
-  const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
+  const [isLogDialogOpen, setIsLogDialogOpen] useState(false);
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
 
@@ -384,6 +385,26 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
       if (target) handleTalk(target);
       return;
     }
+
+    // Find the relevant action rule to see if a dice roll is needed.
+    const actionRule = currentSituation?.on_action.find(r => {
+        if (r.when.actionId !== actionId) return false;
+        if (!r.when.targetPattern && target) return false; // Rule needs no target, but one was provided
+        if (r.when.targetPattern && !target) return false; // Rule needs a target, but none provided
+        if (r.when.targetPattern && target && !new RegExp(`^(${r.when.targetPattern})$`, 'i').test(target)) return false; // Target doesn't match pattern
+        return true;
+    });
+
+    const requiresDiceRoll = actionRule && actionRule.fail && actionRule.fail.length > 0;
+
+    if (!requiresDiceRoll) {
+        // No dice roll needed, execute action directly as success.
+        startTransition(() => {
+            executeAction(actionId, target, true);
+        });
+        return;
+    }
+
 
     // 1. Check if a dice roll is needed
     const checkId = `${actionId}${target ? `_${target}` : ''}`;
