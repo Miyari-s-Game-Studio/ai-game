@@ -40,7 +40,7 @@ import {generateSceneDescription} from "@/ai/simple/generate-scene-description";
 import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import {DiceRollDialog} from "@/components/game/DiceRollDialog";
-import {ScrollArea} from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 interface GameUIProps {
@@ -743,18 +743,28 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             </div>
           </div>
 
-          <div className="space-y-6 lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {Object.entries(gameState.tracks).map(([id, track]) => (
-                  <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]}/>
-                ))}
-              </CardContent>
-            </Card>
-            <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} title={t.keyItemsAndInfo}/>
+          <div className="lg:col-span-1">
+            <Tabs defaultValue="tracks" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="tracks">{t.environmentalStatus}</TabsTrigger>
+                <TabsTrigger value="counters">{t.keyItemsAndInfo}</TabsTrigger>
+              </TabsList>
+              <TabsContent value="tracks">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {Object.entries(gameState.tracks).map(([id, track]) => (
+                      <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]}/>
+                    ))}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="counters">
+                <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} title={t.keyItemsAndInfo}/>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </main>
