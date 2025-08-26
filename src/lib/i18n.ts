@@ -1,3 +1,4 @@
+
 // src/lib/i18n.ts
 import type {
   GameRules,
@@ -21,6 +22,7 @@ const translations = {
     aiCraftingStory: 'AI is crafting the next part of your story...',
     aiCalculatingAction: 'AI is calculating the action...',
     currentSituation: 'Current Situation',
+    lastActionResult: 'Last Action Result',
     error: 'Error',
     failedToGenerateScene: 'Could not generate the scene description.',
     invalidSituation: 'The current situation is not defined in the game rules.',
@@ -92,6 +94,9 @@ const translations = {
     roll: 'Roll',
     success: 'Success!',
     failure: 'Failure!',
+    tabLastResult: 'Last Result',
+    tabStatus: 'Status',
+    tabItems: 'Items',
 
 
     // AI Flow Translations
@@ -274,6 +279,7 @@ Generate a single number for the Difficulty Class.
     aiCraftingStory: 'AI正在创作你的下一个故事...',
     aiCalculatingAction: 'AI正在计算行动...',
     currentSituation: '当前状况',
+    lastActionResult: '最新结果',
     error: '错误',
     failedToGenerateScene: '无法生成场景描述。',
     invalidSituation: '当前状况在游戏规则中未定义。',
@@ -345,6 +351,9 @@ Generate a single number for the Difficulty Class.
     roll: '掷骰',
     success: '成功！',
     failure: '失败！',
+    tabLastResult: '最新结果',
+    tabStatus: '状态',
+    tabItems: '物品',
 
 
     // AI Flow Translations

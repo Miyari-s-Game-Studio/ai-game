@@ -1,3 +1,4 @@
+
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
@@ -693,31 +694,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-end py-3 px-4">
-                <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
-                  <BookOpen className="mr-2 h-4 w-4"/>
-                  {t.viewFullLog}
-                </Button>
-              </CardHeader>
-              <CardContent className="min-h-[100px] pt-0">
-                {latestNarrative.length === 0 && (
-                  <div className="text-center text-muted-foreground italic py-4">
-                    {t.storyWillUnfold}
-                  </div>
-                )}
-                <NarrativeLog
-                  log={latestNarrative}
-                  knownTargets={knownTargets}
-                  actionRules={currentSituation.on_action}
-                  actionDetails={rules.actions}
-                  allowedActions={allowedActions}
-                  onTargetClick={handleTargetClick}
-                  language={rules.language}
-                />
-              </CardContent>
-            </Card>
-
             <div>
               {isLoading ? (
                 <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
@@ -744,12 +720,40 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           </div>
 
           <div className="lg:col-span-1">
-            <Tabs defaultValue="tracks" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="tracks">{t.environmentalStatus}</TabsTrigger>
-                <TabsTrigger value="counters">{t.keyItemsAndInfo}</TabsTrigger>
+            <Tabs defaultValue="result" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="result">{t.tabLastResult}</TabsTrigger>
+                <TabsTrigger value="status">{t.tabStatus}</TabsTrigger>
+                <TabsTrigger value="items">{t.tabItems}</TabsTrigger>
               </TabsList>
-              <TabsContent value="tracks">
+              <TabsContent value="result">
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+                        <CardTitle className="text-xl font-headline">{t.lastActionResult}</CardTitle>
+                        <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
+                        <BookOpen className="mr-2 h-4 w-4"/>
+                        {t.viewFullLog}
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="min-h-[100px] pt-0">
+                        {latestNarrative.length === 0 && (
+                        <div className="text-center text-muted-foreground italic py-4">
+                            {t.storyWillUnfold}
+                        </div>
+                        )}
+                        <NarrativeLog
+                          log={latestNarrative}
+                          knownTargets={knownTargets}
+                          actionRules={currentSituation.on_action}
+                          actionDetails={rules.actions}
+                          allowedActions={allowedActions}
+                          onTargetClick={handleTargetClick}
+                          language={rules.language}
+                        />
+                    </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="status">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
@@ -761,7 +765,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   </CardContent>
                 </Card>
               </TabsContent>
-              <TabsContent value="counters">
+              <TabsContent value="items">
                 <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} title={t.keyItemsAndInfo}/>
               </TabsContent>
             </Tabs>
