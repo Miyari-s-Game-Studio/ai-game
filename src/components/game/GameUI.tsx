@@ -40,6 +40,7 @@ import {generateSceneDescription} from "@/ai/simple/generate-scene-description";
 import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import {DiceRollDialog} from "@/components/game/DiceRollDialog";
+import {ScrollArea} from "@/components/ui/scroll-area";
 
 
 interface GameUIProps {
@@ -668,7 +669,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   {t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="max-h-96 overflow-y-auto pr-4">
                 {isGeneratingScene ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-full"/>
