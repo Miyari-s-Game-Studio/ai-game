@@ -243,3 +243,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.max-h-2-3-screen {
+  max-height: 66vh;
+}
