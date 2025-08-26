@@ -105,6 +105,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
   // State for Dice Roll
   const [diceRollActionId, setDiceRollActionId] = useState<string | null>(null);
+  const [diceRollTarget, setDiceRollTarget] = useState<string | undefined>(undefined);
   const [diceRollActionCheck, setDiceRollActionCheck] = useState<ActionCheckState | null>(null);
   const [isGeneratingDiceCheck, setIsGeneratingDiceCheck] = useState(false);
 
@@ -342,7 +343,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     if (objectiveAchieved) {
       startTransition(async () => {
-        await executeAction('talk-objective-complete', undefined, talkFollowUpActions);
+        await executeAction('talk-objective-complete', undefined, true, talkFollowUpActions);
       });
     } else {
       startTransition(async () => {
@@ -391,7 +392,9 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     if (!existingCheck || !existingCheck.hasPassed) {
       // 2. If no check exists, or it hasn't been passed, initiate dice roll
       setIsGeneratingDiceCheck(true);
-      setDiceRollActionId(checkId);
+      setDiceRollActionId(actionId);
+      setDiceRollTarget(target);
+
 
       try {
         let checkToUse = existingCheck;
@@ -425,7 +428,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     } else {
       // 3. If check has been passed, execute the action directly
       startTransition(() => {
-        executeAction(actionId, target);
+        executeAction(actionId, target, true);
       });
     }
   };
@@ -434,38 +437,38 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const handleDiceRollComplete = (passed: boolean) => {
     if (!diceRollActionId || !diceRollActionCheck) return;
 
+    const checkId = `${diceRollActionId}${diceRollTarget ? `_${diceRollTarget}` : ''}`;
     const newCheckState = {...diceRollActionCheck, hasPassed: passed};
 
     // Update game state with the result
     setGameState(produce(draft => {
-      draft.actionChecks[diceRollActionId] = newCheckState;
+      draft.actionChecks[checkId] = newCheckState;
     }));
 
     setIsDiceRollDialogOpen(false);
-    setDiceRollActionId(null);
-    setDiceRollActionCheck(null);
 
-    // If passed, execute the action
-    if (passed) {
-      // Extract original actionId and target from the composite diceRollActionId
-      const parts = diceRollActionId.split('_');
-      const actionId = parts[0];
-      const target = parts.length > 1 ? parts.slice(1).join('_') : undefined;
+    const actionRule = currentSituation?.on_action.find(r => r.when.actionId === diceRollActionId && (!r.when.targetPattern || (diceRollTarget && new RegExp(r.when.targetPattern).test(diceRollTarget))));
 
+    // If passed, or if failed but there's a `fail` block, execute the action
+    if (passed || (!passed && actionRule?.fail)) {
       startTransition(() => {
-        executeAction(actionId, target);
+        executeAction(diceRollActionId, diceRollTarget, passed);
       });
-    } else {
+    } else if (!passed) {
       toast({
         variant: 'destructive',
         title: "Check Failed",
         description: "You failed the skill check for this action.",
       });
     }
+
+    setDiceRollActionId(null);
+    setDiceRollTarget(undefined);
+    setDiceRollActionCheck(null);
   };
 
 
-  const executeAction = async (actionId: string, target?: string, actionRulesOverride?: any[]) => {
+  const executeAction = async (actionId: string, target: string | undefined, isSuccess: boolean, actionRulesOverride?: any[]) => {
     startTransition(async () => {
       try {
         const oldState = gameState;
@@ -473,7 +476,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         const actionLog: LogEntry = {
           id: Date.now(),
           type: 'action',
-          message: `Action: ${actionId}` + (target ? ` - Target: ${target}` : ''),
+          message: `Action: ${actionId}` + (target ? ` - Target: ${target}` : '') + ` - Success: ${isSuccess}`,
         };
 
         const {newState, proceduralLogs: engineLogs} = await processAction(
@@ -481,6 +484,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           oldState,
           actionId,
           target,
+          isSuccess,
           actionRulesOverride
         );
 

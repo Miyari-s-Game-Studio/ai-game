@@ -18,8 +18,8 @@ export async function processAction(
   rules: GameRules,
   currentState: GameState,
   actionId: string,
-  target?: string,
-  // Allow overriding the action rules, for special cases like post-conversation events
+  target: string | undefined,
+  isSuccess: boolean, // <-- New parameter
   actionRulesOverride?: Record<string, any>[]
 ): Promise<{ newState: GameState; proceduralLogs: LogEntry[] }> {
 
@@ -59,7 +59,11 @@ export async function processAction(
       }
 
       // Rule matches (or is an override), execute actions
-      const actions = rule.do;
+      const actions = isSuccess ? rule.do : rule.fail;
+
+      // If there's no 'fail' block on failure, do nothing.
+      if (!actions) continue;
+
       for (const action of actions) {
         const actionDef = action as any;
 
