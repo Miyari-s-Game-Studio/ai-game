@@ -1,5 +1,3 @@
-
-
 export type PlayerAttributes = {
   strength: number;
   dexterity: number;
@@ -82,6 +80,7 @@ export type ActionRule = {
 
 export type Situation = {
   label: string;
+  auto_enter_if?: string; // condition to auto enter this situation
   on_action: ActionRule[];
 };
 
@@ -147,29 +146,32 @@ export interface GenerateCharacterInput {
 };
 
 export interface ConversationInput {
-    language: 'en' | 'zh';
-    characterProfile: CharacterProfile;
-    conversationHistory: ConversationHistory;
-    playerInput: string;
-    objective: string;
-    sceneDescription: string;
+  language: 'en' | 'zh';
+  characterProfile: CharacterProfile;
+  conversationHistory: ConversationHistory;
+  playerInput: string;
+  objective: string;
+  sceneDescription: string;
 }
 
-export interface ExtractSecretInput extends ConversationInput {};
-export interface ReachAgreementInput extends ConversationInput {};
+export interface ExtractSecretInput extends ConversationInput {
+};
+
+export interface ReachAgreementInput extends ConversationInput {
+};
 
 export interface ConversationOutput {
-    dialogue: string;
-    expression: string;
-    action: string;
+  dialogue: string;
+  expression: string;
+  action: string;
 }
 
 export interface ValidateSecretInput {
-    language: 'en' | 'zh';
-    guessedSecret: string;
-    actualSecret: string;
+  language: 'en' | 'zh';
+  guessedSecret: string;
+  actualSecret: string;
 }
 
 export interface ValidateSecretOutput {
-    isCorrect: boolean;
+  isCorrect: boolean;
 }
