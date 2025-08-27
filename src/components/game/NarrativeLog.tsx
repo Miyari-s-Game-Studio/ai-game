@@ -17,8 +17,10 @@ interface NarrativeLogProps {
   actionDetails: Record<string, ActionDetail>;
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
+  onLogTargetClick: (target: string) => void;
   isScrollable?: boolean;
   language?: 'en' | 'zh';
+  selectedAction: string | null;
 }
 
 const getDynamicIcon = (iconName: string): React.ElementType => {
@@ -42,8 +44,10 @@ const MarkdownRenderer: React.FC<{
   actionDetails: Record<string, ActionDetail>;
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
+  onLogTargetClick: (target: string) => void;
+  selectedAction: string | null;
   language?: 'en' | 'zh';
-}> = ({ text, targets, rules, actionDetails, allowedActions, onTargetClick, language }) => {
+}> = ({ text, targets, rules, actionDetails, allowedActions, onTargetClick, onLogTargetClick, selectedAction, language }) => {
 
   const processNode = (node: React.ReactNode, key: number): React.ReactNode => {
     if (typeof node === 'string') {
@@ -65,11 +69,26 @@ const MarkdownRenderer: React.FC<{
             const targetPatterns = rule.when.targetPattern.split('|').map(p => p.trim());
             return targetPatterns.some(p => new RegExp(`^${p}$`, 'i').test(part));
           });
-
+          
           if (validActions.length === 0) {
             return <span key={index}>{part}</span>;
           }
 
+          // NEW LOGIC: If an action is already selected, just make the target clickable
+          if (selectedAction && validActions.some(action => action.when.actionId === selectedAction)) {
+            return (
+              <span 
+                key={index}
+                onClick={() => onLogTargetClick(part)}
+                className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80"
+              >
+                {part}
+              </span>
+            );
+          }
+
+
+          // OLD LOGIC: If no action is selected, show the popover
           return (
             <Popover key={index}>
               <PopoverTrigger asChild>
@@ -126,7 +145,7 @@ const MarkdownRenderer: React.FC<{
 };
 
 
-const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, actionDetails, allowedActions, onTargetClick, isScrollable = false, language = 'en' }) => {
+const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, actionDetails, allowedActions, onTargetClick, onLogTargetClick, selectedAction, isScrollable = false, language = 'en' }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -179,6 +198,8 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                     actionDetails={actionDetails}
                     allowedActions={allowedActions}
                     onTargetClick={onTargetClick}
+                    onLogTargetClick={onLogTargetClick}
+                    selectedAction={selectedAction}
                     language={language}
                   />
                 ) : (

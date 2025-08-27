@@ -23,6 +23,10 @@ interface ActionPanelProps {
   onAction: (actionId: string, target?: string) => void;
   onTalk: (target: string) => void;
   disabled: boolean;
+  selectedAction: string | null;
+  onSelectedActionChange: (actionId: string | null) => void;
+  target: string;
+  onTargetChange: (target: string) => void;
   actionTarget?: { actionId: string, target: string };
 }
 
@@ -33,9 +37,20 @@ const getDynamicIcon = (iconName: string): React.ElementType => {
     return LucideIcons.HelpCircle; // Default icon
 };
 
-const ActionPanel: React.FC<ActionPanelProps> = ({ rules, allowedActions, actionDetails, actionRules, onAction, onTalk, disabled, actionTarget }) => {
-  const [selectedAction, setSelectedAction] = useState<string | null>(null);
-  const [target, setTarget] = useState('');
+const ActionPanel: React.FC<ActionPanelProps> = ({ 
+    rules, 
+    allowedActions, 
+    actionDetails, 
+    actionRules, 
+    onAction, 
+    onTalk, 
+    disabled, 
+    selectedAction,
+    onSelectedActionChange,
+    target,
+    onTargetChange,
+    actionTarget 
+}) => {
 
   const currentActionDetails = useMemo(() => {
       if (!selectedAction) return null;
@@ -49,25 +64,25 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ rules, allowedActions, action
   useEffect(() => {
     if (actionTarget) {
       if (doesActionRequireTarget(actionTarget.actionId)) {
-          setSelectedAction(actionTarget.actionId);
-          setTarget(actionTarget.target);
+          onSelectedActionChange(actionTarget.actionId);
+          onTargetChange(actionTarget.target);
       }
     }
-  }, [actionTarget, actionRules]);
+  }, [actionTarget, actionRules, onSelectedActionChange, onTargetChange]);
 
   const handleActionSelect = (actionId: string) => {
     const requiresTarget = doesActionRequireTarget(actionId);
 
     if (requiresTarget) {
         if (selectedAction === actionId) {
-            setSelectedAction(null);
+            onSelectedActionChange(null);
         } else {
-            setSelectedAction(actionId);
-            setTarget('');
+            onSelectedActionChange(actionId);
+            onTargetChange('');
         }
     } else {
         onAction(actionId);
-        setSelectedAction(null);
+        onSelectedActionChange(null);
     }
   }
 
@@ -80,8 +95,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ rules, allowedActions, action
         onAction(selectedAction, target);
     }
 
-    setTarget('');
-    setSelectedAction(null);
+    onTargetChange('');
+    onSelectedActionChange(null);
   }
 
   return (
@@ -98,7 +113,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ rules, allowedActions, action
                         type="text"
                         placeholder="Specify target..."
                         value={target}
-                        onChange={(e) => setTarget(e.target.value)}
+                        onChange={(e) => onTargetChange(e.target.value)}
                         disabled={disabled}
                         className="flex-grow bg-background text-base"
                         onKeyDown={(e) => e.key === 'Enter' && target && handleExecute()}

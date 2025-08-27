@@ -96,6 +96,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
 
+  // State for ActionPanel that is now managed here
+  const [selectedAction, setSelectedAction] = useState<string | null>(null);
+  const [targetForAction, setTargetForAction] = useState('');
+
 
   // State for the talk dialog
   const [talkTarget, setTalkTarget] = useState('');
@@ -606,6 +610,11 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     }
     setIsLogDialogOpen(false); // Close log if open
   };
+  
+  const handleLogTargetClick = (target: string) => {
+    setTargetForAction(target);
+    setIsLogDialogOpen(false); // Close log if open
+  };
 
   const isLoading = isPending || isGeneratingScene || isGeneratingCharacter || isGeneratingDiceCheck;
 
@@ -637,6 +646,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           actionDetails={rules.actions}
           allowedActions={allowedActions}
           onTargetClick={handleTargetClick}
+          onLogTargetClick={handleLogTargetClick}
+          selectedAction={selectedAction}
           language={rules.language}
         />
         <TalkDialog
@@ -687,6 +698,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                       actionDetails={rules.actions}
                       allowedActions={allowedActions}
                       onTargetClick={handleTargetClick}
+                      onLogTargetClick={handleLogTargetClick}
+                      selectedAction={selectedAction}
                       language={rules.language}
                     />
                   </div>
@@ -714,6 +727,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   onAction={handleAction}
                   onTalk={handleTalk}
                   disabled={isLoading}
+                  selectedAction={selectedAction}
+                  onSelectedActionChange={setSelectedAction}
+                  target={targetForAction}
+                  onTargetChange={setTargetForAction}
                   actionTarget={actionTarget}
                 />
               )}
@@ -749,6 +766,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                           actionDetails={rules.actions}
                           allowedActions={allowedActions}
                           onTargetClick={handleTargetClick}
+                          onLogTargetClick={handleLogTargetClick}
+                          selectedAction={selectedAction}
                           language={rules.language}
                         />
                     </CardContent>

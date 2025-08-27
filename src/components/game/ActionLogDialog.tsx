@@ -22,6 +22,8 @@ interface ActionLogDialogProps {
   actionDetails: Record<string, ActionDetail>;
   allowedActions: string[];
   onTargetClick: (actionId: string, target: string) => void;
+  onLogTargetClick: (target: string) => void;
+  selectedAction: string | null;
   language: 'en' | 'zh';
 }
 
@@ -34,6 +36,8 @@ export function ActionLogDialog({
     actionDetails,
     allowedActions,
     onTargetClick,
+    onLogTargetClick,
+    selectedAction,
     language,
 }: ActionLogDialogProps) {
   const t = useMemo(() => getTranslator(language), [language]);
@@ -55,6 +59,8 @@ export function ActionLogDialog({
                 actionDetails={actionDetails}
                 allowedActions={allowedActions}
                 onTargetClick={onTargetClick}
+                onLogTargetClick={onLogTargetClick}
+                selectedAction={selectedAction}
                 isScrollable={true}
                 language={language}
             />
