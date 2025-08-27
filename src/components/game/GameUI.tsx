@@ -1,4 +1,3 @@
-
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
@@ -40,8 +39,8 @@ import {generateSceneDescription} from "@/ai/simple/generate-scene-description";
 import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import {DiceRollDialog} from "@/components/game/DiceRollDialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LatestResultModal } from './LatestResultModal';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {LatestResultModal} from './LatestResultModal';
 
 
 interface GameUIProps {
@@ -144,7 +143,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
   useEffect(() => {
     if (currentSituation) {
-      setLatestNarrative([]); // Clear last narrative on situation change
       generateNewScene(gameState.situation, currentSituation);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -562,16 +560,16 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             }
           }
         });
-        
+
         // Check for situation change
         if (newState.situation !== oldState.situation) {
-            changes.push({
-                id: 'next_situation',
-                name: 'Next Situation',
-                delta: 1, // Represents a positive change
-                icon: 'ChevronsRight',
-                color: 'text-primary'
-            });
+          changes.push({
+            id: 'next_situation',
+            name: 'Next Situation',
+            delta: 1, // Represents a positive change
+            icon: 'ChevronsRight',
+            color: 'text-primary'
+          });
         }
 
 
@@ -602,7 +600,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           ...newState,
           log: [...prevState.log, actionLog, ...engineLogs, narrativeLog],
         }));
-        
+
         setIsResultModalOpen(true);
 
 
@@ -626,7 +624,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     }
     setIsLogDialogOpen(false); // Close log if open
   };
-  
+
   const handleLogTargetClick = (target: string) => {
     setTargetForAction(target);
     setIsLogDialogOpen(false); // Close log if open
@@ -693,17 +691,17 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           language={rules.language}
         />
         <LatestResultModal
-            isOpen={isResultModalOpen}
-            onOpenChange={setIsResultModalOpen}
-            latestNarrative={latestNarrative}
-            knownTargets={knownTargets}
-            actionRules={currentSituation.on_action}
-            actionDetails={rules.actions}
-            allowedActions={allowedActions}
-            onTargetClick={handleTargetClick}
-            onLogTargetClick={handleLogTargetClick}
-            selectedAction={selectedAction}
-            language={rules.language}
+          isOpen={isResultModalOpen}
+          onOpenChange={setIsResultModalOpen}
+          latestNarrative={latestNarrative}
+          knownTargets={knownTargets}
+          actionRules={currentSituation.on_action}
+          actionDetails={rules.actions}
+          allowedActions={allowedActions}
+          onTargetClick={handleTargetClick}
+          onLogTargetClick={handleLogTargetClick}
+          selectedAction={selectedAction}
+          language={rules.language}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
@@ -771,13 +769,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
           <div className="lg:col-span-1 space-y-6">
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
-                    <BookOpen className="mr-2 h-4 w-4"/>
-                    {t.viewFullLog}
-                    </Button>
-                </CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
+                  <BookOpen className="mr-2 h-4 w-4"/>
+                  {t.viewFullLog}
+                </Button>
+              </CardHeader>
             </Card>
             <Tabs defaultValue="status" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
@@ -797,7 +795,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                 </Card>
               </TabsContent>
               <TabsContent value="items">
-                <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons} title={t.keyItemsAndInfo}/>
+                <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons}
+                                 title={t.keyItemsAndInfo}/>
               </TabsContent>
             </Tabs>
           </div>
