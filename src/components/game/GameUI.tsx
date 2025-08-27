@@ -9,7 +9,6 @@ import type {
   GameState,
   LogEntry,
   LogEntryChange,
-  PlayerAttributes,
   PlayerStats,
   ReachAgreementInput,
   Situation
@@ -666,7 +665,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         <DiceRollDialog
           isOpen={isDiceRollDialogOpen}
           onOpenChange={setIsDiceRollDialogOpen}
+          rules={rules}
+          situation={currentSituation}
           actionId={diceRollActionId || ''}
+          target={diceRollTarget}
           actionCheck={diceRollActionCheck}
           playerStats={gameState.player}
           isGenerating={isGeneratingDiceCheck}
