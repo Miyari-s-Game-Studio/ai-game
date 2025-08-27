@@ -139,6 +139,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
   useEffect(() => {
     if (currentSituation) {
+      setLatestNarrative([]); // Clear last narrative on situation change
       generateNewScene(gameState.situation, currentSituation);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -670,7 +671,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   {t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="max-h-2-3-screen overflow-y-auto pr-4">
+              <CardContent className="max-h-96 overflow-y-auto pr-4">
                 {isGeneratingScene ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-full"/>
@@ -706,6 +707,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                 </div>
               ) : (
                 <ActionPanel
+                  rules={rules}
                   allowedActions={allowedActions}
                   actionDetails={rules.actions}
                   actionRules={currentSituation.on_action}

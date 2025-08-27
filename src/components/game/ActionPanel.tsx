@@ -12,9 +12,11 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
-import type { ActionDetail, ActionRule } from '@/types/game';
+import type { ActionDetail, ActionRule, GameRules } from '@/types/game';
+import EffectPreview from './EffectPreview';
 
 interface ActionPanelProps {
+  rules: GameRules;
   allowedActions: string[];
   actionDetails: Record<string, ActionDetail>;
   actionRules: ActionRule[];
@@ -31,7 +33,7 @@ const getDynamicIcon = (iconName: string): React.ElementType => {
     return LucideIcons.HelpCircle; // Default icon
 };
 
-const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails, actionRules, onAction, onTalk, disabled, actionTarget }) => {
+const ActionPanel: React.FC<ActionPanelProps> = ({ rules, allowedActions, actionDetails, actionRules, onAction, onTalk, disabled, actionTarget }) => {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [target, setTarget] = useState('');
 
@@ -114,9 +116,14 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
               const details = actionDetails[actionId];
               if (!details) return null;
               const Icon = getDynamicIcon(details.icon);
+              
+              // Find the first rule that uses this actionId and doesn't require a target.
+              // This is a simplification for preview purposes. A more complex UI would be needed
+              // to show different outcomes for different targets.
+              const previewRule = actionRules.find(r => r.when.actionId === actionId && !r.when.targetPattern);
 
               return (
-                <Tooltip key={actionId} delayDuration={0}>
+                <Tooltip key={actionId} delayDuration={100}>
                     <TooltipTrigger asChild>
                          <Button
                             variant={selectedAction === actionId ? "default" : "outline"}
@@ -128,9 +135,16 @@ const ActionPanel: React.FC<ActionPanelProps> = ({ allowedActions, actionDetails
                             <Icon className="h-6 w-6"/>
                          </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                        <p className="font-semibold">{details.label}</p>
-                         {details.description && <p className="text-xs text-muted-foreground">{details.description}</p>}
+                    <TooltipContent className="p-4">
+                        <div className="space-y-3">
+                            <div>
+                                <p className="font-semibold text-base">{details.label}</p>
+                                {details.description && <p className="text-xs text-muted-foreground">{details.description}</p>}
+                            </div>
+                            {previewRule && previewRule.do && (
+                                <EffectPreview effects={previewRule.do} rules={rules} />
+                            )}
+                        </div>
                     </TooltipContent>
                 </Tooltip>
               )

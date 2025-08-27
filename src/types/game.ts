@@ -66,6 +66,17 @@ export type LogEntry = {
   changes?: LogEntryChange[];
 };
 
+export type DoAction = {
+  add?: string;
+  set?: string;
+  track?: string;
+  log?: string;
+  secret?: string;
+  agreement?: string;
+  if?: string;
+  cap?: number;
+};
+
 export type ActionRule = {
   when: {
     actionId: string;
@@ -73,26 +84,8 @@ export type ActionRule = {
     require?: string;
     textRegex?: string;
   };
-  do: Array<{
-    add?: string;
-    set?: string;
-    track?: string;
-    log?: string;
-    secret?: string;
-    agreement?: string;
-    if?: string;
-    cap?: number;
-  }>;
-  fail?: Array<{
-    add?: string;
-    set?: string;
-    track?: string;
-    log?: string;
-    secret?: string;
-    agreement?: string;
-    if?: string;
-    cap?: number;
-  }>;
+  do: DoAction[];
+  fail?: DoAction[];
 };
 
 export type Situation = {
