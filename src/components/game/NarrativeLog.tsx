@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useMemo } from 'react';
-import type { ActionRule, ActionDetail, LogEntry } from '@/types/game';
+import type { ActionRule, ActionDetail, LogEntry, LogEntryChange } from '@/types/game';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Terminal, Bot, User, AlertCircle, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
+import { Terminal, Bot, User, AlertCircle, ChevronRight, ArrowUp, ArrowDown, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -217,10 +217,16 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                                 <div key={change.id} className="flex items-center gap-2 text-sm">
                                     <ChangeIcon className={cn("w-4 h-4", change.color)} />
                                     <span className="font-medium capitalize">{change.name}</span>
-                                    <div className={cn("flex items-center font-semibold ml-auto", deltaColor)}>
-                                        <DeltaIcon className="w-4 h-4 mr-0.5" />
-                                        <span>{Math.abs(change.delta)}</span>
-                                    </div>
+                                    {change.id !== 'next_situation' ? (
+                                      <div className={cn("flex items-center font-semibold ml-auto", deltaColor)}>
+                                          <DeltaIcon className="w-4 h-4 mr-0.5" />
+                                          <span>{Math.abs(change.delta)}</span>
+                                      </div>
+                                    ) : (
+                                      <div className={cn("flex items-center font-semibold ml-auto", deltaColor)}>
+                                        <ChevronsRight className="w-4 h-4 mr-0.5" />
+                                      </div>
+                                    )}
                                 </div>
                             )
                         })}

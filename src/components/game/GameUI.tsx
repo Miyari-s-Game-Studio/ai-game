@@ -23,7 +23,7 @@ import {
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useToast} from '@/hooks/use-toast';
-import {BookOpen, Loader2} from 'lucide-react';
+import {BookOpen, ChevronsRight, Loader2} from 'lucide-react';
 import TrackDisplay from './TrackDisplay';
 import CountersDisplay from './CountersDisplay';
 import ActionPanel from './ActionPanel';
@@ -562,6 +562,18 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             }
           }
         });
+        
+        // Check for situation change
+        if (newState.situation !== oldState.situation) {
+            changes.push({
+                id: 'next_situation',
+                name: 'Next Situation',
+                delta: 1, // Represents a positive change
+                icon: 'ChevronsRight',
+                color: 'text-primary'
+            });
+        }
+
 
         const newSituation = rules.situations[newState.situation];
         const newActionRules = newSituation.on_action;
