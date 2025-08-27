@@ -41,6 +41,7 @@ import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import {DiceRollDialog} from "@/components/game/DiceRollDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LatestResultModal } from './LatestResultModal';
 
 
 interface GameUIProps {
@@ -94,6 +95,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
 
   // State for ActionPanel that is now managed here
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
@@ -588,6 +590,9 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           ...newState,
           log: [...prevState.log, actionLog, ...engineLogs, narrativeLog],
         }));
+        
+        setIsResultModalOpen(true);
+
 
       } catch (error) {
         console.error('Error processing action:', error);
@@ -675,6 +680,19 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           onRollComplete={handleDiceRollComplete}
           language={rules.language}
         />
+        <LatestResultModal
+            isOpen={isResultModalOpen}
+            onOpenChange={setIsResultModalOpen}
+            latestNarrative={latestNarrative}
+            knownTargets={knownTargets}
+            actionRules={currentSituation.on_action}
+            actionDetails={rules.actions}
+            allowedActions={allowedActions}
+            onTargetClick={handleTargetClick}
+            onLogTargetClick={handleLogTargetClick}
+            selectedAction={selectedAction}
+            language={rules.language}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           <div className="lg:col-span-2 space-y-6">
@@ -739,42 +757,21 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             </div>
           </div>
 
-          <div className="lg:col-span-1">
-            <Tabs defaultValue="result" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="result">{t.tabLastResult}</TabsTrigger>
+          <div className="lg:col-span-1 space-y-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
+                    <BookOpen className="mr-2 h-4 w-4"/>
+                    {t.viewFullLog}
+                    </Button>
+                </CardHeader>
+            </Card>
+            <Tabs defaultValue="status" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="status">{t.tabStatus}</TabsTrigger>
                 <TabsTrigger value="items">{t.tabItems}</TabsTrigger>
               </TabsList>
-              <TabsContent value="result">
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
-                        <CardTitle className="text-xl font-headline">{t.lastActionResult}</CardTitle>
-                        <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
-                        <BookOpen className="mr-2 h-4 w-4"/>
-                        {t.viewFullLog}
-                        </Button>
-                    </CardHeader>
-                    <CardContent className="min-h-[100px] pt-0">
-                        {latestNarrative.length === 0 && (
-                        <div className="text-center text-muted-foreground italic py-4">
-                            {t.storyWillUnfold}
-                        </div>
-                        )}
-                        <NarrativeLog
-                          log={latestNarrative}
-                          knownTargets={knownTargets}
-                          actionRules={currentSituation.on_action}
-                          actionDetails={rules.actions}
-                          allowedActions={allowedActions}
-                          onTargetClick={handleTargetClick}
-                          onLogTargetClick={handleLogTargetClick}
-                          selectedAction={selectedAction}
-                          language={rules.language}
-                        />
-                    </CardContent>
-                </Card>
-              </TabsContent>
               <TabsContent value="status">
                 <Card>
                   <CardHeader>
