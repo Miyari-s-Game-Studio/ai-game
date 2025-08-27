@@ -712,7 +712,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   {t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="max-h-96 overflow-y-auto pr-4">
+              <CardContent className="max-h-2-3-screen overflow-y-auto pr-4">
                 {isGeneratingScene ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-full"/>
