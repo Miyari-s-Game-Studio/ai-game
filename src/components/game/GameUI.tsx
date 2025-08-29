@@ -113,6 +113,9 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [diceRollTarget, setDiceRollTarget] = useState<string | undefined>(undefined);
   const [diceRollActionCheck, setDiceRollActionCheck] = useState<ActionCheckState | null>(null);
   const [isGeneratingDiceCheck, setIsGeneratingDiceCheck] = useState(false);
+  
+  // State for Fight
+  const [fightTarget, setFightTarget] = useState<PlayerStats | null>(null);
 
 
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
@@ -405,6 +408,16 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     }
 
     if (actionId === 'fight') {
+        // For now, create a default enemy. This can be expanded later.
+        const enemy: PlayerStats = {
+            name: target || "Guard",
+            identity: "A tough-looking guard",
+            language: 'en',
+            attributes: { strength: 11, dexterity: 11, constitution: 12, intelligence: 9, wisdom: 10, charisma: 9 },
+            equipment: {},
+            history: [],
+        };
+        setFightTarget(enemy);
         setIsFightDialogOpen(true);
         return;
     }
@@ -517,6 +530,22 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     setDiceRollTarget(undefined);
     setDiceRollActionCheck(null);
   };
+  
+  const handleFightComplete = (result: 'win' | 'loss') => {
+    setIsFightDialogOpen(false);
+    
+    // For now, just log the result. This can be expanded to trigger a `do` or `fail` block.
+    const resultLog: LogEntry = {
+        id: Date.now(),
+        type: 'procedural',
+        message: `You ${result} the fight against ${fightTarget?.name || 'the enemy'}.`,
+    };
+    setGameState(produce(draft => {
+        draft.log.push(resultLog);
+    }));
+
+    setFightTarget(null);
+  }
 
 
   const executeAction = async (actionId: string, target: string | undefined, isSuccess: boolean, actionRulesOverride?: any[]) => {
@@ -733,11 +762,16 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           selectedAction={selectedAction}
           language={rules.language}
         />
-        <FightDialog
-            isOpen={isFightDialogOpen}
-            onOpenChange={setIsFightDialogOpen}
-            language={rules.language}
-        />
+        {fightTarget && (
+            <FightDialog
+                isOpen={isFightDialogOpen}
+                onOpenChange={setIsFightDialogOpen}
+                player={gameState.player}
+                enemy={fightTarget}
+                onFightComplete={handleFightComplete}
+                language={rules.language}
+            />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           <div className="lg:col-span-2 space-y-6">

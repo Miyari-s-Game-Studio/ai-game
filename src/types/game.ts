@@ -62,6 +62,30 @@ export type GameState = {
   actionChecks: Record<string, ActionCheckState>;
 };
 
+export type FightState = {
+    player: PlayerStats;
+    enemy: PlayerStats;
+    round: number;
+    playerRoundsWon: number;
+    enemyRoundsWon: number;
+    currentRound: {
+        playerDice: number[];
+        playerSum: number;
+        enemyDice: number[];
+        enemySum: number;
+        playerStand: boolean;
+        enemyStand: boolean;
+        isPlayerTurn: boolean;
+        log: string[];
+        usedPlayerSkills: Partial<Record<keyof PlayerAttributes, number>>;
+        usedEnemySkills: Partial<Record<keyof PlayerAttributes, number>>;
+        playerBonus: number;
+        enemyBonus: number;
+        peekResult: number | null;
+    };
+    winner: 'player' | 'enemy' | null;
+}
+
 export type Track = {
   name: string;
   value: number;
