@@ -1,7 +1,7 @@
 
 // src/components/game/FightDialog.tsx
 'use client';
-import React, {useMemo, useEffect, useReducer, useState} from 'react';
+import React, {useMemo, useEffect, useReducer, useState, useRef} from 'react';
 import {
   Dialog,
   DialogContent,
@@ -143,8 +143,6 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
             };
 
         case 'ENEMY_TURN': {
-            const conMod = getMod(state.enemy.attributes.constitution);
-            
             const playerBusted = state.currentRound.playerSum > (12 + getMod(state.player.attributes.constitution));
             const shouldStand = state.currentRound.enemySum >= 10 || playerBusted || (state.currentRound.playerStand && state.currentRound.enemySum >= state.currentRound.playerSum);
 
@@ -358,7 +356,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
   }, [isOpen]);
   
   useEffect(() => {
-    if (!currentRound.isPlayerTurn && !winner && !didPlayerBust) {
+    if (!currentRound.isPlayerTurn && !winner) {
         if (didPlayerBust) {
             // If player busts, enemy turn is skipped, go to end of round
             // But only if they can't sidestep
@@ -370,7 +368,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
             setTimeout(() => dispatch({ type: 'ENEMY_TURN' }), 1000);
         }
     }
-  }, [currentRound.isPlayerTurn, didPlayerBust, winner]);
+  }, [currentRound.isPlayerTurn, didPlayerBust, winner, playerMod.dex, currentRound.usedPlayerSkills.dexterity]);
 
 
   useEffect(() => {
