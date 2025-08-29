@@ -170,7 +170,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
                         ...state.currentRound,
                         enemyDice: [...state.currentRound.enemyDice, newDie],
                         enemySum: newSum,
-                        isPlayerTurn: true, // Let player take another turn
+                        isPlayerTurn: state.currentRound.playerStand ? false : true, // If player stands, keep turn with enemy. Otherwise, give back to player.
                         log: [...state.currentRound.log, `Enemy presses, rolls a ${newDie}. Sum: ${newSum}`]
                     }
                 };
