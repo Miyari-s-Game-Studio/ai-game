@@ -1,0 +1,486 @@
+
+{
+  "version": 1,
+  "id": "eco_crisis_en",
+  "title": "Environmental Crisis",
+  "language": "en",
+  "theme": "theme-default",
+  "description": "An interactive narrative game where you play as an environmental officer tasked with solving a mysterious river pollution case.",
+  "actions": {
+    "observe": {
+      "icon": "Eye",
+      "label": "Observe"
+    },
+    "investigate": {
+      "icon": "Search",
+      "label": "Investigate"
+    },
+    "sample": {
+      "icon": "FlaskConical",
+      "label": "Take Sample"
+    },
+    "talk": {
+      "icon": "MessageSquare",
+      "label": "Talk"
+    },
+    "fight": {
+      "icon": "Swords",
+      "label": "Fight"
+    },
+    "announce": {
+      "icon": "Megaphone",
+      "label": "Announce"
+    },
+    "declare": {
+      "icon": "Flag",
+      "label": "Declare Strategy"
+    },
+    "negotiate": {
+      "icon": "Handshake",
+      "label": "Negotiate"
+    },
+    "build": {
+      "icon": "Building",
+      "label": "Build"
+    },
+    "clean": {
+      "icon": "Wrench",
+      "label": "Clean Up"
+    },
+    "reflect": {
+      "icon": "Archive",
+      "label": "Reflect"
+    },
+    "celebrate": {
+      "icon": "PartyPopper",
+      "label": "Celebrate"
+    }
+  },
+  "ui": {
+    "counterIcons": {
+      "clues": "FileText",
+      "samples": "Beaker",
+      "testimony": "Quote",
+      "shutdown_ok": "CheckCircle2",
+      "default": "Star"
+    },
+    "trackStyles": {
+      "eco.pollution": {
+        "icon": "AlertTriangle",
+        "color": "text-rose-500",
+        "progressColor": "[&>div]:bg-rose-500"
+      },
+      "eco.governance": {
+        "icon": "Shield",
+        "color": "text-emerald-500",
+        "progressColor": "[&>div]:bg-emerald-500"
+      },
+      "eco.media": {
+        "icon": "Megaphone",
+        "color": "text-sky-500",
+        "progressColor": "[&>div]:bg-sky-500"
+      }
+    }
+  },
+  "initial": {
+    "situation": "investigate_area",
+    "counters": {
+      "clues": 0,
+      "samples": 0,
+      "testimony": false,
+      "shutdown_ok": false
+    }
+  },
+  "tracks": {
+    "eco.pollution": {
+      "name": "Pollution Index",
+      "value": 2,
+      "max": 10
+    },
+    "eco.governance": {
+      "name": "Governance Level",
+      "value": 0,
+      "max": 8
+    },
+    "eco.media": {
+      "name": "Media Attention",
+      "value": 3,
+      "max": 10
+    }
+  },
+  "situations": {
+    "investigate_area": {
+      "label": "On-Site Investigation",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "observe"
+          },
+          "do": [
+            {
+              "add": "counters.clues,1",
+              "cap": 2
+            },
+            {
+              "log": "You record the water’s color, odor, and flow rate, forming a basic survey report."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "investigate",
+            "targetPattern": "outlet|oil|dead fish"
+          },
+          "do": [
+            {
+              "add": "counters.clues,1"
+            },
+            {
+              "log": "You have identified key signs of pollution. You can now focus on handling the discharge outlet."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "investigate",
+            "targetPattern": "upstream factory"
+          },
+          "do": [
+            {
+              "add": "counters.clues,1"
+            },
+            {
+              "set": "next_situation,interview_industry",
+              "if": "counters.clues >= 2"
+            },
+            {
+              "log": "The factory is now a primary target of investigation. You should go there to gather more direct evidence."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "sample"
+          },
+          "do": [
+            {
+              "add": "counters.samples,1"
+            },
+            {
+              "track": "eco.pollution,1"
+            },
+            {
+              "set": "next_situation,technical_ops",
+              "if": "counters.samples >= 2"
+            },
+            {
+              "log": "Sampling disturbed the sediments, temporarily increasing pollution; this data will support later remediation."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "talk",
+            "targetPattern": "fisherman|resident|guard"
+          },
+          "do": [
+            {
+              "secret": "The factory makes suspicious discharges at night."
+            },
+            {
+              "set": "counters.testimony,true"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "fight",
+            "targetPattern": "guard"
+          },
+          "do": [
+            {
+              "log": "You engage the guard."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "announce"
+          },
+          "do": [
+            {
+              "track": "eco.media,-1"
+            },
+            {
+              "log": "Public opinion has temporarily cooled down."
+            },
+            {
+              "track": "eco.media,2",
+              "if": "tracks['eco.pollution'].value >= 7"
+            },
+            {
+              "log": "Foreign media questioned the authenticity of the data, causing a backlash.",
+              "if": "tracks['eco.pollution'].value >= 7"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "declare",
+            "textRegex": "(engineering)"
+          },
+          "do": [
+            {
+              "set": "route,policy.engineering"
+            },
+            {
+              "log": "[Route] Engineering Priority: Focus on construction and technical remediation."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "declare",
+            "textRegex": "(enforcement)"
+          },
+          "do": [
+            {
+              "set": "route,policy.enforcement"
+            },
+            {
+              "log": "[Route] Enforcement Priority: Focus on evidence collection and shutdowns."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "declare",
+            "textRegex": "(public relations|PR)"
+          },
+          "do": [
+            {
+              "set": "route,policy.pr"
+            },
+            {
+              "log": "[Route] PR Priority: Focus on stabilizing public opinion."
+            }
+          ]
+        }
+      ]
+    },
+    "interview_industry": {
+      "label": "Factory Interview",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "talk",
+            "targetPattern": "manager|guard|foreman",
+            "require": "counters.testimony == true"
+          },
+          "do": [
+            {
+              "agreement": "The factory will suspend production for rectification."
+            },
+            {
+              "set": "counters.shutdown_ok,true"
+            },
+            {
+              "track": "eco.pollution,-2"
+            },
+            {
+              "track": "eco.governance,1"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "investigate"
+          },
+          "do": [
+            {
+              "set": "next_situation,technical_ops",
+              "if": "counters.samples >= 2 && counters.shutdown_ok == false"
+            },
+            {
+              "log": "Further investigation found no new leads."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "sample"
+          },
+          "do": [
+            {
+              "log": "No further sampling needed here."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "announce"
+          },
+          "do": [
+            {
+              "log": "Announcements should be made at the main site."
+            }
+          ]
+        }
+      ]
+    },
+    "technical_ops": {
+      "label": "Technical Operations",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "build"
+          },
+          "do": [
+            {
+              "track": "eco.governance,2"
+            },
+            {
+              "track": "eco.media,1"
+            },
+            {
+              "log": "The project made significant progress, but the construction drew public attention."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "clean"
+          },
+          "do": [
+            {
+              "track": "eco.pollution,-1"
+            },
+            {
+              "track": "eco.governance,1"
+            },
+            {
+              "log": "Cleanup operations reduced pollution and steadily advanced remediation."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "announce"
+          },
+          "do": [
+            {
+              "log": "The priority now is action, not words."
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "investigate"
+          },
+          "do": [
+            {
+              "log": "The investigation stage has concluded."
+            }
+          ]
+        }
+      ]
+    },
+    "disaster": {
+      "label": "Ecological Collapse",
+      "auto_enter_if": "tracks['eco.pollution'].value >= tracks['eco.pollution'].max",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "reflect"
+          },
+          "do": [
+            {
+              "log": "Pollution spiraled out of control, contaminating drinking water. The team will submit a postmortem report and face accountability."
+            }
+          ]
+        }
+      ]
+    },
+    "scandal": {
+      "label": "Public Backlash",
+      "auto_enter_if": "tracks['eco.media'].value >= tracks['eco.media'].max && tracks['eco.governance'].value < 5",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "reflect"
+          },
+          "do": [
+            {
+              "log": "Media attention peaked while governance lagged, triggering a crisis of trust and audit."
+            }
+          ]
+        }
+      ]
+    },
+    "restored": {
+      "label": "Successful Remediation",
+      "auto_enter_if": "tracks['eco.pollution'].value <= 2 && tracks['eco.governance'].value >= 7",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "celebrate"
+          },
+          "do": [
+            {
+              "log": "Pollution dropped below the safety threshold and the governance system ran smoothly, creating a model case."
+            }
+          ]
+        }
+      ]
+    },
+    "partial_success": {
+      "label": "Partial Success",
+      "auto_enter_if": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5 && tracks['eco.media'].value <= 6",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "reflect"
+          },
+          "do": [
+            {
+              "log": "The trend improved significantly but further engineering and enforcement are needed for consolidation."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "endings": {
+      "restored": {
+          "label": "Ecosystem Restored",
+          "description": "A model case of successful environmental governance.",
+          "modifiers": [
+              { "attribute": "wisdom", "change": 2 },
+              { "attribute": "charisma", "change": 1 }
+          ]
+      },
+      "partial_success": {
+          "label": "Partial Success",
+          "description": "The situation is under control, but requires long-term monitoring.",
+          "modifiers": [
+              { "attribute": "constitution", "change": 1 },
+              { "attribute": "intelligence", "change": 1 }
+          ]
+      },
+      "scandal": {
+          "label": "Public Scandal",
+          "description": "The handling of the case led to a crisis of public trust.",
+          "modifiers": [
+              { "attribute": "charisma", "change": -2 }
+          ]
+      },
+      "disaster": {
+          "label": "Ecological Disaster",
+          "description": "The river ecosystem has collapsed, with severe consequences.",
+          "modifiers": [
+              { "attribute": "wisdom", "change": -1 },
+              { "attribute": "constitution", "change": -1 }
+          ]
+      }
+  }
+}

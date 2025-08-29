@@ -1,3 +1,4 @@
+
 {
   "version": 1,
   "id": "eco_crisis_zh",
@@ -10,6 +11,7 @@
     "investigate": { "icon": "Search",       "label": "调查" },
     "sample":    { "icon": "FlaskConical",   "label": "取样" },
     "talk":      { "icon": "MessageSquare",  "label": "交谈" },
+    "fight":     { "icon": "Swords",         "label": "搏斗" },
     "announce":  { "icon": "Megaphone",      "label": "发布信息" },
     "declare":   { "icon": "Flag",           "label": "宣布策略" },
     "negotiate": { "icon": "Handshake",      "label": "约谈/谈判" },

@@ -1,3 +1,4 @@
+
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
@@ -42,6 +43,8 @@ import {DiceRollDialog} from "@/components/game/DiceRollDialog";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {LatestResultModal} from './LatestResultModal';
 import {useRouter} from 'next/navigation';
+import {FightDialog} from './FightDialog';
+
 
 const PLAYER_STATS_KEY = 'narrativeGamePlayer';
 
@@ -87,6 +90,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [isFightDialogOpen, setIsFightDialogOpen] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
 
 
@@ -399,6 +403,11 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
       if (target) handleTalk(target);
       return;
     }
+
+    if (actionId === 'fight') {
+        setIsFightDialogOpen(true);
+        return;
+    }
     
     if (isEnding) {
         if (actionId === 'reflect' || actionId === 'celebrate') {
@@ -581,7 +590,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         });
 
         // Check for situation change
-        if (newState.situation !== oldState.situation) {
+        if (newState.next_situation) {
           changes.push({
             id: 'next_situation',
             name: 'Next Situation',
@@ -723,6 +732,11 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           onLogTargetClick={handleLogTargetClick}
           selectedAction={selectedAction}
           language={rules.language}
+        />
+        <FightDialog
+            isOpen={isFightDialogOpen}
+            onOpenChange={setIsFightDialogOpen}
+            language={rules.language}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
