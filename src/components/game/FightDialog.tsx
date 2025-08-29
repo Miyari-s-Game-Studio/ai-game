@@ -86,8 +86,10 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
             const eDice1 = rollD6();
             const eDice2 = rollD6();
             return {
-                ...state,
+                ...createInitialFightState(state.player, state.enemy),
                 round: state.round + 1,
+                playerRoundsWon: state.playerRoundsWon,
+                enemyRoundsWon: state.enemyRoundsWon,
                 currentRound: {
                     playerDice: [pDice1, pDice2],
                     playerSum: pDice1 + pDice2,
@@ -142,7 +144,6 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
 
         case 'ENEMY_TURN': {
             const conMod = getMod(state.enemy.attributes.constitution);
-            const bustThreshold = 12 + conMod;
             
             const playerBusted = state.currentRound.playerSum > (12 + getMod(state.player.attributes.constitution));
             const shouldStand = state.currentRound.enemySum >= 10 || playerBusted || (state.currentRound.playerStand && state.currentRound.enemySum >= state.currentRound.playerSum);
@@ -308,6 +309,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
   const [state, dispatch] = useReducer(fightReducer, createInitialFightState(player, enemy));
   
   const [showPeek, setShowPeek] = useState(false);
+  const [animatedDice, setAnimatedDice] = useState<Set<number>>(new Set());
 
   // Derived state for easier access
   const { currentRound, winner } = state;
@@ -329,6 +331,23 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
   const didPlayerBust = currentRound.playerSum > playerBustThreshold;
   const didEnemyBust = currentRound.enemySum > enemyBustThreshold;
 
+  const prevPlayerDiceCount = useRef(currentRound.playerDice.length);
+  const prevEnemyDiceCount = useRef(currentRound.enemyDice.length);
+
+  useEffect(() => {
+    const newAnimated = new Set<number>();
+    if (currentRound.playerDice.length > prevPlayerDiceCount.current) {
+        newAnimated.add(currentRound.playerDice.length - 1);
+    }
+     if (currentRound.enemyDice.length > prevEnemyDiceCount.current) {
+        newAnimated.add(100 + currentRound.enemyDice.length - 1); // use prefix to avoid collision
+    }
+    setAnimatedDice(newAnimated);
+
+    prevPlayerDiceCount.current = currentRound.playerDice.length;
+    prevEnemyDiceCount.current = currentRound.enemyDice.length;
+  }, [currentRound.playerDice, currentRound.enemyDice]);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -342,7 +361,11 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
     if (!currentRound.isPlayerTurn && !winner && !didPlayerBust) {
         if (didPlayerBust) {
             // If player busts, enemy turn is skipped, go to end of round
-            dispatch({ type: 'END_ROUND', winner: 'enemy' });
+            // But only if they can't sidestep
+             const sidestepAvailable = (playerMod.dex - (currentRound.usedPlayerSkills.dexterity || 0)) > 0;
+             if (!sidestepAvailable) {
+                dispatch({ type: 'END_ROUND', winner: 'enemy' });
+             }
         } else {
             setTimeout(() => dispatch({ type: 'ENEMY_TURN' }), 1000);
         }
@@ -423,16 +446,20 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
       }, 2000);
   }
 
-  const isRoundOver = (currentRound.playerStand && currentRound.enemyStand) || didPlayerBust || didEnemyBust;
+  const isRoundOver = (currentRound.playerStand && currentRound.enemyStand) || (didPlayerBust && !(playerMod.dex - (currentRound.usedPlayerSkills.dexterity || 0) > 0)) || didEnemyBust;
 
-  const renderDice = (dice: number[], isPeek: boolean = false, peekValue: number | null = null) => (
-    <div className="flex flex-wrap gap-2">
-        {dice.map((d, i) => (
-            <div key={i} className="flex flex-col items-center">
-                <Dices className="w-8 h-8 p-1 border rounded-md" />
-                <span className="text-sm font-mono mt-1">{d}</span>
-            </div>
-        ))}
+  const renderDice = (dice: number[], isPlayer: boolean, isPeek: boolean = false, peekValue: number | null = null) => (
+    <div className="flex flex-wrap gap-2 min-h-[60px]">
+        {dice.map((d, i) => {
+             const key = isPlayer ? i : 100 + i;
+             const isAnimated = animatedDice.has(key);
+             return (
+                <div key={key} className={cn("flex flex-col items-center", isAnimated && 'animate-dice-roll')}>
+                    <Dices className="w-8 h-8 p-1 border rounded-md" />
+                    <span className={cn("text-sm font-mono mt-1 transition-opacity duration-500", isAnimated ? "opacity-0" : "opacity-100")}>{d}</span>
+                </div>
+            )
+        })}
         {isPeek && peekValue && (
             <div className="flex flex-col items-center">
                 <Dices className="w-8 h-8 p-1 border rounded-md text-sky-500 animate-pulse" />
@@ -464,7 +491,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
                         Sum: {currentRound.enemySum} / {enemyBustThreshold}
                     </Badge>
                 </div>
-                {renderDice(currentRound.enemyDice)}
+                {renderDice(currentRound.enemyDice, false)}
                  <Separator/>
                  <div className="flex-grow">
                     {/* Placeholder for enemy info */}
@@ -497,14 +524,14 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
             </div>
 
             {/* Player Side */}
-            <div className="space-y-4 p-4 border rounded-lg">
+            <div className="flex flex-col space-y-4 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                     <h3 className="text-xl font-bold flex items-center gap-2"><User /> {player.name}</h3>
                     <Badge variant={didPlayerBust ? "destructive" : "secondary"}>
                          Sum: {currentRound.playerSum} / {playerBustThreshold}
                     </Badge>
                 </div>
-                 {renderDice(currentRound.playerDice, showPeek, currentRound.peekResult)}
+                 {renderDice(currentRound.playerDice, true, showPeek, currentRound.peekResult)}
                  <Separator/>
                  <div className="space-y-2">
                     <p className="font-semibold">Actions</p>
@@ -529,5 +556,3 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
     </Dialog>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -95,10 +96,16 @@ export default {
             height: '0',
           },
         },
+        'dice-roll': {
+          '0%': { transform: 'scale(0.5) rotate(0deg) translateY(-20px)', opacity: '0' },
+          '60%': { transform: 'scale(1.2) rotate(540deg) translateY(0)', opacity: '1'},
+          '100%': { transform: 'scale(1) rotate(720deg)', opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'dice-roll': 'dice-roll 0.6s ease-out forwards',
       },
     },
   },
