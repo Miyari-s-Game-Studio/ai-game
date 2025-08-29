@@ -421,10 +421,20 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
 
   const isRoundOver = (currentRound.playerStand && currentRound.enemyStand) || didPlayerBust || didEnemyBust;
 
-  const renderDice = (dice: number[]) => (
-    <div className="flex gap-2">
-        {dice.map((d, i) => <Dices key={i} className="w-8 h-8 p-1 border rounded-md" />)}
-        {showPeek && currentRound.peekResult && <Dices className="w-8 h-8 p-1 border rounded-md text-sky-500 animate-pulse" />}
+  const renderDice = (dice: number[], isPeek: boolean = false, peekValue: number | null = null) => (
+    <div className="flex flex-wrap gap-2">
+        {dice.map((d, i) => (
+            <div key={i} className="flex flex-col items-center">
+                <Dices className="w-8 h-8 p-1 border rounded-md" />
+                <span className="text-sm font-mono mt-1">{d}</span>
+            </div>
+        ))}
+        {isPeek && peekValue && (
+            <div className="flex flex-col items-center">
+                <Dices className="w-8 h-8 p-1 border rounded-md text-sky-500 animate-pulse" />
+                <span className="text-sm font-mono mt-1 text-sky-500">{peekValue}</span>
+            </div>
+        )}
     </div>
   );
 
@@ -458,7 +468,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
             </div>
 
             {/* Center Column: Score & Logs */}
-            <div className="space-y-4 flex flex-col items-center">
+            <div className="flex flex-col space-y-4">
                  <div className="text-4xl font-bold text-center">
                     {state.playerRoundsWon} - {state.enemyRoundsWon}
                 </div>
@@ -490,7 +500,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
                          Sum: {currentRound.playerSum} / {playerBustThreshold}
                     </Badge>
                 </div>
-                 {renderDice(currentRound.playerDice)}
+                 {renderDice(currentRound.playerDice, showPeek, currentRound.peekResult)}
                  <Separator/>
                  <div className="space-y-2">
                     <p className="font-semibold">Actions</p>
