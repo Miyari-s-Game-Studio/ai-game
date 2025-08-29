@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BookOpen, FolderOpen, User, Edit, Trash2, ShieldCheck, Forward } from 'lucide-react';
+import { BookOpen, FolderOpen, User, Edit, Trash2, ShieldCheck, Forward, ArrowLeft } from 'lucide-react';
 import { gameRulesets, getRuleset } from '@/lib/rulesets';
 import type { GameRules, GameState, PlayerStats } from '@/types/game';
 import { useState, useMemo, useEffect } from 'react';
@@ -226,9 +226,17 @@ export default function GameSelectionPage() {
 
   const renderScenarioSelector = () => (
      <div className="w-full max-w-6xl animate-in fade-in-50">
-          <header className="mb-8 text-center">
+          <header className="mb-8 text-center relative">
             <h2 className="text-3xl md:text-4xl font-bold text-primary font-headline mb-4">{t.selectScenario}</h2>
             <p className="text-muted-foreground mt-2 text-lg mb-8">{t.selectScenarioDescription}</p>
+             <Button
+                variant="outline"
+                className="absolute top-0 left-0"
+                onClick={() => setIsContinuing(false)}
+             >
+                <ArrowLeft className="mr-2" />
+                Back
+             </Button>
           </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
