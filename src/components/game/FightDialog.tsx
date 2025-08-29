@@ -1,3 +1,4 @@
+
 // src/components/game/FightDialog.tsx
 'use client';
 import React, {useMemo, useEffect, useReducer, useState} from 'react';
@@ -338,7 +339,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
   }, [isOpen]);
   
   useEffect(() => {
-    if (!currentRound.isPlayerTurn && !winner) {
+    if (!currentRound.isPlayerTurn && !winner && !didPlayerBust) {
         if (didPlayerBust) {
             // If player busts, enemy turn is skipped, go to end of round
             dispatch({ type: 'END_ROUND', winner: 'enemy' });
@@ -353,12 +354,15 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
     // End of round conditions
     if (winner) return;
 
-    const roundIsOver = (currentRound.playerStand && currentRound.enemyStand) || didPlayerBust || didEnemyBust;
+    const sidestepAvailable = (playerMod.dex - (currentRound.usedPlayerSkills.dexterity || 0)) > 0;
+    const playerIsBustedAndCannotRecover = didPlayerBust && !sidestepAvailable;
+
+    const roundIsOver = (currentRound.playerStand && currentRound.enemyStand) || playerIsBustedAndCannotRecover || didEnemyBust;
 
     if (roundIsOver) {
         let roundWinner: 'player' | 'enemy' | 'tie' = 'tie';
 
-        if (didPlayerBust) {
+        if (playerIsBustedAndCannotRecover) {
             roundWinner = 'enemy';
         } else if (didEnemyBust) {
             roundWinner = 'player';
@@ -383,7 +387,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
         
         setTimeout(() => dispatch({type: 'END_ROUND', winner: roundWinner }), 1000);
     }
-  }, [currentRound.playerStand, currentRound.enemyStand, didPlayerBust, didEnemyBust, winner, currentRound.playerSum, currentRound.enemySum, currentRound.playerBonus, currentRound.enemyBonus, playerBustThreshold, enemyBustThreshold, player.attributes.dexterity, enemy.attributes.dexterity]);
+  }, [currentRound.playerStand, currentRound.enemyStand, didPlayerBust, didEnemyBust, winner, currentRound.playerSum, currentRound.enemySum, currentRound.playerBonus, currentRound.enemyBonus, playerBustThreshold, enemyBustThreshold, player.attributes.dexterity, enemy.attributes.dexterity, playerMod.dex, currentRound.usedPlayerSkills.dexterity]);
   
 
   const handlePlayerPress = () => {
@@ -525,3 +529,5 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
     </Dialog>
   );
 }
+
+    
