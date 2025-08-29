@@ -144,9 +144,9 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
             const conMod = getMod(state.enemy.attributes.constitution);
             const bustThreshold = 12 + conMod;
             
-            // Simple AI: Stand if sum is 10 or more, or if player has busted. Also stand if player is standing and enemy is winning.
+            // AI Logic: Stand if sum is 10+, or if player has busted, or if player is standing and enemy is winning/tied.
             const playerBusted = state.currentRound.playerSum > (12 + getMod(state.player.attributes.constitution));
-            const shouldStand = state.currentRound.enemySum >= 10 || playerBusted || (state.currentRound.playerStand && state.currentRound.enemySum > state.currentRound.playerSum);
+            const shouldStand = state.currentRound.enemySum >= 10 || playerBusted || (state.currentRound.playerStand && state.currentRound.enemySum >= state.currentRound.playerSum);
 
             if (shouldStand) {
                 return {
@@ -516,3 +516,5 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
     </Dialog>
   );
 }
+
+    
