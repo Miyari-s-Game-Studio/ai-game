@@ -1,4 +1,3 @@
-
 // src/components/game/FightDialog.tsx
 'use client';
 import React, {useMemo, useEffect, useReducer, useState} from 'react';
@@ -442,9 +441,9 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-3 gap-6 items-stretch">
             {/* Enemy Side */}
-             <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+             <div className="flex flex-col space-y-4 p-4 border rounded-lg bg-muted/50">
                 <div className="flex justify-between items-center">
                     <h3 className="text-xl font-bold flex items-center gap-2"><Bot /> {enemy.name}</h3>
                     <Badge variant={didEnemyBust ? "destructive" : "secondary"}>
@@ -453,7 +452,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
                 </div>
                 {renderDice(currentRound.enemyDice)}
                  <Separator/>
-                 <div className="h-48">
+                 <div className="flex-grow">
                     {/* Placeholder for enemy info */}
                  </div>
             </div>
@@ -461,9 +460,9 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
             {/* Center Column: Score & Logs */}
             <div className="space-y-4 flex flex-col items-center">
                  <div className="text-4xl font-bold text-center">
-                    {state.enemyRoundsWon} - {state.playerRoundsWon}
+                    {state.playerRoundsWon} - {state.enemyRoundsWon}
                 </div>
-                <div className="w-full h-40 bg-background border rounded-lg p-2 overflow-y-auto text-sm">
+                <div className="w-full flex-grow bg-background border rounded-lg p-2 overflow-y-auto text-sm">
                     {currentRound.log.map((l, i) => <p key={i} className="font-mono">&gt; {l}</p>)}
                 </div>
                 {winner && (
