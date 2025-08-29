@@ -1,3 +1,4 @@
+
 // src/components/game/FightDialog.tsx
 'use client';
 import React, {useMemo, useEffect, useReducer, useState} from 'react';
@@ -124,7 +125,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
                     ...state.currentRound,
                     playerDice: [...state.currentRound.playerDice, newDie],
                     playerSum: newSum,
-                    isPlayerTurn: didBust ? false : state.currentRound.isPlayerTurn,
+                    isPlayerTurn: false,
                     log: [...state.currentRound.log, `Player presses, rolls a ${newDie}. Sum: ${newSum}`],
                     peekResult: null,
                 }
@@ -156,7 +157,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
                     currentRound: {
                         ...state.currentRound,
                         enemyStand: true,
-                        isPlayerTurn: true,
+                        isPlayerTurn: true, // It becomes player's turn to see results, or end round.
                         log: [...state.currentRound.log, `Enemy stands with a sum of ${state.currentRound.enemySum}.`]
                     }
                 };
@@ -169,7 +170,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
                         ...state.currentRound,
                         enemyDice: [...state.currentRound.enemyDice, newDie],
                         enemySum: newSum,
-                        isPlayerTurn: true,
+                        isPlayerTurn: true, // Let player take another turn
                         log: [...state.currentRound.log, `Enemy presses, rolls a ${newDie}. Sum: ${newSum}`]
                     }
                 };
@@ -340,23 +341,35 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
       setTimeout(() => dispatch({ type: 'START_ROUND' }), 100);
     }
   }, [isOpen]);
+  
+  useEffect(() => {
+    if (!currentRound.isPlayerTurn && !winner) {
+        if (didPlayerBust) {
+            // If player busts, enemy turn is skipped, go to end of round
+            dispatch({ type: 'END_ROUND', winner: 'enemy' });
+        } else {
+            setTimeout(() => dispatch({ type: 'ENEMY_TURN' }), 1000);
+        }
+    }
+  }, [currentRound.isPlayerTurn, didPlayerBust, winner]);
+
 
   useEffect(() => {
     // End of round conditions
+    if (winner) return;
+
     if ((currentRound.playerStand && currentRound.enemyStand) || didPlayerBust || didEnemyBust) {
-        // Prevent multiple end_round dispatches
-        if(!currentRound.isPlayerTurn && !currentRound.playerStand) return; // mid-sidestep
-        if(currentRound.log.some(l => l.includes('wins the round'))) return;
-
-
-        const pFinal = currentRound.playerSum + currentRound.playerBonus;
-        const eFinal = currentRound.enemySum + currentRound.enemyBonus;
         
         let roundWinner: 'player' | 'enemy' | 'tie' = 'tie';
 
-        if (didPlayerBust) roundWinner = 'enemy';
-        else if (didEnemyBust) roundWinner = 'player';
-        else {
+        if (didPlayerBust) {
+            roundWinner = 'enemy';
+        } else if (didEnemyBust) {
+            roundWinner = 'player';
+        } else {
+            const pFinal = currentRound.playerSum + currentRound.playerBonus;
+            const eFinal = currentRound.enemySum + currentRound.enemyBonus;
+            
             const pDist = playerBustThreshold - pFinal;
             const eDist = enemyBustThreshold - eFinal;
             
@@ -369,19 +382,12 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
                     roundWinner = rollD6() > 3 ? 'player' : 'enemy';
                 }
             }
+            dispatch({ type: 'LOG', message: `Comparing scores: Player(${pFinal}) vs Enemy(${eFinal})` });
         }
-        dispatch({ type: 'LOG', message: `Comparing scores: Player(${pFinal}) vs Enemy(${eFinal})` });
+        
         setTimeout(() => dispatch({type: 'END_ROUND', winner: roundWinner }), 1000);
     }
-  }, [currentRound.playerStand, currentRound.enemyStand, didPlayerBust, didEnemyBust]);
-
-  
-  useEffect(() => {
-    // Enemy turn logic
-    if (!currentRound.isPlayerTurn && !currentRound.playerStand) {
-      setTimeout(() => dispatch({ type: 'ENEMY_TURN' }), 1000);
-    }
-  }, [currentRound.isPlayerTurn, currentRound.playerStand]);
+  }, [currentRound.playerStand, currentRound.enemyStand, didPlayerBust, didEnemyBust, winner]);
   
 
   const handlePlayerPress = () => {
@@ -417,7 +423,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
       }, 2000);
   }
 
-  const isRoundOver = !currentRound.isPlayerTurn && !currentRound.playerStand;
+  const isRoundOver = (currentRound.playerStand && currentRound.enemyStand) || didPlayerBust || didEnemyBust;
 
   const renderDice = (dice: number[]) => (
     <div className="flex gap-2">
