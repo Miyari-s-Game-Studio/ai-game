@@ -144,7 +144,6 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
             const conMod = getMod(state.enemy.attributes.constitution);
             const bustThreshold = 12 + conMod;
             
-            // AI Logic: Stand if sum is 10+, or if player has busted, or if player is standing and enemy is winning/tied.
             const playerBusted = state.currentRound.playerSum > (12 + getMod(state.player.attributes.constitution));
             const shouldStand = state.currentRound.enemySum >= 10 || playerBusted || (state.currentRound.playerStand && state.currentRound.enemySum >= state.currentRound.playerSum);
 
@@ -154,7 +153,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
                     currentRound: {
                         ...state.currentRound,
                         enemyStand: true,
-                        isPlayerTurn: state.currentRound.playerStand ? false : true, // If player is already standing, keep turn with enemy to trigger end of round. Otherwise, give it back.
+                        isPlayerTurn: state.currentRound.playerStand ? false : true,
                         log: [...state.currentRound.log, `Enemy stands with a sum of ${state.currentRound.enemySum}.`]
                     }
                 };
@@ -167,7 +166,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
                         ...state.currentRound,
                         enemyDice: [...state.currentRound.enemyDice, newDie],
                         enemySum: newSum,
-                        isPlayerTurn: state.currentRound.playerStand ? false : true, // If player stands, keep turn with enemy. Otherwise, give back to player.
+                        isPlayerTurn: state.currentRound.playerStand ? false : true,
                         log: [...state.currentRound.log, `Enemy presses, rolls a ${newDie}. Sum: ${newSum}`]
                     }
                 };
@@ -253,7 +252,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
                 winner: fightWinner,
                 currentRound: {
                     ...state.currentRound,
-                    log: [...state.currentRound.log, logMessage, `Score: ${playerRoundsWon} - ${enemyRoundsWon}`],
+                    log: [...state.currentRound.log, logMessage],
                     isPlayerTurn: false, // End of round
                 }
             };
@@ -432,21 +431,58 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-5xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl font-headline">
+          <DialogTitle className="flex items-center gap-2 text-2xl font-headline justify-center">
             <Swords />
             Twelve Rush: Round {state.round}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-center">
             Get closer to 12 + your CON bonus than your opponent without going over. Best 2 out of 3.
           </DialogDescription>
-           <div className="text-2xl font-bold text-center">
-                Score: {state.playerRoundsWon} - {state.enemyRoundsWon}
-            </div>
         </DialogHeader>
         
-        <div className="grid grid-cols-2 gap-6 items-start">
+        <div className="grid grid-cols-3 gap-6 items-start">
+            {/* Enemy Side */}
+             <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold flex items-center gap-2"><Bot /> {enemy.name}</h3>
+                    <Badge variant={didEnemyBust ? "destructive" : "secondary"}>
+                        Sum: {currentRound.enemySum} / {enemyBustThreshold}
+                    </Badge>
+                </div>
+                {renderDice(currentRound.enemyDice)}
+                 <Separator/>
+                 <div className="h-48">
+                    {/* Placeholder for enemy info */}
+                 </div>
+            </div>
+
+            {/* Center Column: Score & Logs */}
+            <div className="space-y-4 flex flex-col items-center">
+                 <div className="text-4xl font-bold text-center">
+                    {state.enemyRoundsWon} - {state.playerRoundsWon}
+                </div>
+                <div className="w-full h-40 bg-background border rounded-lg p-2 overflow-y-auto text-sm">
+                    {currentRound.log.map((l, i) => <p key={i} className="font-mono">&gt; {l}</p>)}
+                </div>
+                {winner && (
+                    <div className="text-center font-bold text-3xl p-4 text-primary animate-in fade-in-50">
+                        {winner === 'player' ? 'YOU WIN THE FIGHT!' : 'YOU LOST THE FIGHT.'}
+                    </div>
+                )}
+                {isRoundOver && !winner && (
+                    <Button onClick={() => dispatch({ type: 'START_ROUND' })} className="w-full">
+                        Start Next Round
+                    </Button>
+                )}
+                 {winner && (
+                    <Button onClick={handleClose} className="w-full">
+                        Leave
+                    </Button>
+                )}
+            </div>
+
             {/* Player Side */}
             <div className="space-y-4 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
@@ -474,47 +510,9 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
                         <SkillButton skill="charisma" player={player} usedCount={currentRound.usedPlayerSkills.charisma || 0} onClick={() => {}} disabled={true} />
                     </div>
                  </div>
-
-            </div>
-
-            {/* Enemy Side */}
-             <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold flex items-center gap-2"><Bot /> {enemy.name}</h3>
-                    <Badge variant={didEnemyBust ? "destructive" : "secondary"}>
-                        Sum: {currentRound.enemySum} / {enemyBustThreshold}
-                    </Badge>
-                </div>
-                {renderDice(currentRound.enemyDice)}
-                 <Separator/>
-                 <div className="h-32">
-                    {/* Placeholder for enemy info */}
-                 </div>
             </div>
         </div>
-
-        {/* Log & Results */}
-        <div className="col-span-2 space-y-2">
-            <div className="h-24 bg-background border rounded-lg p-2 overflow-y-auto text-sm">
-                {currentRound.log.map((l, i) => <p key={i} className="font-mono">&gt; {l}</p>)}
-            </div>
-
-            {winner && (
-                <div className="text-center font-bold text-3xl p-4 text-primary">
-                    {winner === 'player' ? 'YOU WIN THE FIGHT!' : 'YOU LOST THE FIGHT.'}
-                </div>
-            )}
-             {isRoundOver && !winner && (
-                 <Button onClick={() => dispatch({ type: 'START_ROUND' })} className="w-full">
-                    Start Next Round
-                 </Button>
-            )}
-        </div>
-
-
       </DialogContent>
     </Dialog>
   );
 }
-
-    
