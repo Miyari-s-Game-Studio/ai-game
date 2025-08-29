@@ -115,10 +115,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
         case 'PLAYER_PRESS': {
             const newDie = rollD6();
             const newSum = state.currentRound.playerSum + newDie;
-            const conMod = getMod(state.player.attributes.constitution);
-            const bustThreshold = 12 + conMod;
-            const didBust = newSum > bustThreshold;
-
+            
             return {
                 ...state,
                 currentRound: {
@@ -358,8 +355,9 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
     // End of round conditions
     if (winner) return;
 
-    if ((currentRound.playerStand && currentRound.enemyStand) || didPlayerBust || didEnemyBust) {
-        
+    const roundIsOver = (currentRound.playerStand && currentRound.enemyStand) || didPlayerBust || didEnemyBust;
+
+    if (roundIsOver) {
         let roundWinner: 'player' | 'enemy' | 'tie' = 'tie';
 
         if (didPlayerBust) {
@@ -387,7 +385,7 @@ export function FightDialog({ isOpen, onOpenChange, player, enemy, onFightComple
         
         setTimeout(() => dispatch({type: 'END_ROUND', winner: roundWinner }), 1000);
     }
-  }, [currentRound.playerStand, currentRound.enemyStand, didPlayerBust, didEnemyBust, winner]);
+  }, [currentRound.playerStand, currentRound.enemyStand, didPlayerBust, didEnemyBust, winner, currentRound.playerSum, currentRound.enemySum, currentRound.playerBonus, currentRound.enemyBonus, playerBustThreshold, enemyBustThreshold, player.attributes.dexterity, enemy.attributes.dexterity]);
   
 
   const handlePlayerPress = () => {
