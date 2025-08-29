@@ -97,9 +97,9 @@ export default {
           },
         },
         'dice-roll': {
-          '0%': { transform: 'scale(0.5) rotate(0deg) translateY(-20px)', opacity: '0' },
-          '60%': { transform: 'scale(1.2) rotate(540deg) translateY(0)', opacity: '1'},
-          '100%': { transform: 'scale(1) rotate(720deg)', opacity: '1' },
+          '0%': { transform: 'scale(0.5) rotate(0deg) translateY(-40px)', opacity: '0', 'transform-origin': 'center' },
+          '60%': { transform: 'scale(1.2) rotate(540deg) translateY(0)', opacity: '1', 'transform-origin': 'center'},
+          '100%': { transform: 'scale(1) rotate(720deg)', opacity: '1', 'transform-origin': 'center' },
         },
       },
       animation: {
