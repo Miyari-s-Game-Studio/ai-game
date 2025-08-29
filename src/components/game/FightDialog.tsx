@@ -154,7 +154,7 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
                     currentRound: {
                         ...state.currentRound,
                         enemyStand: true,
-                        isPlayerTurn: true, // It becomes player's turn to see results, or end round.
+                        isPlayerTurn: state.currentRound.playerStand ? false : true, // If player is already standing, keep turn with enemy to trigger end of round. Otherwise, give it back.
                         log: [...state.currentRound.log, `Enemy stands with a sum of ${state.currentRound.enemySum}.`]
                     }
                 };
