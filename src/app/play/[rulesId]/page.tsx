@@ -6,7 +6,7 @@ import {getRuleset} from '@/lib/rulesets';
 import {useState, useEffect} from 'react';
 import type {PlayerStats, GameRules, GameState} from '@/types/game';
 import {useTheme} from '@/components/layout/ThemeProvider';
-import {notFound, useRouter, redirect, useParams} from 'next/navigation';
+import {notFound, redirect, useParams} from 'next/navigation';
 
 interface PlayPageProps {
   params: {
@@ -15,6 +15,7 @@ interface PlayPageProps {
 }
 
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
+const PLAYER_STATS_KEY = 'narrativeGamePlayer';
 const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
 export default function PlayPage() {
@@ -67,9 +68,21 @@ export default function PlayPage() {
             return;
         }
     } else {
-        // If there's no saved state and no new player info, it's an invalid entry. Redirect to home.
-        redirect('/');
-        return;
+        // If there's no saved state and no new player info, check local storage for a player
+        const savedPlayerJson = localStorage.getItem(PLAYER_STATS_KEY);
+         if (savedPlayerJson) {
+            try {
+                setInitialPlayerStats(JSON.parse(savedPlayerJson));
+            } catch (e) {
+                console.error("Failed to parse player stats from local storage", e);
+                redirect('/');
+                return;
+            }
+        } else {
+            // If there's no player anywhere, it's an invalid entry. Redirect to home.
+            redirect('/');
+            return;
+        }
     }
 
     setIsLoading(false);
@@ -80,7 +93,8 @@ export default function PlayPage() {
     return <div className="flex h-screen items-center justify-center">Loading Scenario...</div>;
   }
 
-  if (!rules) {
+  if (!rules || !initialPlayerStats) {
+    // This case should be handled by redirects, but as a fallback:
     return notFound();
   }
 

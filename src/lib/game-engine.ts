@@ -1,6 +1,7 @@
+
 // src/lib/game-engine.ts
 'use server';
-import type {GameState, GameRules, LogEntry} from '@/types/game';
+import type {GameState, GameRules, LogEntry, PlayerStats, CompletedScenario, AttributeChange, PlayerAttributes} from '@/types/game';
 import {produce} from 'immer';
 
 function evaluateCondition(condition: string, state: GameState): boolean {
@@ -13,6 +14,48 @@ function evaluateCondition(condition: string, state: GameState): boolean {
     return false;
   }
 }
+
+function applyEnding(player: PlayerStats, rules: GameRules, endingSituationId: string): PlayerStats {
+    if (!rules.endings || !rules.endings[endingSituationId]) {
+        return player;
+    }
+    const ending = rules.endings[endingSituationId];
+
+    return produce(player, draft => {
+        const attributeChanges: AttributeChange[] = [];
+        const originalAttributes = {...draft.attributes};
+
+        // Apply modifiers
+        ending.modifiers.forEach(mod => {
+            const oldValue = originalAttributes[mod.attribute];
+            const newValue = oldValue + mod.change;
+            draft.attributes[mod.attribute] = newValue;
+            attributeChanges.push({
+                attribute: mod.attribute,
+                change: mod.change,
+                oldValue: oldValue,
+                newValue: newValue,
+            });
+        });
+
+        // Create and add history entry
+        const historyEntry: CompletedScenario = {
+            rulesId: rules.id,
+            title: rules.title,
+            completionDate: new Date().toISOString(),
+            endingSituationId: endingSituationId,
+            endingSituationLabel: ending.label,
+            attributeChanges: attributeChanges,
+            finalAttributes: {...draft.attributes},
+        };
+
+        if (!draft.history) {
+            draft.history = [];
+        }
+        draft.history.push(historyEntry);
+    });
+}
+
 
 export async function processAction(
   rules: GameRules,
@@ -159,7 +202,7 @@ export async function processAction(
   });
 
   // After processing actions, check for automatic situation transitions
-  let autoTransitioned = false;
+  let situationChanged = false;
   for (const situationId in rules.situations) {
     const situation = rules.situations[situationId];
     if (situation.auto_enter_if && evaluateCondition(situation.auto_enter_if, newState)) {
@@ -170,18 +213,28 @@ export async function processAction(
           delete draft.next_situation;
         }
       });
-      autoTransitioned = true;
+      situationChanged = true;
       break; // Stop after the first one matches
     }
   }
 
   // If no auto-transition happened, check for a pending manual transition.
-  if (!autoTransitioned && newState.next_situation && rules.situations[newState.next_situation]) {
+  if (!situationChanged && newState.next_situation && rules.situations[newState.next_situation]) {
     newState = produce(newState, draft => {
       draft.situation = draft.next_situation!;
       delete draft.next_situation;
     });
+    situationChanged = true;
   }
+  
+  // If the situation has changed, check if the new situation is an ending.
+  if (situationChanged && rules.endings?.[newState.situation]) {
+     const newPlayerStats = applyEnding(newState.player, rules, newState.situation);
+     newState = produce(newState, draft => {
+        draft.player = newPlayerStats;
+     });
+  }
+
 
   return {newState, proceduralLogs};
 }

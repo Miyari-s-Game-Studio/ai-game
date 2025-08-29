@@ -17,12 +17,30 @@ export type Equipment = {
   accessory?: string;
 };
 
+export type AttributeChange = {
+    attribute: keyof PlayerAttributes;
+    change: number;
+    oldValue: number;
+    newValue: number;
+};
+
+export type CompletedScenario = {
+    rulesId: string;
+    title: string;
+    completionDate: string; // ISO String
+    endingSituationId: string;
+    endingSituationLabel: string;
+    attributeChanges: AttributeChange[];
+    finalAttributes: PlayerAttributes;
+};
+
 export type PlayerStats = {
   name: string;
   identity: string;
   language: 'en' | 'zh';
   attributes: PlayerAttributes;
   equipment: Equipment;
+  history?: CompletedScenario[];
 };
 
 export type ActionCheckState = {
@@ -90,7 +108,7 @@ export type ActionRule = {
 
 export type Situation = {
   label: string;
-  description: string;
+  description?: string;
   auto_enter_if?: string; // condition to auto enter this situation
   on_action: ActionRule[];
 };
@@ -99,6 +117,15 @@ export type ActionDetail = {
   icon: string;
   label: string;
   description?: string;
+};
+
+export type Ending = {
+    label: string;
+    description: string;
+    modifiers: {
+        attribute: keyof PlayerAttributes;
+        change: number;
+    }[];
 };
 
 export type GameRules = {
@@ -115,6 +142,7 @@ export type GameRules = {
   };
   tracks: Record<string, Track>;
   situations: Record<string, Situation>;
+  endings?: Record<string, Ending>;
   ui?: {
     counterIcons?: Record<string, string>; // keyword -> lucide icon name
     trackStyles?: Record<string, { icon: string; color: string; progressColor: string; }>;

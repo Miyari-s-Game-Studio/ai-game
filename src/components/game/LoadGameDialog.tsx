@@ -15,6 +15,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { GameState } from '@/types/game';
 import { Trash2 } from 'lucide-react';
 import { getTranslator } from '@/lib/i18n';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export interface SaveFile {
   key: string;
@@ -60,16 +71,29 @@ export function LoadGameDialog({ isOpen, onOpenChange, saveFiles, onLoad, onDele
                       </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(file.key);
-                            }}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                                variant="destructive"
+                                size="icon"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete this save file. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onDelete(file.key)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+
                         <Button onClick={() => onLoad(file)}>{t.load}</Button>
                     </div>
                   </div>

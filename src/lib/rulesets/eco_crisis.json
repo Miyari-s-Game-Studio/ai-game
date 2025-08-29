@@ -369,31 +369,6 @@
         }
       ]
     },
-    "wrap_up": {
-      "label": "Wrap-Up",
-      "on_action": [
-        {
-          "when": {
-            "actionId": "reflect"
-          },
-          "do": [
-            {
-              "log": "You compiled a complete chain of evidence and remediation data, moving into long-term monitoring."
-            }
-          ]
-        },
-        {
-          "when": {
-            "actionId": "celebrate"
-          },
-          "do": [
-            {
-              "log": "The crisis has been resolved. You and your team celebrate and revisit local residents, who thank you for the environmental improvements."
-            }
-          ]
-        }
-      ]
-    },
     "disaster": {
       "label": "Ecological Collapse",
       "auto_enter_if": "tracks['eco.pollution'].value >= tracks['eco.pollution'].max",
@@ -458,5 +433,38 @@
         }
       ]
     }
+  },
+  "endings": {
+      "restored": {
+          "label": "Ecosystem Restored",
+          "description": "A model case of successful environmental governance.",
+          "modifiers": [
+              { "attribute": "wisdom", "change": 2 },
+              { "attribute": "charisma", "change": 1 }
+          ]
+      },
+      "partial_success": {
+          "label": "Partial Success",
+          "description": "The situation is under control, but requires long-term monitoring.",
+          "modifiers": [
+              { "attribute": "constitution", "change": 1 },
+              { "attribute": "intelligence", "change": 1 }
+          ]
+      },
+      "scandal": {
+          "label": "Public Scandal",
+          "description": "The handling of the case led to a crisis of public trust.",
+          "modifiers": [
+              { "attribute": "charisma", "change": -2 }
+          ]
+      },
+      "disaster": {
+          "label": "Ecological Disaster",
+          "description": "The river ecosystem has collapsed, with severe consequences.",
+          "modifiers": [
+              { "attribute": "wisdom", "change": -1 },
+              { "attribute": "constitution", "change": -1 }
+          ]
+      }
   }
 }

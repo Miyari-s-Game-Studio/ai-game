@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BookOpen, FolderOpen, User, Edit, Trash2 } from 'lucide-react';
+import { BookOpen, FolderOpen, User, Edit, Trash2, ShieldCheck, Forward } from 'lucide-react';
 import { gameRulesets, getRuleset } from '@/lib/rulesets';
 import type { GameRules, GameState, PlayerStats } from '@/types/game';
 import { useState, useMemo, useEffect } from 'react';
@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
 import { getTranslator } from '@/lib/i18n';
 import PlayerStatsComponent from '@/components/game/PlayerStats';
+import PlayerHistory from '@/components/game/PlayerHistory';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
@@ -25,7 +26,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 
@@ -43,24 +43,36 @@ export default function GameSelectionPage() {
 
   const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null);
   const [isEditingCharacter, setIsEditingCharacter] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [playerIdentity, setPlayerIdentity] = useState('');
   const [playerLanguage, setPlayerLanguage] = useState<'en' | 'zh'>('en');
   
   const t = useMemo(() => getTranslator(playerStats?.language || playerLanguage), [playerStats, playerLanguage]);
 
-  const allRules: GameRules[] = useMemo(() => {
+  const availableRules: GameRules[] = useMemo(() => {
     if (!playerStats) return [];
+    const completedRuleIds = new Set(playerStats.history?.map(h => h.rulesId) || []);
     return gameRulesets
         .map(id => getRuleset(id))
-        .filter(rules => rules && rules.language === playerStats.language) as GameRules[];
+        .filter(rules => {
+            if (!rules || rules.language !== playerStats.language) return false;
+            // Filter out scenarios that have already been completed
+            if (completedRuleIds.has(rules.id)) return false;
+            return true;
+        }) as GameRules[];
   }, [playerStats]);
 
   useEffect(() => {
     try {
-        const savedPlayer = localStorage.getItem(PLAYER_STATS_KEY);
-        if (savedPlayer) {
-            setPlayerStats(JSON.parse(savedPlayer));
+        const savedPlayerJson = localStorage.getItem(PLAYER_STATS_KEY);
+        if (savedPlayerJson) {
+            const savedPlayer = JSON.parse(savedPlayerJson);
+            // Quick check for the new history structure
+            if (savedPlayer.history && !Array.isArray(savedPlayer.history)) {
+              savedPlayer.history = [];
+            }
+            setPlayerStats(savedPlayer);
         }
     } catch (e) {
         console.error("Failed to load player stats.", e);
@@ -104,6 +116,7 @@ export default function GameSelectionPage() {
   const handleLoadGame = (saveFile: SaveFile) => {
     try {
         const ruleId = saveFile.key.substring(SAVE_PREFIX.length, saveFile.key.lastIndexOf('_'));
+        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(saveFile.state.player));
         sessionStorage.setItem(STATE_TO_LOAD_KEY, JSON.stringify(saveFile.state));
         router.push(`/play/${ruleId}`);
     } catch (e) {
@@ -133,6 +146,7 @@ export default function GameSelectionPage() {
       language: playerLanguage,
       attributes: { strength: 10, dexterity: 12, constitution: 11, intelligence: 14, wisdom: 13, charisma: 12 },
       equipment: { top: 'Sturdy Jacket', bottom: 'Cargo Pants', shoes: 'Work Boots', accessory: 'ID Badge' },
+      history: isEditingCharacter ? playerStats?.history : [], // Preserve history if editing
     };
     try {
         localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newPlayerStats));
@@ -155,12 +169,98 @@ export default function GameSelectionPage() {
   
   const confirmDeleteCharacter = () => {
     localStorage.removeItem(PLAYER_STATS_KEY);
+    // Also remove all save files associated with this character
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(SAVE_PREFIX)) {
+            localStorage.removeItem(key);
+        }
+    }
     setPlayerStats(null);
     setPlayerName('');
     setPlayerIdentity('');
     setIsEditingCharacter(false);
     setIsDeleteDialogOpen(false);
+    setIsContinuing(false);
   }
+
+  const renderCharacterCreator = () => (
+     <Card className="w-full max-w-lg animate-in fade-in-50">
+        <CardHeader>
+          <CardTitle className="text-3xl font-headline">{isEditingCharacter ? t.editYourCharacter : t.createYourCharacter}</CardTitle>
+          <CardDescription>{t.defineYourRoleIn} the adventures to come.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+            <div className="space-y-2">
+            <Label htmlFor="playerLanguage" className="text-lg">{t.language}</Label>
+            <Select value={playerLanguage} onValueChange={(value) => setPlayerLanguage(value as 'en' | 'zh')}>
+                <SelectTrigger id="playerLanguage" className="text-base">
+                    <SelectValue placeholder="Select a language" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="en">{t.languageEnglish}</SelectItem>
+                    <SelectItem value="zh">{t.languageChinese}</SelectItem>
+                </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="playerName" className="text-lg">{t.characterName}</Label>
+            <Input id="playerName" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder={t.enterNamePlaceholder} className="text-base" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="playerIdentity" className="text-lg">{t.characterIdentity}</Label>
+            <Input id="playerIdentity" value={playerIdentity} onChange={(e) => setPlayerIdentity(e.target.value)} placeholder={t.enterIdentityPlaceholder} className="text-base" />
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button onClick={handleSaveCharacter} className="text-lg py-6" disabled={!playerName.trim() || !playerIdentity.trim()}>
+            <User className="mr-2" />
+            {isEditingCharacter ? 'Save Changes' : 'Create Character'}
+          </Button>
+          {isEditingCharacter && (
+              <Button variant="ghost" onClick={() => setIsEditingCharacter(false)}>Cancel</Button>
+          )}
+        </CardFooter>
+      </Card>
+  )
+
+  const renderScenarioSelector = () => (
+     <div className="w-full max-w-6xl animate-in fade-in-50">
+          <header className="mb-8 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary font-headline mb-4">{t.selectScenario}</h2>
+            <p className="text-muted-foreground mt-2 text-lg mb-8">{t.selectScenarioDescription}</p>
+          </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+        {availableRules.map(rules => (
+          <Card key={rules.id} className="flex flex-col">
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl">{rules.title}</CardTitle>
+              <CardDescription>{rules.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow">
+                <p className="text-sm text-muted-foreground">{t.version}: {rules.version}</p>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => handleStartGame(rules.id)} className="w-full">
+                <BookOpen className="mr-2" />
+                {t.playScenario}
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+        {availableRules.length === 0 && (
+            <Card className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center border-dashed p-8">
+                 <CardHeader className="text-center">
+                    <CardTitle className="font-headline text-2xl">All Adventures Completed!</CardTitle>
+                    <CardDescription>You've played through all available scenarios for this character.</CardDescription>
+                </CardHeader>
+            </Card>
+        )}
+        </div>
+     </div>
+  );
+
 
   return (
     <>
@@ -191,101 +291,48 @@ export default function GameSelectionPage() {
 
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 md:p-8">
       
-      {!playerStats || isEditingCharacter ? (
-          <Card className="w-full max-w-lg animate-in fade-in-50">
-            <CardHeader>
-              <CardTitle className="text-3xl font-headline">{isEditingCharacter ? t.editYourCharacter : t.createYourCharacter}</CardTitle>
-              <CardDescription>{t.defineYourRoleIn} the adventures to come.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-               <div className="space-y-2">
-                <Label htmlFor="playerLanguage" className="text-lg">{t.language}</Label>
-                <Select value={playerLanguage} onValueChange={(value) => setPlayerLanguage(value as 'en' | 'zh')}>
-                    <SelectTrigger id="playerLanguage" className="text-base">
-                        <SelectValue placeholder="Select a language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="en">{t.languageEnglish}</SelectItem>
-                        <SelectItem value="zh">{t.languageChinese}</SelectItem>
-                    </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="playerName" className="text-lg">{t.characterName}</Label>
-                <Input id="playerName" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder={t.enterNamePlaceholder} className="text-base" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="playerIdentity" className="text-lg">{t.characterIdentity}</Label>
-                <Input id="playerIdentity" value={playerIdentity} onChange={(e) => setPlayerIdentity(e.target.value)} placeholder={t.enterIdentityPlaceholder} className="text-base" />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button onClick={handleSaveCharacter} className="text-lg py-6" disabled={!playerName.trim() || !playerIdentity.trim()}>
-                <User className="mr-2" />
-                {isEditingCharacter ? 'Save Changes' : 'Create Character'}
-              </Button>
-              {isEditingCharacter && (
-                  <Button variant="ghost" onClick={() => setIsEditingCharacter(false)}>Cancel</Button>
-              )}
-            </CardFooter>
-          </Card>
-      ) : (
-        <>
-            <header className="mb-8 text-center">
-                <div className="relative inline-block">
-                    <PlayerStatsComponent stats={playerStats} />
-                    <div className="absolute top-2 right-2 flex gap-2">
-                        <Button variant="outline" size="icon" onClick={handleEditCharacter}><Edit className="h-4 w-4" /></Button>
-                        <Button variant="destructive" size="icon" onClick={() => setIsDeleteDialogOpen(true)}><Trash2 className="h-4 w-4" /></Button>
+      {!playerStats ? renderCharacterCreator() : isEditingCharacter ? renderCharacterCreator() : (
+        isContinuing ? renderScenarioSelector() : (
+            // Main character hub
+             <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-5 gap-8 animate-in fade-in-50">
+                <div className="lg:col-span-2">
+                    <div className="relative">
+                        <PlayerStatsComponent stats={playerStats} />
+                        <div className="absolute top-2 right-2 flex gap-2">
+                            <Button variant="outline" size="icon" onClick={handleEditCharacter}><Edit className="h-4 w-4" /></Button>
+                            <Button variant="destructive" size="icon" onClick={() => setIsDeleteDialogOpen(true)}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
                     </div>
                 </div>
-            </header>
-            <h2 className="text-3xl md:text-4xl font-bold text-primary font-headline mb-4">{t.selectScenario}</h2>
-            <p className="text-muted-foreground mt-2 text-lg mb-8">{t.selectScenarioDescription}</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl w-full">
-            {allRules.map(rules => (
-              <Card key={rules.id} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle className="font-headline text-2xl">{rules.title}</CardTitle>
-                  <CardDescription>{rules.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                    <p className="text-sm text-muted-foreground">{t.version}: {rules.version}</p>
-                </CardContent>
-                <CardFooter>
-                  <Button onClick={() => handleStartGame(rules.id)} className="w-full">
-                    <BookOpen className="mr-2" />
-                    {t.playScenario}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-            <Card className="flex flex-col items-center justify-center border-dashed">
-                <CardHeader>
-                    <CardTitle className="font-headline text-2xl">{t.yourStory}</CardTitle>
-                    <CardDescription>{t.createNew}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button asChild variant="outline">
-                        <Link href="/admin/rules">{t.manageRules}</Link>
+                <div className="lg:col-span-3">
+                   <PlayerHistory player={playerStats} />
+                </div>
+                <div className="lg:col-span-5 flex flex-col items-center justify-center gap-6 mt-8">
+                    <Button size="lg" className="text-xl py-8 px-10" onClick={() => setIsContinuing(true)}>
+                        <Forward className="mr-3" />
+                        Continue Adventure
                     </Button>
-                </CardContent>
-            </Card>
-            </div>
-        </>
+                    <div className="flex gap-4">
+                        <Button variant="outline" onClick={handleOpenLoadDialog}>
+                            <FolderOpen className="mr-2"/>
+                            {t.loadGame}
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href="/admin/rules">{t.manageRules}</Link>
+                        </Button>
+                    </div>
+                </div>
+             </div>
+        )
       )}
 
-
-       <div className="mt-12 flex gap-4">
-            <Button variant="outline" onClick={handleOpenLoadDialog}>
-                <FolderOpen className="mr-2"/>
-                {t.loadGame}
-            </Button>
+      {playerStats && !isContinuing && !isEditingCharacter && (
+        <div className="absolute bottom-4 right-4">
             <Button asChild variant="outline">
                 <Link href="/admin/rules">{t.manageRules}</Link>
             </Button>
         </div>
+      )}
     </div>
     </>
   );

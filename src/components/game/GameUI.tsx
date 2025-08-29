@@ -41,12 +41,15 @@ import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/g
 import {DiceRollDialog} from "@/components/game/DiceRollDialog";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {LatestResultModal} from './LatestResultModal';
+import {useRouter} from 'next/navigation';
+
+const PLAYER_STATS_KEY = 'narrativeGamePlayer';
 
 
 interface GameUIProps {
   rules: GameRules;
   initialStateOverride?: GameState | null;
-  initialPlayerStats?: PlayerStats | null;
+  initialPlayerStats: PlayerStats;
 }
 
 const getInitialState = (rules: GameRules, playerStats: PlayerStats): GameState => {
@@ -67,23 +70,12 @@ type ConversationFlow = (input: ExtractSecretInput | ReachAgreementInput) => Pro
 type ConversationType = 'secret' | 'agreement';
 
 export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUIProps) {
+  const router = useRouter();
   const [gameState, setGameState] = useState<GameState>(() => {
     if (initialStateOverride) {
       return initialStateOverride;
     }
-    if (initialPlayerStats) {
-      return getInitialState(rules, initialPlayerStats);
-    }
-    // This should ideally not be reached if the parent page redirects correctly,
-    // but provides a fallback.
-    const fallbackPlayer: PlayerStats = {
-      name: 'Fallback',
-      identity: 'Player',
-      language: 'en',
-      attributes: {strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10},
-      equipment: {}
-    };
-    return getInitialState(rules, fallbackPlayer);
+    return getInitialState(rules, initialPlayerStats);
   });
   const [sceneDescription, setSceneDescription] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
@@ -95,6 +87,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
+
 
   // State for ActionPanel that is now managed here
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
@@ -143,7 +137,15 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
   useEffect(() => {
     if (currentSituation) {
+      if (rules.endings?.[gameState.situation]) {
+        setIsEnding(true);
+        // Save the final player state to local storage when an ending is reached.
+        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(gameState.player));
+      } else {
+        setIsEnding(false);
+      }
       generateNewScene(gameState.situation, currentSituation);
+      setLatestNarrative([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.situation]);
@@ -160,6 +162,14 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     // If not in cache, generate it
     setIsGeneratingScene(true);
     setSceneDescription('');
+    
+    // For situations without a description (like endings), use the label.
+    if (!situation.description) {
+        setSceneDescription(situation.label);
+        setIsGeneratingScene(false);
+        return;
+    }
+
     try {
       const result = await generateSceneDescription({
         language: rules.language,
@@ -389,6 +399,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
       if (target) handleTalk(target);
       return;
     }
+    
+    if (isEnding) {
+        if (actionId === 'reflect' || actionId === 'celebrate') {
+            router.push('/');
+        }
+        return;
+    }
 
     // Find the relevant action rule to see if a dice roll is needed.
     const actionRule = currentSituation?.on_action.find(r => {
@@ -512,6 +529,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           isSuccess,
           actionRulesOverride
         );
+        
+        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newState.player));
 
         const changes: LogEntryChange[] = [];
 
@@ -576,11 +595,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         const newSituation = rules.situations[newState.situation];
         const newActionRules = newSituation.on_action;
         const newTargets = newActionRules.flatMap(rule => rule.when.targetPattern?.split('|') || []);
+        
+        const sceneDesc = newState.sceneDescriptions[newState.situation] || newSituation.description || newSituation.label;
 
         const narrativeInput = {
           language: rules.language,
           situationLabel: newSituation.label,
-          sceneDescription: sceneDescription, // Use existing scene description
+          sceneDescription: sceneDesc,
           actionTaken: `${actionId} ${target || ''}`.trim(),
           proceduralLogs: engineLogs.map(l => l.message),
           knownTargets: [...new Set(newTargets)],
@@ -709,10 +730,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl font-headline">
-                  {t.currentSituation}: {currentSituation.label}
+                  {isEnding ? "Scenario Complete" : t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="max-h-2-3-screen overflow-y-auto pr-4">
+              <CardContent className="max-h-96 overflow-y-auto pr-4">
                 {isGeneratingScene ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-full"/>
@@ -738,7 +759,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             </Card>
 
             <div>
-              {isLoading ? (
+              {isLoading && !isEnding ? (
                 <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
                   <Loader2 className="h-8 w-8 animate-spin text-primary"/>
                   <p className="ml-4 text-lg">
@@ -769,7 +790,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
           <div className="lg:col-span-1 space-y-6">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
                 <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
                   <BookOpen className="mr-2 h-4 w-4"/>
