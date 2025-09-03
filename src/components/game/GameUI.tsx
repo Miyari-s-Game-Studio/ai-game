@@ -1,4 +1,3 @@
-
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
@@ -113,7 +112,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [diceRollTarget, setDiceRollTarget] = useState<string | undefined>(undefined);
   const [diceRollActionCheck, setDiceRollActionCheck] = useState<ActionCheckState | null>(null);
   const [isGeneratingDiceCheck, setIsGeneratingDiceCheck] = useState(false);
-  
+
   // State for Fight
   const [fightTarget, setFightTarget] = useState<PlayerStats | null>(null);
 
@@ -152,9 +151,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         setIsEnding(false);
       }
       generateNewScene(gameState.situation, currentSituation);
-      setLatestNarrative([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.situation]);
 
   const generateNewScene = async (situationId: string, situation: Situation) => {
@@ -169,17 +166,18 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     // If not in cache, generate it
     setIsGeneratingScene(true);
     setSceneDescription('');
-    
+
     // For situations without a description (like endings), use the label.
     if (!situation.description) {
-        setSceneDescription(situation.label);
-        setIsGeneratingScene(false);
-        return;
+      setSceneDescription(situation.label);
+      setIsGeneratingScene(false);
+      return;
     }
 
     try {
       const result = await generateSceneDescription({
         language: rules.language,
+        background: rules.description,
         situation: situation.description,
         knownTargets: knownTargets,
       });
@@ -364,9 +362,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     }));
 
     if (objectiveAchieved) {
-      startTransition(async () => {
-        await executeAction('talk-objective-complete', undefined, true, talkFollowUpActions);
-      });
+      executeAction('talk-objective-complete', undefined, true, talkFollowUpActions);
     } else {
       startTransition(async () => {
         const finalSummary = `Finished a conversation with ${talkTarget} without achieving the objective.`;
@@ -408,25 +404,25 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     }
 
     if (actionId === 'fight') {
-        // For now, create a default enemy. This can be expanded later.
-        const enemy: PlayerStats = {
-            name: target || "Guard",
-            identity: "A tough-looking guard",
-            language: 'en',
-            attributes: { strength: 11, dexterity: 11, constitution: 12, intelligence: 9, wisdom: 10, charisma: 9 },
-            equipment: {},
-            history: [],
-        };
-        setFightTarget(enemy);
-        setIsFightDialogOpen(true);
-        return;
+      // For now, create a default enemy. This can be expanded later.
+      const enemy: PlayerStats = {
+        name: target || "Guard",
+        identity: "A tough-looking guard",
+        language: 'en',
+        attributes: {strength: 11, dexterity: 11, constitution: 12, intelligence: 9, wisdom: 10, charisma: 9},
+        equipment: {},
+        history: [],
+      };
+      setFightTarget(enemy);
+      setIsFightDialogOpen(true);
+      return;
     }
-    
+
     if (isEnding) {
-        if (actionId === 'reflect' || actionId === 'celebrate') {
-            router.push('/');
-        }
-        return;
+      if (actionId === 'reflect' || actionId === 'celebrate') {
+        router.push('/');
+      }
+      return;
     }
 
     // Find the relevant action rule to see if a dice roll is needed.
@@ -442,9 +438,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     if (!requiresDiceRoll) {
       // No dice roll needed, execute action directly as success.
-      startTransition(() => {
-        executeAction(actionId, target, true);
-      });
+      executeAction(actionId, target, true);
       return;
     }
 
@@ -490,10 +484,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         setIsGeneratingDiceCheck(false);
       }
     } else {
-      // 3. If check has been passed, execute the action directly
-      startTransition(() => {
-        executeAction(actionId, target, true);
-      });
+      executeAction(actionId, target, true);
     }
   };
 
@@ -515,9 +506,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     // If passed, or if failed but there's a `fail` block, execute the action
     if (passed || (!passed && actionRule?.fail)) {
-      startTransition(() => {
-        executeAction(diceRollActionId, diceRollTarget, passed);
-      });
+      executeAction(diceRollActionId, diceRollTarget, passed);
     } else if (!passed) {
       toast({
         variant: 'destructive',
@@ -530,21 +519,24 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     setDiceRollTarget(undefined);
     setDiceRollActionCheck(null);
   };
-  
+
   const handleFightComplete = (result: 'win' | 'loss') => {
     setIsFightDialogOpen(false);
-    
+
     // For now, just log the result. This can be expanded to trigger a `do` or `fail` block.
     const resultLog: LogEntry = {
-        id: Date.now(),
-        type: 'procedural',
-        message: `You ${result} the fight against ${fightTarget?.name || 'the enemy'}.`,
+      id: Date.now(),
+      type: 'procedural',
+      message: `You ${result} the fight against ${fightTarget?.name || 'the enemy'}.`,
     };
     setGameState(produce(draft => {
-        draft.log.push(resultLog);
+      draft.log.push(resultLog);
     }));
-
+    if (result === 'win') {
+      executeAction('fight', fightTarget?.name, true);
+    }
     setFightTarget(null);
+
   }
 
 
@@ -567,7 +559,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           isSuccess,
           actionRulesOverride
         );
-        
+
         localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newState.player));
 
         const changes: LogEntryChange[] = [];
@@ -633,8 +625,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         const newSituation = rules.situations[newState.situation];
         const newActionRules = newSituation.on_action;
         const newTargets = newActionRules.flatMap(rule => rule.when.targetPattern?.split('|') || []);
-        
-        const sceneDesc = newState.sceneDescriptions[newState.situation] || newSituation.description || newSituation.label;
+
+        const sceneDesc = newSituation.description || newSituation.label;
 
         const narrativeInput = {
           language: rules.language,
@@ -728,7 +720,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           onOpenChange={setIsTalkDialogOpen}
           target={talkTarget}
           objective={talkObjective}
-          sceneDescription={sceneDescription}
+          sceneDescription={currentSituation.description || currentSituation.label}
           conversationType={conversationType}
           characterProfile={characterProfile}
           isGenerating={isGeneratingCharacter}
@@ -763,14 +755,14 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           language={rules.language}
         />
         {fightTarget && (
-            <FightDialog
-                isOpen={isFightDialogOpen}
-                onOpenChange={setIsFightDialogOpen}
-                player={gameState.player}
-                enemy={fightTarget}
-                onFightComplete={handleFightComplete}
-                language={rules.language}
-            />
+          <FightDialog
+            isOpen={isFightDialogOpen}
+            onOpenChange={setIsFightDialogOpen}
+            player={gameState.player}
+            enemy={fightTarget}
+            onFightComplete={handleFightComplete}
+            language={rules.language}
+          />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
@@ -781,7 +773,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   {isEnding ? "Scenario Complete" : t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="max-h-96 overflow-y-auto pr-4">
+              <CardContent className="max-h-2-3-screen overflow-y-auto pr-4">
                 {isGeneratingScene ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-full"/>

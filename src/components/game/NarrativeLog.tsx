@@ -54,14 +54,14 @@ const MarkdownRenderer: React.FC<{
       if (targets.length === 0) {
         return node;
       }
-      
+
       const wordBoundary = language === 'zh' ? '' : '\\b';
       const regex = new RegExp(`(${wordBoundary}(?:${targets.join('|')})${wordBoundary})`, 'gi');
       const parts = node.split(regex);
-      
+
       return parts.map((part, index) => {
         const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
-        
+
         if (isTarget) {
           const validActions = rules.filter(rule => {
             if (!allowedActions.includes(rule.when.actionId)) return false;
@@ -69,7 +69,7 @@ const MarkdownRenderer: React.FC<{
             const targetPatterns = rule.when.targetPattern.split('|').map(p => p.trim());
             return targetPatterns.some(p => new RegExp(`^${p}$`, 'i').test(part));
           });
-          
+
           if (validActions.length === 0) {
             return <span key={index}>{part}</span>;
           }
@@ -77,10 +77,10 @@ const MarkdownRenderer: React.FC<{
           // NEW LOGIC: If an action is already selected, just make the target clickable
           if (selectedAction && validActions.some(action => action.when.actionId === selectedAction)) {
             return (
-              <span 
+              <span
                 key={index}
                 onClick={() => onLogTargetClick(part)}
-                className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80"
+                className="text-underline text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80"
               >
                 {part}
               </span>
@@ -92,7 +92,7 @@ const MarkdownRenderer: React.FC<{
           return (
             <Popover key={index}>
               <PopoverTrigger asChild>
-                <span className="bg-accent text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
+                <span className="text-underline text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
                   {part}
                 </span>
               </PopoverTrigger>
@@ -125,7 +125,7 @@ const MarkdownRenderer: React.FC<{
       const children = React.Children.map(node.props.children, (child, index) => processNode(child, index));
       return React.cloneElement(node, { ...node.props, key }, children);
     }
-    
+
     return node;
   };
 

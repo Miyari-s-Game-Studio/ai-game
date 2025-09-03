@@ -105,6 +105,7 @@ const translations = {
         prompt: (input: GenerateSceneDescriptionInput) => `
 You are a game master for an interactive narrative game. Your task is to craft a compelling scene description for the player. This description sets the stage for the current situation.
 
+Background: ${input.background}
 Current Situation: ${input.situation}
 
 You must create a captivating, multi-paragraph narrative that describes the environment, atmosphere, and key elements. Crucially, you MUST naturally weave all of the following interaction targets into your description to ensure the player knows what they can interact with.
@@ -164,7 +165,7 @@ Generate a character profile for this NPC. Make them feel like a real, unique pe
       },
       extractSecret: {
         systemPrompt: (input: ExtractSecretInput) => `
-You are an NPC in a role-playing game.
+You will play the NPC in the third person in the game.
 Your name is: ${input.characterProfile.name}
 Your personality is: ${input.characterProfile.personality}
 Your dialogue style is: ${input.characterProfile.dialogStyle}
@@ -176,7 +177,7 @@ The secret is: "${input.objective}"
 
 Do NOT reveal the secret unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
 
-Respond to the player's message based on your personality and the conversation so far. Your response must include what you say, your current expression, and any physical action you take.
+Respond to the player's message based on ${input.characterProfile.name}'s personality and the conversation so far. Your response must include what ${input.characterProfile.name} say, ${input.characterProfile.name}'s current expression, and any physical action ${input.characterProfile.name} take.
 `,
         schema: {
           playerInput: "The latest message from the player.",
@@ -189,7 +190,7 @@ Respond to the player's message based on your personality and the conversation s
       },
       reachAgreement: {
         systemPrompt: (input: ReachAgreementInput) => `
-You are an NPC in a role-playing game.
+You will play the NPC in the third person in the game.
 Your name is: ${input.characterProfile.name}
 Your personality is: ${input.characterProfile.personality}
 Your dialogue style is: ${input.characterProfile.dialogStyle}
@@ -202,7 +203,7 @@ The objective is: "${input.objective}"
 Do NOT agree to the proposal unless the player's dialogue skillfully and naturally persuades you.
 If you are agreeing to the proposal, your dialogue MUST include the words "I agree to ${input.objective}".
 
-Respond to the player's message based on your personality and the conversation so far. Your response must include what you say, your current expression, and any physical action you take.
+Respond to the player's message based on ${input.characterProfile.name}'s personality and the conversation so far. Your response must include what ${input.characterProfile.name} say, ${input.characterProfile.name}'s current expression, and any physical action ${input.characterProfile.name} take.
 `,
         schema: {
           playerInput: "The latest message from the player.",
@@ -362,6 +363,7 @@ Generate a single number for the Difficulty Class.
         prompt: (input: GenerateSceneDescriptionInput) => `
 你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
 
+背景：${input.background}
 当前情境：${input.situation}
 
 你必须创造一个引人入胜的、多段落的叙述，描述环境、氛围和关键元素。至关重要的是，你必须将以下所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
@@ -421,7 +423,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
       },
       extractSecret: {
         systemPrompt: (input: ExtractSecretInput) => `
-你是一个角色扮演游戏中的NPC。
+你要用第三人称扮演游戏中的NPC。
 你的名字是：${input.characterProfile.name}
 你的个性是：${input.characterProfile.personality}
 你的对话风格是：${input.characterProfile.dialogStyle}
@@ -433,7 +435,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 
 除非玩家的对话技巧娴熟自然地引导你这样做，否则不要透露秘密。要微妙。
 
-根据你的个性和目前的对话情况，回应玩家的信息。你的回应必须包括你说的话、你当前的神态和你的任何身体动作。
+根据${input.characterProfile.name}的个性和目前的对话情况，回应玩家的信息。你的回应必须包括${input.characterProfile.name}说的话、${input.characterProfile.name}当前的神态和${input.characterProfile.name}的任何身体动作。
 `,
         schema: {
           playerInput: "来自玩家的最新消息。",
@@ -446,7 +448,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
       },
       reachAgreement: {
         systemPrompt: (input: ReachAgreementInput) => `
-你是一个角色扮演游戏中的NPC。
+你要用第三人称扮演游戏中的NPC。
 你的名字是：${input.characterProfile.name}
 你的个性是：${input.characterProfile.personality}
 你的对话风格是：${input.characterProfile.dialogStyle}
@@ -459,7 +461,7 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 除非玩家的对话技巧娴熟自然地说服你，否则不要同意这个提议。
 如果你同意这个提议，你的对话必须包含“我同意${input.objective}”这句话。
 
-根据你的个性和目前的对话情况，回应玩家的信息。你的回应必须包括你说的话、你当前的神态和你的任何身体动作。
+根据${input.characterProfile.name}的个性和目前的对话情况，回应玩家的信息。你的回应必须包括${input.characterProfile.name}说的话、${input.characterProfile.name}当前的神态和${input.characterProfile.name}的任何身体动作。
 `,
         schema: {
           playerInput: "来自玩家的最新消息。",

@@ -62,7 +62,7 @@ export async function processAction(
   currentState: GameState,
   actionId: string,
   target: string | undefined,
-  isSuccess: boolean, // <-- New parameter
+  isSuccess: boolean,
   actionRulesOverride?: Record<string, any>[]
 ): Promise<{ newState: GameState; proceduralLogs: LogEntry[] }> {
 
@@ -226,7 +226,7 @@ export async function processAction(
     });
     situationChanged = true;
   }
-  
+
   // If the situation has changed, check if the new situation is an ending.
   if (situationChanged && rules.endings?.[newState.situation]) {
      const newPlayerStats = applyEnding(newState.player, rules, newState.situation);

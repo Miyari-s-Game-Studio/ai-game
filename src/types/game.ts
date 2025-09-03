@@ -190,6 +190,7 @@ export type ConversationHistory = {
 
 export interface GenerateSceneDescriptionInput {
   language: 'en' | 'zh';
+  background: string;
   situation: string;
   knownTargets: string[];
 };

@@ -247,3 +247,7 @@ body {
 .max-h-2-3-screen {
   max-height: 66vh;
 }
+
+.text-underline {
+  text-decoration: underline;
+}
