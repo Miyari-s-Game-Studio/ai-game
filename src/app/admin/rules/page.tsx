@@ -44,11 +44,11 @@ import { useToast } from '@/hooks/use-toast';
 
 
 
-const createBoilerplateRules = (id: string): GameRules => ({
+const createBoilerplateRules = (id: string, language: 'en' | 'zh'): GameRules => ({
     id: id,
     version: 1,
     title: `New Scenario: ${id}`,
-    language: 'en',
+    language: language,
     theme: 'theme-default',
     description: "A new adventure begins.",
     actions: {
@@ -87,6 +87,7 @@ function AdminRulesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newRulesetId, setNewRulesetId] = useState('');
+  const [newRulesetLanguage, setNewRulesetLanguage] = useState<'en' | 'zh'>('en');
 
 
   useEffect(() => {
@@ -132,7 +133,7 @@ function AdminRulesPage() {
         return;
     }
 
-    const boilerplate = createBoilerplateRules(newId);
+    const boilerplate = createBoilerplateRules(newId, newRulesetLanguage);
     saveCustomRuleset(boilerplate);
 
     // Refresh list and select the new one
@@ -144,6 +145,7 @@ function AdminRulesPage() {
     // Close dialog and reset input
     setIsCreateDialogOpen(false);
     setNewRulesetId('');
+    setNewRulesetLanguage('en');
   };
 
   const handleDelete = () => {
@@ -203,7 +205,7 @@ function AdminRulesPage() {
               <DialogHeader>
                 <DialogTitle>Create New Custom Ruleset</DialogTitle>
                 <DialogDescription>
-                  Enter a unique ID for your new scenario. This will be stored in your browser's local storage.
+                  Enter a unique ID and select a language for your new scenario. This will be stored in your browser's local storage.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -216,8 +218,22 @@ function AdminRulesPage() {
                           value={newRulesetId}
                           onChange={(e) => setNewRulesetId(e.target.value)}
                           className="col-span-3"
-                          placeholder="e.g., my_awesome_story_en"
+                          placeholder="e.g., my_awesome_story"
                       />
+                  </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="ruleset-language" className="text-right">
+                          Language
+                      </Label>
+                       <Select value={newRulesetLanguage} onValueChange={(value) => setNewRulesetLanguage(value as 'en' | 'zh')}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Select a language" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="en">English</SelectItem>
+                                <SelectItem value="zh">Chinese</SelectItem>
+                            </SelectContent>
+                        </Select>
                   </div>
               </div>
               <DialogFooter>
