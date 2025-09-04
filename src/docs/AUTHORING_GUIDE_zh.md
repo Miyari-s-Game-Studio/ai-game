@@ -8,7 +8,7 @@
 
 ### 1.1. 顶层属性
 
-- `id` (string, 必需): 唯一标识符。约定格式为 `[名称]_[语言]`，例如 `eco_crisis_en`。
+- `id` (string, 必需): 唯一标识符。约定格式为 `[名称]_[语言]`，例如 `eco_crisis_zh`。
 - `title` (string, 必需): 显示给玩家的场景名称。
 - `language` (string, 必需): 内容的语言 (`"en"` 或 `"zh"`)。这也决定了使用哪个 AI 提示翻译。
 - `theme` (string, 可选): 场景的视觉主题。可选值: `"theme-default"`, `"theme-forest"`, `"theme-ocean"`, `"theme-crimson"`。
@@ -18,7 +18,6 @@
 - `initial` (object, 必需): 游戏的初始状态。
 - `tracks` (object, 必需): 定义场景的进度条。
 - `situations` (object, 必需): 游戏的核心状态机，定义了所有地点和事件。
-- `endings` (object, 可选): 定义了可能的结局及其对玩家永久属性的影响。
 
 ### 1.2. Actions (行动)
 
@@ -78,7 +77,7 @@
 - `{"log": "你发现了一条线索。"}`: 添加一个程序性日志条目。此日志会发送给 AI，以帮助其生成叙述。
 - `{"if": "counters.clues > 2"}`: 这个键可以添加到任何效果中，使其成为条件性的。
 
-## 3. Minigame Systems (迷你游戏系统)
+## 3. 迷你游戏系统与特殊规则
 
 引擎包含了几个内置的迷你游戏，可以通过 `on_action` 规则触发。
 
@@ -168,3 +167,25 @@
     - **感知 (Wisdom / Poise)**: 如果你以低分停牌，为你的总和增加 +2。
     - **魅力 (Charisma / Pressure)**: 强迫本想停牌的敌人要牌。
 5.  如果玩家赢得整场战斗，则该行动被视为成功，并执行 `do` 块。如果他们输了，则执行 `fail` 块。
+
+### 3.4. 结局 (Endings)
+
+当玩家进入一个被标记为结局的情境时，游戏结束。
+
+**如何触发:**
+在你的 `situations` 对象中的任何一个情境里，添加 `"ending": true`。
+
+```json
+"restored": {
+  "label": "治理成功",
+  "ending": true,
+  "auto_enter_if": "tracks['eco.pollution'].value <= 2 && tracks['eco.governance'].value >= 7",
+  "on_action": []
+}
+```
+
+**工作原理:**
+1. 当玩家进入一个带有 `"ending": true` 的情境时，游戏即被视为结束。
+2. UI 会自动添加一个最终的行动按钮（例如“庆祝”或“反思”）。这是通过程序实现的，不需要在 `on_action` 数组中添加。
+3. 当玩家点击这个最终行动时，游戏会话结束，他们将返回到主剧本选择屏幕。
+4. 系统还会自动将对玩家属性的任何永久性更改保存到他们的个人资料中。

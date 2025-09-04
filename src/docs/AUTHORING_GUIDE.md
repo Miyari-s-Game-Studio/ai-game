@@ -18,7 +18,6 @@ The entire logic and content for a scenario is defined in a single `.json` file 
 - `initial` (object, required): The starting state of the game.
 - `tracks` (object, required): Defines the progress meters for the scenario.
 - `situations` (object, required): The core state machine of the game, defining all locations and events.
-- `endings` (object, optional): Defines the possible conclusions and their effects on the player's permanent stats.
 
 ### 1.2. Actions
 
@@ -78,9 +77,9 @@ Effects are objects with a single key defining the effect type.
 - `{"log": "You found a clue."}`: Adds a procedural log entry. This log is sent to the AI to help it generate the narrative.
 - `{"if": "counters.clues > 2"}`: This key can be added to any effect to make it conditional.
 
-## 3. Minigame Systems
+## 3. Minigame Systems & Special Rules
 
-The engine includes several built-in minigames that can be triggered through the `on_action` rules.
+The engine includes several built-in systems that can be triggered through the `on_action` rules.
 
 ### 3.1. Talk (Conversation)
 
@@ -168,3 +167,25 @@ Create an `on_action` rule for `actionId: "fight"`. The `targetPattern` can be u
     - **Wisdom (Poise)**: If you stand with a low score, add +2 to your total.
     - **Charisma (Pressure)**: Force the enemy to roll when they would have stood.
 5.  If the player wins the overall fight, the action is considered a success and the `do` block is executed. If they lose, the `fail` block is executed.
+
+### 3.4. Endings
+
+The game concludes when the player enters a situation that is marked as an ending.
+
+**How to Trigger:**
+Add `"ending": true` to any situation in your `situations` object.
+
+```json
+"restored": {
+  "label": "Successful Remediation",
+  "ending": true,
+  "auto_enter_if": "tracks['eco.pollution'].value <= 2 && tracks['eco.governance'].value >= 7",
+  "on_action": []
+}
+```
+
+**How it Works:**
+1. When the player enters a situation with `"ending": true`, the game is considered over.
+2. The UI will automatically add a final action button (e.g., "Celebrate" or "Reflect"). This is done programmatically and does not need to be added to the `on_action` array.
+3. When the player clicks this final action, the game session concludes, and they are returned to the main scenario selection screen.
+4. The system will also automatically save any permanent changes to the player's stats to their profile.
