@@ -25,8 +25,6 @@ import {
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useToast} from '@/hooks/use-toast';
 import {BookOpen, ChevronsRight, Loader2} from 'lucide-react';
-import TrackDisplay from './TrackDisplay';
-import CountersDisplay from './CountersDisplay';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import {Skeleton} from '../ui/skeleton';
@@ -41,11 +39,11 @@ import {generateSceneDescription} from "@/ai/simple/generate-scene-description";
 import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import {DiceRollDialog} from "@/components/game/DiceRollDialog";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {LatestResultModal} from './LatestResultModal';
 import {useRouter} from 'next/navigation';
 import {FightDialog} from './FightDialog';
 import { InventoryDialog } from './InventoryDialog';
+import HeaderStatus from './HeaderStatus';
 
 
 const PLAYER_STATS_KEY = 'narrativeGamePlayer';
@@ -88,7 +86,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [actionTarget, setActionTarget] = useState<{ actionId: string, target: string }>();
   const [isPending, startTransition] = useTransition();
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
-  const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
@@ -706,12 +703,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     } else {
       setActionTarget({actionId, target});
     }
-    setIsLogDialogOpen(false); // Close log if open
   };
 
   const handleLogTargetClick = (target: string) => {
     setTargetForAction(target);
-    setIsLogDialogOpen(false); // Close log if open
   };
 
   const isLoading = isPending || isGeneratingScene || isGeneratingCharacter || isGeneratingDiceCheck;
@@ -727,26 +722,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         isPending={isLoading}
         onOpenInventory={() => setIsInventoryOpen(true)}
       />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
+      <main className="flex-1 flex flex-col overflow-hidden p-4 md:p-8 space-y-4">
         <LoadGameDialog
           isOpen={isLoadDialogOpen}
           onOpenChange={setIsLoadDialogOpen}
           saveFiles={saveFiles}
           onLoad={handleLoadGame}
           onDelete={handleDeleteSave}
-          language={rules.language}
-        />
-        <ActionLogDialog
-          isOpen={isLogDialogOpen}
-          onOpenChange={setIsLogDialogOpen}
-          log={gameState.log}
-          knownTargets={knownTargets}
-          actionRules={currentSituation.on_action}
-          actionDetails={rules.actions}
-          allowedActions={allowedActions}
-          onTargetClick={handleTargetClick}
-          onLogTargetClick={handleLogTargetClick}
-          selectedAction={selectedAction}
           language={rules.language}
         />
         <TalkDialog
@@ -806,15 +788,22 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
+        <HeaderStatus 
+          tracks={gameState.tracks}
+          counters={gameState.counters}
+          rules={rules}
+          language={rules.language}
+        />
+
+        <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 overflow-hidden">
+          <div className="lg:col-span-2 space-y-6 flex flex-col">
+            <Card className="flex-grow flex flex-col">
               <CardHeader>
                 <CardTitle className="text-2xl font-headline">
                   {isEnding ? "Scenario Complete" : t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="max-h-2-3-screen overflow-y-auto pr-4">
+              <CardContent className="flex-grow overflow-y-auto pr-4">
                 {isGeneratingScene ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-full"/>
@@ -869,36 +858,27 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             </div>
           </div>
 
-          <div className="lg:col-span-1 space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
-                <Button variant="outline" size="sm" onClick={() => setIsLogDialogOpen(true)}>
-                  <BookOpen className="mr-2 h-4 w-4"/>
-                  {t.viewFullLog}
-                </Button>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {Object.entries(gameState.tracks).map(([id, track]) => (
-                  <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]}/>
-                ))}
-              </CardContent>
-            </Card>
-            <CountersDisplay 
-              counters={gameState.counters} 
-              iconMap={rules.ui?.counterIcons}
-              title={t.keyItemsAndInfo}
-            />
-          </div>
+          <Card className="lg:col-span-1 flex flex-col">
+            <CardHeader>
+              <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow overflow-hidden">
+                <NarrativeLog
+                    log={gameState.log}
+                    knownTargets={knownTargets}
+                    actionRules={currentSituation.on_action}
+                    actionDetails={rules.actions}
+                    allowedActions={allowedActions}
+                    onTargetClick={handleTargetClick}
+                    onLogTargetClick={handleLogTargetClick}
+                    selectedAction={selectedAction}
+                    isScrollable={true}
+                    language={rules.language}
+                />
+            </CardContent>
+          </Card>
         </div>
       </main>
     </>
   );
 }
-
-    

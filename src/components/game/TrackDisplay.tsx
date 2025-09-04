@@ -2,11 +2,13 @@ import React from 'react';
 import type {Track} from '@/types/game';
 import {Progress} from '@/components/ui/progress';
 import * as LucideIcons from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TrackDisplayProps {
   trackId: string;
   track: Track;
   style?: { icon: string; color: string; progressColor: string; };
+  isCompact?: boolean;
 }
 
 const genericIcons = ['TrendingUp', 'Zap', 'Shield', 'Megaphone', 'AlertTriangle', 'Leaf'];
@@ -45,7 +47,7 @@ const getDynamicIcon = (iconName?: string) => {
   return LucideIcons.TrendingUp;
 };
 
-const TrackDisplay: React.FC<TrackDisplayProps> = ({trackId, track, style}) => {
+const TrackDisplay: React.FC<TrackDisplayProps> = ({trackId, track, style, isCompact}) => {
   const hash = simpleHash(trackId);
 
   const Icon = getDynamicIcon(style?.icon || genericIcons[hash % genericIcons.length]) as React.ElementType;
@@ -58,14 +60,14 @@ const TrackDisplay: React.FC<TrackDisplayProps> = ({trackId, track, style}) => {
     <div>
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <Icon className={`w-5 h-5 ${colorClass}`}/>
-          <span className="font-medium">{track.name}</span>
+          <Icon className={cn('w-5 h-5', colorClass, isCompact && 'w-4 h-4')} />
+          <span className={cn("font-medium", isCompact && 'text-sm')}>{track.name}</span>
         </div>
-        <span className={`font-semibold text-sm ${colorClass}`}>
+        <span className={cn('font-semibold text-sm', colorClass, isCompact && 'text-xs')}>
           {track.value} / {track.max}
         </span>
       </div>
-      <Progress value={progressValue} className={`h-3 ${progressColorClass}`}/>
+      <Progress value={progressValue} className={cn('h-3', progressColorClass, isCompact && 'h-2')}/>
     </div>
   );
 };
