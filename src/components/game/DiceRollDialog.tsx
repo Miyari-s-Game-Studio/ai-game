@@ -75,9 +75,9 @@ export function DiceRollDialog({
     if (!situation) return null;
     return situation.on_action.find(r => {
       if (r.when.actionId !== actionId) return false;
-      if (!r.when.targetPattern && target) return false;
-      if (r.when.targetPattern && !target) return false;
-      if (r.when.targetPattern && target && !new RegExp(`^(${r.when.targetPattern})$`, 'i').test(target)) return false;
+      if (!r.when.targets && target) return false;
+      if (r.when.targets && !target) return false;
+      if (r.when.targets && target && !new RegExp(`^(${r.when.targets})$`, 'i').test(target)) return false;
       return true;
     });
   }, [situation, actionId, target]);

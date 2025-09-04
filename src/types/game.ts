@@ -135,7 +135,7 @@ export type DoAction = {
 export type ActionRule = {
   when: {
     actionId: string;
-    targetPattern?: string;
+    targets?: string;
     require?: string;
     textRegex?: string;
   };
@@ -262,4 +262,3 @@ export interface GenerateDifficultyClassInput {
   relevantAttributes: (keyof PlayerAttributes)[];
 }
 
-    

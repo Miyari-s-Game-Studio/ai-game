@@ -65,8 +65,8 @@ const MarkdownRenderer: React.FC<{
         if (isTarget) {
           const validActions = rules.filter(rule => {
             if (!allowedActions.includes(rule.when.actionId)) return false;
-            if (!rule.when.targetPattern) return false;
-            const targetPatterns = rule.when.targetPattern.split('|').map(p => p.trim());
+            if (!rule.when.targets) return false;
+            const targetPatterns = rule.when.targets.split('|').map(p => p.trim());
             return targetPatterns.some(p => new RegExp(`^${p}$`, 'i').test(part));
           });
 

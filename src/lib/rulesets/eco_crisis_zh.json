@@ -86,7 +86,7 @@
         {
           "when": {
             "actionId": "fight",
-            "targetPattern": "保安"
+            "targets": "保安"
           },
           "do": [
             {
@@ -111,7 +111,7 @@
           "fail": []
         },
         {
-          "when": { "actionId": "investigate", "targetPattern": "排污口|油污|死鱼|黑色水团" },
+          "when": { "actionId": "investigate", "targets": "排污口|油污|死鱼|黑色水团" },
           "do":  [
             { "add": "counters.clues,1" },
             { "log": "命中关键迹象，线索增加。" }
@@ -122,7 +122,7 @@
           ]
         },
         {
-          "when": { "actionId": "investigate", "targetPattern": "上游工厂|化工|造纸|电镀" },
+          "when": { "actionId": "investigate", "targets": "上游工厂|化工|造纸|电镀" },
           "do":  [
             { "add": "counters.clues,1" },
             { "set": "next_situation,evidence", "if": "counters.clues >= 2" },
@@ -134,7 +134,7 @@
           ]
         },
         {
-          "when": { "actionId": "talk", "targetPattern": "渔民|居民|保安|环卫|巡河员", "require": "tracks['eco.media'].value < 7" },
+          "when": { "actionId": "talk", "targets": "渔民|居民|保安|环卫|巡河员", "require": "tracks['eco.media'].value < 7" },
           "do":  [
             { "secret": "夜间02:00-04:00有可疑排放，方向为上游东岸支渠口。" },
             { "set": "counters.testimony,true" },
@@ -198,7 +198,7 @@
           ]
         },
         {
-          "when": { "actionId": "investigate", "targetPattern": "监控|台账|流量计|COD|氨氮" },
+          "when": { "actionId": "investigate", "targets": "监控|台账|流量计|COD|氨氮" },
           "do":  [
             { "track": "eco.governance,1" },
             { "log": "调取监控与排放台账，纸证与数证合一。" }
@@ -209,7 +209,7 @@
           ]
         },
         {
-          "when": { "actionId": "talk", "targetPattern": "监管|环保|街道|园区|水务|城管" },
+          "when": { "actionId": "talk", "targets": "监管|环保|街道|园区|水务|城管" },
           "do":  [
             { "agreement": "联合执法工作组会商纪要：可夜查、封存、调取监控/排放台账。" },
             { "track": "eco.governance,1" },
@@ -237,7 +237,7 @@
         {
           "when": { "actionId": "announce", "require": "tracks['eco.pollution'].value < 7" },
           "do":  [
-            { "track": "eco.media,1" },
+            { "track": "eco.media,-1" },
             { "set": "next_situation,remediation_fast", "if": "tracks['eco.media'].value >= 6" },
             { "log": "对外通报阶段进度；热度过高将触发应急治理。" }
           ],
@@ -276,7 +276,7 @@
           ]
         },
         {
-          "when": { "actionId": "talk", "targetPattern": "企业|法务|园区|公安|法院|检察", "require": "tracks['eco.governance'].value >= 3" },
+          "when": { "actionId": "talk", "targets": "企业|法务|园区|公安|法院|检察", "require": "tracks['eco.governance'].value >= 3" },
           "do":  [
             { "agreement": "确立处罚/追偿与先予执行路径，配合财产保全。" },
             { "track": "eco.governance,1" },
@@ -350,7 +350,7 @@
           ]
         },
         {
-          "when": { "actionId": "investigate", "targetPattern": "复检|验收|监测", "require": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5" },
+          "when": { "actionId": "investigate", "targets": "复检|验收|监测", "require": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5" },
           "do":  [
             { "track": "eco.governance,1" },
             { "set": "next_situation,monitoring" },
@@ -412,7 +412,7 @@
           ]
         },
         {
-          "when": { "actionId": "talk", "targetPattern": "媒体|志愿者|社区|公益|协会", "require": "tracks['eco.media'].value <= 6" },
+          "when": { "actionId": "talk", "targets": "媒体|志愿者|社区|公益|协会", "require": "tracks['eco.media'].value <= 6" },
           "do":  [
             { "agreement": "建立公众巡河与在线公示机制，志愿者协助上报异常点位。" },
             { "track": "eco.media,-1" },
@@ -425,7 +425,7 @@
           ]
         },
         {
-          "when": { "actionId": "investigate", "targetPattern": "复检|验收|监测", "require": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5" },
+          "when": { "actionId": "investigate", "targets": "复检|验收|监测", "require": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5" },
           "do":  [
             { "track": "eco.governance,1" },
             { "set": "next_situation,monitoring" },

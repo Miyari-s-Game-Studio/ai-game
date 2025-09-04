@@ -130,7 +130,7 @@
         {
           "when": {
             "actionId": "investigate",
-            "targetPattern": "outlet|oil|dead fish"
+            "targets": "outlet|oil|dead fish"
           },
           "do": [
             {
@@ -144,7 +144,7 @@
         {
           "when": {
             "actionId": "investigate",
-            "targetPattern": "upstream factory"
+            "targets": "upstream factory"
           },
           "do": [
             {
@@ -182,7 +182,7 @@
         {
           "when": {
             "actionId": "talk",
-            "targetPattern": "fisherman|resident|guard"
+            "targets": "fisherman|resident|guard"
           },
           "do": [
             {
@@ -196,7 +196,7 @@
         {
           "when": {
             "actionId": "fight",
-            "targetPattern": "guard"
+            "targets": "guard"
           },
           "do": [
             {
@@ -276,7 +276,7 @@
         {
           "when": {
             "actionId": "talk",
-            "targetPattern": "manager|guard|foreman",
+            "targets": "manager|guard|foreman",
             "require": "counters.testimony == true"
           },
           "do": [

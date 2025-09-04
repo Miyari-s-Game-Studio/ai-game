@@ -16,48 +16,6 @@ function evaluateCondition(condition: string, state: GameState): boolean {
   }
 }
 
-function applyEnding(player: PlayerStats, rules: GameRules, endingSituationId: string): PlayerStats {
-    if (!rules.endings || !rules.endings[endingSituationId]) {
-        return player;
-    }
-    const ending = rules.endings[endingSituationId];
-
-    return produce(player, draft => {
-        const attributeChanges: AttributeChange[] = [];
-        const originalAttributes = {...draft.attributes};
-
-        // Apply modifiers
-        ending.modifiers.forEach(mod => {
-            const oldValue = originalAttributes[mod.attribute];
-            const newValue = oldValue + mod.change;
-            draft.attributes[mod.attribute] = newValue;
-            attributeChanges.push({
-                attribute: mod.attribute,
-                change: mod.change,
-                oldValue: oldValue,
-                newValue: newValue,
-            });
-        });
-
-        // Create and add history entry
-        const historyEntry: CompletedScenario = {
-            rulesId: rules.id,
-            title: rules.title,
-            completionDate: new Date().toISOString(),
-            endingSituationId: endingSituationId,
-            endingSituationLabel: ending.label,
-            attributeChanges: attributeChanges,
-            finalAttributes: {...draft.attributes},
-        };
-
-        if (!draft.history) {
-            draft.history = [];
-        }
-        draft.history.push(historyEntry);
-    });
-}
-
-
 export async function processAction(
   rules: GameRules,
   currentState: GameState,
@@ -85,9 +43,9 @@ export async function processAction(
           continue;
         }
 
-        if (when.targetPattern) {
+        if (when.targets) {
           if (!target) continue;
-          const pattern = `^(${when.targetPattern})$`;
+          const pattern = `^(${when.targets})$`;
           if (!new RegExp(pattern, 'i').test(target)) {
             continue;
           }
@@ -239,10 +197,26 @@ export async function processAction(
   }
 
   // If the situation has changed, check if the new situation is an ending.
-  if (situationChanged && rules.endings?.[newState.situation]) {
-     const newPlayerStats = applyEnding(newState.player, rules, newState.situation);
+  if (situationChanged && newState.situation && rules.situations[newState.situation]?.ending) {
+     const playerAfterEnding = produce(newState.player, draft => {
+        const historyEntry: CompletedScenario = {
+            rulesId: rules.id,
+            title: rules.title,
+            completionDate: new Date().toISOString(),
+            endingSituationId: newState.situation,
+            endingSituationLabel: rules.situations[newState.situation].label,
+            attributeChanges: [], // Attribute changes are not implemented yet
+            finalAttributes: {...draft.attributes},
+        };
+
+        if (!draft.history) {
+            draft.history = [];
+        }
+        draft.history.push(historyEntry);
+     });
+     
      newState = produce(newState, draft => {
-        draft.player = newPlayerStats;
+        draft.player = playerAfterEnding;
      });
   }
 

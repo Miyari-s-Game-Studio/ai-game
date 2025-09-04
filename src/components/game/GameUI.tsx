@@ -29,6 +29,7 @@ import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import {Skeleton} from '../ui/skeleton';
 import {Button} from '../ui/button';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {LoadGameDialog, type SaveFile} from './LoadGameDialog';
 import {TalkDialog} from './TalkDialog';
 import {produce} from 'immer';
@@ -144,8 +145,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     if (!currentSituation) return [];
     const targets = new Set<string>();
     currentSituation.on_action.forEach(rule => {
-      if (rule.when.targetPattern) {
-        rule.when.targetPattern.split('|').forEach(target => targets.add(target.trim()));
+      if (rule.when.targets) {
+        rule.when.targets.split('|').forEach(target => targets.add(target.trim()));
       }
     });
     return Array.from(targets);
@@ -287,8 +288,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     const talkRule = currentSituation.on_action.find(rule =>
       rule.when.actionId === 'talk' &&
-      rule.when.targetPattern &&
-      new RegExp(`^(${rule.when.targetPattern})$`, 'i').test(target)
+      rule.when.targets &&
+      new RegExp(`^(${rule.when.targets})$`, 'i').test(target)
     );
 
     if (!talkRule) {
@@ -479,9 +480,9 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     // Find the relevant action rule to see if a dice roll is needed.
     const actionRule = currentSituation?.on_action.find(r => {
       if (r.when.actionId !== actionId) return false;
-      if (!r.when.targetPattern && target) return false; // Rule needs no target, but one was provided
-      if (r.when.targetPattern && !target) return false; // Rule needs a target, but none provided
-      if (r.when.targetPattern && target && !new RegExp(`^(${r.when.targetPattern})$`, 'i').test(target)) return false; // Target doesn't match pattern
+      if (!r.when.targets && target) return false; // Rule needs no target, but one was provided
+      if (r.when.targets && !target) return false; // Rule needs a target, but none provided
+      if (r.when.targets && target && !new RegExp(`^(${r.when.targets})$`, 'i').test(target)) return false; // Target doesn't match pattern
       return true;
     });
 
@@ -553,7 +554,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     setIsDiceRollDialogOpen(false);
 
-    const actionRule = currentSituation?.on_action.find(r => r.when.actionId === diceRollActionId && (!r.when.targetPattern || (diceRollTarget && new RegExp(r.when.targetPattern).test(diceRollTarget))));
+    const actionRule = currentSituation?.on_action.find(r => r.when.actionId === diceRollActionId && (!r.when.targets || (diceRollTarget && new RegExp(r.when.targets).test(diceRollTarget))));
 
     // If passed, or if failed but there's a `fail` block, execute the action
     if (passed || (!passed && actionRule?.fail)) {
@@ -675,7 +676,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
         const newSituation = rules.situations[newState.situation];
         const newActionRules = newSituation.on_action;
-        const newTargets = newActionRules.flatMap(rule => rule.when.targetPattern?.split('|') || []);
+        const newTargets = newActionRules.flatMap(rule => rule.when.targets?.split('|') || []);
 
         const sceneDesc = newSituation.description || newSituation.label;
 
@@ -810,13 +811,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           />
         )}
 
-        <HeaderStatus 
-          tracks={gameState.tracks}
-          counters={gameState.counters}
-          rules={rules}
-          language={rules.language}
-        />
-
         <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 overflow-hidden">
           <div className="lg:col-span-2 space-y-6 flex flex-col">
             <Card className="flex-grow flex flex-col">
@@ -882,20 +876,18 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
           <Card className="lg:col-span-1 flex flex-col">
             <CardHeader>
-              <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
+              <CardTitle className="text-xl font-headline">{t.tabStatus}</CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow overflow-hidden">
-                <NarrativeLog
-                    log={gameState.log}
-                    knownTargets={knownTargets}
-                    actionRules={currentSituation.on_action}
-                    actionDetails={rules.actions}
-                    allowedActions={allowedActions}
-                    onTargetClick={handleTargetClick}
-                    onLogTargetClick={handleLogTargetClick}
-                    selectedAction={selectedAction}
-                    isScrollable={true}
-                    language={rules.language}
+            <CardContent className="flex-grow overflow-y-auto space-y-6">
+                <div className="space-y-4">
+                    {Object.entries(gameState.tracks).map(([id, track]) => (
+                        <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
+                    ))}
+                </div>
+                <CountersDisplay
+                    counters={gameState.counters}
+                    iconMap={rules.ui?.counterIcons}
+                    title={t.keyItemsAndInfo}
                 />
             </CardContent>
           </Card>

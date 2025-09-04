@@ -57,7 +57,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   }, [selectedAction, actionDetails]);
 
   const doesActionRequireTarget = (actionId: string) => {
-    return actionRules.some(rule => rule.when.actionId === actionId && rule.when.targetPattern);
+    return actionRules.some(rule => rule.when.actionId === actionId && rule.when.targets);
   };
 
   useEffect(() => {
