@@ -1,4 +1,5 @@
 
+
 'use client';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
@@ -44,36 +45,72 @@ import { useToast } from '@/hooks/use-toast';
 
 
 
-const createBoilerplateRules = (id: string, language: 'en' | 'zh'): GameRules => ({
-    id: id,
-    version: 1,
-    title: `New Scenario: ${id}`,
-    language: language,
-    theme: 'theme-default',
-    description: "A new adventure begins.",
-    actions: {
-        observe: { icon: "Eye", label: "Observe" },
-        reflect: { icon: "Archive", label: "Reflect" }
-    },
-    initial: {
-        situation: "start",
-        counters: {},
-    },
-    tracks: {},
-    situations: {
-        start: {
-            label: "The Beginning",
-            description: "This is the starting point of your new adventure. You can add more actions and situations from here.",
-            ending: true,
-            on_action: [
-                {
-                    when: { actionId: "observe" },
-                    do: [{ log: "You look around, taking in the scene." }]
+const createBoilerplateRules = (id: string, language: 'en' | 'zh'): GameRules => {
+    if (language === 'zh') {
+        return {
+            id: id,
+            version: 1,
+            title: `新剧本: ${id}`,
+            language: language,
+            theme: 'theme-default',
+            description: "一个新的冒险开始了。",
+            actions: {
+                observe: { icon: "Eye", label: "观察" },
+                reflect: { icon: "Archive", label: "反思" }
+            },
+            initial: {
+                situation: "start",
+                counters: {},
+            },
+            tracks: {},
+            situations: {
+                start: {
+                    label: "起点",
+                    description: "这是你新冒险的起点。你可以从这里添加更多的行动和情境。",
+                    ending: true,
+                    on_action: [
+                        {
+                            when: { actionId: "observe" },
+                            do: [{ log: "你环顾四周，审视着眼前的景象。" }]
+                        }
+                    ]
                 }
-            ]
-        }
+            }
+        };
     }
-});
+
+    // Default to English
+    return {
+        id: id,
+        version: 1,
+        title: `New Scenario: ${id}`,
+        language: language,
+        theme: 'theme-default',
+        description: "A new adventure begins.",
+        actions: {
+            observe: { icon: "Eye", label: "Observe" },
+            reflect: { icon: "Archive", label: "Reflect" }
+        },
+        initial: {
+            situation: "start",
+            counters: {},
+        },
+        tracks: {},
+        situations: {
+            start: {
+                label: "The Beginning",
+                description: "This is the starting point of your new adventure. You can add more actions and situations from here.",
+                ending: true,
+                on_action: [
+                    {
+                        when: { actionId: "observe" },
+                        do: [{ log: "You look around, taking in the scene." }]
+                    }
+                ]
+            }
+        }
+    };
+};
 
 
 function AdminRulesPage() {
@@ -123,24 +160,27 @@ function AdminRulesPage() {
   }, [selectedRulesId, router]);
 
   const handleConfirmCreate = () => {
-    const newId = newRulesetId.trim();
-    if (!newId || !/^[a-z0-9_]+$/.test(newId)) {
+    const baseId = newRulesetId.trim();
+    if (!baseId || !/^[a-z0-9_]+$/.test(baseId)) {
         toast({ variant: 'destructive', title: 'Invalid ID', description: 'Please use only lowercase letters, numbers, and underscores.' });
         return;
     }
-    if (allRulesetIds.includes(newId)) {
-        toast({ variant: 'destructive', title: 'ID In Use', description: 'This ID is already in use. Please choose another one.' });
+
+    const finalId = `${baseId}_${newRulesetLanguage}`;
+
+    if (allRulesetIds.includes(finalId)) {
+        toast({ variant: 'destructive', title: 'ID In Use', description: `The ID "${finalId}" is already in use. Please choose another one.` });
         return;
     }
 
-    const boilerplate = createBoilerplateRules(newId, newRulesetLanguage);
+    const boilerplate = createBoilerplateRules(finalId, newRulesetLanguage);
     saveCustomRuleset(boilerplate);
 
     // Refresh list and select the new one
     const updatedIds = getAllRulesetIds();
     setAllRulesetIds(updatedIds);
-    setSelectedRulesId(newId);
-    toast({ title: 'Success', description: `New ruleset "${newId}" created locally.` });
+    setSelectedRulesId(finalId);
+    toast({ title: 'Success', description: `New ruleset "${finalId}" created locally.` });
     
     // Close dialog and reset input
     setIsCreateDialogOpen(false);
@@ -205,7 +245,7 @@ function AdminRulesPage() {
               <DialogHeader>
                 <DialogTitle>Create New Custom Ruleset</DialogTitle>
                 <DialogDescription>
-                  Enter a unique ID and select a language for your new scenario. This will be stored in your browser's local storage.
+                  Enter a unique ID and select a language for your new scenario. The language suffix (_en or _zh) will be added automatically. This will be stored in your browser's local storage.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
