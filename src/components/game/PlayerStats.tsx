@@ -1,15 +1,18 @@
+
 // src/components/game/PlayerStats.tsx
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { PlayerStats as PlayerStatsType, PlayerAttributes, Equipment } from '@/types/game';
-import { Swords, PersonStanding, Heart, Brain, BookOpen, Smile, Shirt, Footprints, Sparkles, User } from 'lucide-react';
+import { Swords, PersonStanding, Heart, Brain, BookOpen, Smile, Shirt, Footprints, Sparkles, User, Backpack } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import { getTranslator } from '@/lib/i18n';
+import { Button } from '../ui/button';
 
 
 interface PlayerStatsProps {
   stats: PlayerStatsType;
+  onOpenInventory: () => void;
 }
 
 const attributeDetails: { [key in keyof PlayerAttributes]: { icon: React.ElementType, label: string } } = {
@@ -31,14 +34,21 @@ const equipmentDetails: { [key in keyof Equipment]: { icon: React.ElementType, l
     accessory: { icon: Sparkles, label: 'Accessory' },
 };
 
-const PlayerStats: React.FC<PlayerStatsProps> = ({ stats }) => {
+const PlayerStats: React.FC<PlayerStatsProps> = ({ stats, onOpenInventory }) => {
   const t = useMemo(() => getTranslator(stats.language), [stats.language]);
 
   return (
     <Card>
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-headline">{stats.name}</CardTitle>
-        <CardDescription>{stats.identity}</CardDescription>
+        <div className="flex justify-between items-start">
+            <div>
+                <CardTitle className="text-xl font-headline">{stats.name}</CardTitle>
+                <CardDescription>{stats.identity}</CardDescription>
+            </div>
+             <Button variant="outline" size="icon" onClick={onOpenInventory}>
+                <Backpack className="h-5 w-5" />
+            </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>

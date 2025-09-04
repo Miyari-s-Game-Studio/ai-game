@@ -1,4 +1,5 @@
 
+
 // src/lib/i18n.ts
 import type {
   GameRules,
@@ -135,6 +136,12 @@ const translations = {
     skillPoiseDescription: 'When you Stand with a sum of 10 or less, use this to add +2 to your sum for comparison purposes only.',
     skillPressure: 'Pressure',
     skillPressureDescription: 'When the enemy is about to Stand with a sum of 10 or less, use this to force them to Press instead.',
+    inventory: 'Inventory',
+    inventoryDescription: 'View, use, or discard items you have collected.',
+    inventoryEmpty: 'Your inventory is empty.',
+    use: 'Use',
+    discard: 'Discard',
+    close: 'Close',
 
 
     // AI Flow Translations
@@ -431,7 +438,12 @@ Generate a single number for the Difficulty Class.
     skillPoiseDescription: '当你以10点或更少的总点数停牌时，使用此技能可在最终比较时总点数+2。',
     skillPressure: '施压',
     skillPressureDescription: '当对手以10点或更少的总点数将要停牌时，使用此技能可迫使他们要牌。',
-
+    inventory: '背包',
+    inventoryDescription: '查看、使用或丢弃你收集的物品。',
+    inventoryEmpty: '你的背包是空的。',
+    use: '使用',
+    discard: '丢弃',
+    close: '关闭',
 
     // AI Flow Translations
     ai: {

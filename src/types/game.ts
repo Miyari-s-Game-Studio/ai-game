@@ -1,3 +1,11 @@
+
+export type Item = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+};
+
 export type PlayerAttributes = {
   strength: number;
   dexterity: number;
@@ -40,6 +48,7 @@ export type PlayerStats = {
   language: 'en' | 'zh';
   attributes: PlayerAttributes;
   equipment: Equipment;
+  inventory: Item[];
   history?: CompletedScenario[];
 };
 

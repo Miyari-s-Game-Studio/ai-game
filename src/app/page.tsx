@@ -1,4 +1,5 @@
 
+
 // src/app/page.tsx
 'use client';
 
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BookOpen, FolderOpen, User, Edit, Trash2, ShieldCheck, Forward, ArrowLeft } from 'lucide-react';
 import { gameRulesets, getRuleset } from '@/lib/rulesets';
-import type { GameRules, GameState, PlayerStats } from '@/types/game';
+import type { GameRules, GameState, PlayerStats, Item } from '@/types/game';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
@@ -27,6 +28,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { InventoryDialog } from '@/components/game/InventoryDialog';
+import { produce } from 'immer';
 
 
 const SAVE_PREFIX = 'narrativeGameSave_';
@@ -38,6 +41,7 @@ const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 export default function GameSelectionPage() {
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
   const router = useRouter();
 
@@ -68,9 +72,12 @@ export default function GameSelectionPage() {
         const savedPlayerJson = localStorage.getItem(PLAYER_STATS_KEY);
         if (savedPlayerJson) {
             const savedPlayer = JSON.parse(savedPlayerJson);
-            // Quick check for the new history structure
+            // Quick check for new structures
             if (savedPlayer.history && !Array.isArray(savedPlayer.history)) {
               savedPlayer.history = [];
+            }
+             if (!savedPlayer.inventory) {
+                savedPlayer.inventory = [];
             }
             setPlayerStats(savedPlayer);
         }
@@ -146,6 +153,7 @@ export default function GameSelectionPage() {
       language: playerLanguage,
       attributes: { strength: 10, dexterity: 12, constitution: 11, intelligence: 14, wisdom: 13, charisma: 12 },
       equipment: { top: 'Sturdy Jacket', bottom: 'Cargo Pants', shoes: 'Work Boots', accessory: 'ID Badge' },
+      inventory: playerStats?.inventory || [], // Preserve inventory if editing
       history: isEditingCharacter ? playerStats?.history : [], // Preserve history if editing
     };
     try {
@@ -183,6 +191,32 @@ export default function GameSelectionPage() {
     setIsDeleteDialogOpen(false);
     setIsContinuing(false);
   }
+
+  const handleItemAction = (action: 'use' | 'discard', item: Item) => {
+    if (!playerStats) return;
+
+    let newStats;
+    if (action === 'discard') {
+      newStats = produce(playerStats, draft => {
+        draft.inventory = draft.inventory.filter(i => i.id !== item.id);
+      });
+    } else if (action === 'use') {
+      // Placeholder for using items.
+      console.log(`Attempted to use item: ${item.name}`);
+      alert(`Using '${item.name}' is not yet implemented.`);
+      return; // Don't update state if action is not implemented
+    }
+
+    if (newStats) {
+      setPlayerStats(newStats);
+      try {
+        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newStats));
+      } catch (e) {
+        console.error("Failed to update player stats in storage.", e);
+      }
+    }
+  };
+
 
   const renderCharacterCreator = () => (
      <Card className="w-full max-w-lg animate-in fade-in-50">
@@ -280,6 +314,15 @@ export default function GameSelectionPage() {
         onDelete={handleDeleteSave}
         language={playerStats?.language || 'en'}
     />
+     {playerStats && (
+        <InventoryDialog
+            isOpen={isInventoryOpen}
+            onOpenChange={setIsInventoryOpen}
+            inventory={playerStats.inventory}
+            onItemAction={handleItemAction}
+            language={playerStats.language}
+        />
+     )}
     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -305,7 +348,7 @@ export default function GameSelectionPage() {
              <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-5 gap-8 animate-in fade-in-50">
                 <div className="lg:col-span-2">
                     <div className="relative">
-                        <PlayerStatsComponent stats={playerStats} />
+                        <PlayerStatsComponent stats={playerStats} onOpenInventory={() => setIsInventoryOpen(true)} />
                         <div className="absolute top-2 right-2 flex gap-2">
                             <Button variant="outline" size="icon" onClick={handleEditCharacter}><Edit className="h-4 w-4" /></Button>
                             <Button variant="destructive" size="icon" onClick={() => setIsDeleteDialogOpen(true)}><Trash2 className="h-4 w-4" /></Button>
