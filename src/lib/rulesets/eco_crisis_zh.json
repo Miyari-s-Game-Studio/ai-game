@@ -1,4 +1,5 @@
 
+
 {
   "version": 1,
   "id": "eco_crisis_zh",
@@ -19,7 +20,9 @@
     "clean":     { "icon": "Wrench",         "label": "净化清理" },
     "reflect":   { "icon": "Archive",        "label": "复盘反思" },
     "celebrate": { "icon": "PartyPopper",    "label": "庆祝" },
-    "revisit":   { "icon": "Undo2",          "label": "回退" }
+    "revisit":   { "icon": "Undo2",          "label": "回退" },
+    "use":       { "icon": "Hand",           "label": "使用" },
+    "discard":   { "icon": "Trash2",         "label": "丢弃" }
   },
 
   "ui": {
@@ -39,7 +42,11 @@
 
   "initial": {
     "situation": "prologue",
-    "counters": { "clues": 0, "samples": 0, "testimony": false, "shutdown_ok": false }
+    "counters": { "clues": 0, "samples": 0, "testimony": false, "shutdown_ok": false },
+    "inventory": [
+      { "id": "jacket_01", "name": "耐磨夹克", "description": "一件结实耐用的夹克，适合现场工作。", "icon": "Shirt", "slot": "top" },
+      { "id": "boots_01", "name": "工装靴", "description": "保护你的双脚免受恶劣环境伤害。", "icon": "Footprints", "slot": "shoes" }
+    ]
   },
 
   "tracks": {

@@ -1,9 +1,11 @@
 
+
 export type Item = {
   id: string;
   name: string;
   description: string;
   icon: string;
+  slot?: 'top' | 'bottom' | 'underwear' | 'panties' | 'shoes' | 'socks' | 'accessory';
 };
 
 export type PlayerAttributes = {
@@ -124,6 +126,8 @@ export type DoAction = {
   log?: string;
   secret?: string;
   agreement?: string;
+  give_item?: Item;
+  remove_item?: string; // by item id
   if?: string;
   cap?: number;
 };
@@ -173,6 +177,7 @@ export type GameRules = {
   initial: {
     situation: string;
     counters: Record<string, number | boolean>;
+    inventory?: Item[];
   };
   tracks: Record<string, Track>;
   situations: Record<string, Situation>;

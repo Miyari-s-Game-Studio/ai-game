@@ -1,4 +1,5 @@
 
+
 // src/lib/game-engine.ts
 'use server';
 import type {GameState, GameRules, LogEntry, PlayerStats, CompletedScenario, AttributeChange, PlayerAttributes} from '@/types/game';
@@ -178,6 +179,16 @@ export async function processAction(
               }
             }
             break;
+          }
+          case 'give_item': {
+            if (params && params.id && !draft.player.inventory.find(i => i.id === params.id)) {
+                draft.player.inventory.push(params);
+            }
+            break;
+          }
+          case 'remove_item': {
+             draft.player.inventory = draft.player.inventory.filter(i => i.id !== params);
+             break;
           }
           case 'log':
           case 'secret':

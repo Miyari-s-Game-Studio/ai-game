@@ -192,29 +192,34 @@ export default function GameSelectionPage() {
     setIsContinuing(false);
   }
 
-  const handleItemAction = (action: 'use' | 'discard', item: Item) => {
-    if (!playerStats) return;
+  const handleItemAction = (action: 'use' | 'discard' | 'equip' | 'unequip', item: Item) => {
+      if (!playerStats) return;
 
-    let newStats;
-    if (action === 'discard') {
-      newStats = produce(playerStats, draft => {
-        draft.inventory = draft.inventory.filter(i => i.id !== item.id);
+      const newStats = produce(playerStats, draft => {
+          if (action === 'discard') {
+              draft.inventory = draft.inventory.filter(i => i.id !== item.id);
+          } else if (action === 'equip') {
+              if (item.slot) {
+                  draft.equipment[item.slot] = item.name;
+              }
+          } else if (action === 'unequip') {
+              if (item.slot && draft.equipment[item.slot] === item.name) {
+                  delete draft.equipment[item.slot];
+              }
+          } else if (action === 'use') {
+              // Placeholder for using items.
+              console.log(`Attempted to use item: ${item.name}`);
+              alert(`Using '${item.name}' is not yet implemented.`);
+              return; // Don't update state if action is not implemented
+          }
       });
-    } else if (action === 'use') {
-      // Placeholder for using items.
-      console.log(`Attempted to use item: ${item.name}`);
-      alert(`Using '${item.name}' is not yet implemented.`);
-      return; // Don't update state if action is not implemented
-    }
 
-    if (newStats) {
       setPlayerStats(newStats);
       try {
-        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newStats));
+          localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newStats));
       } catch (e) {
-        console.error("Failed to update player stats in storage.", e);
+          console.error("Failed to update player stats in storage.", e);
       }
-    }
   };
 
 
@@ -319,6 +324,7 @@ export default function GameSelectionPage() {
             isOpen={isInventoryOpen}
             onOpenChange={setIsInventoryOpen}
             inventory={playerStats.inventory}
+            equipment={playerStats.equipment}
             onItemAction={handleItemAction}
             language={playerStats.language}
         />

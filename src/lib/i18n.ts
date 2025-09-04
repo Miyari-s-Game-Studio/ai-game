@@ -141,6 +141,9 @@ const translations = {
     inventoryEmpty: 'Your inventory is empty.',
     use: 'Use',
     discard: 'Discard',
+    equip: 'Equip',
+    unequip: 'Unequip',
+    equipped: 'Equipped',
     close: 'Close',
 
 
@@ -443,6 +446,9 @@ Generate a single number for the Difficulty Class.
     inventoryEmpty: '你的背包是空的。',
     use: '使用',
     discard: '丢弃',
+    equip: '装备',
+    unequip: '卸下',
+    equipped: '已装备',
     close: '关闭',
 
     // AI Flow Translations
