@@ -1,3 +1,4 @@
+
 // src/components/layout/ThemeSwitcher.tsx
 'use client';
 
@@ -33,6 +34,7 @@ export function ThemeSwitcher() {
             <DropdownMenuItem onClick={() => setTheme('theme-forest')}>Forest</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('theme-ocean')}>Ocean</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('theme-crimson')}>Crimson</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('theme-pixel')}>Pixel</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <Button variant="ghost" size="icon" onClick={toggleMode}>
@@ -42,3 +44,5 @@ export function ThemeSwitcher() {
     </div>
   );
 }
+
+    

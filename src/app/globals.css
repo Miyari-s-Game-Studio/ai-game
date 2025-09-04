@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -233,6 +234,72 @@ body {
     --sidebar-accent: 0 15% 14%;
   }
 
+  /* Pixel Theme */
+  .light.theme-pixel {
+    --background: 35 25% 88%; /* dirt block light shade */
+    --foreground: 20 10% 10%;
+    --card: 35 25% 88%;
+    --card-foreground: 20 10% 10%;
+    --popover: 35 25% 88%;
+    --popover-foreground: 20 10% 10%;
+    --primary: 200 80% 50%; /* diamond blue */
+    --primary-foreground: 200 20% 98%;
+    --secondary: 30 20% 55%; /* wood brown */
+    --secondary-foreground: 30 10% 10%;
+    --muted: 30 20% 75%;
+    --muted-foreground: 20 10% 40%;
+    --accent: 120 60% 45%; /* emerald green */
+    --accent-foreground: 120 20% 98%;
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 10% 20%;
+    --input: 30 20% 80%;
+    --ring: 200 80% 50%;
+    --radius: 0rem;
+    --sidebar-background: 30 20% 65%;
+    --sidebar-foreground: 20 10% 10%;
+    --sidebar-primary: 200 80% 50%;
+    --sidebar-primary-foreground: 200 20% 98%;
+    --sidebar-accent: 30 20% 75%;
+    --sidebar-accent-foreground: 20 10% 10%;
+    --sidebar-border: 20 10% 20%;
+    --sidebar-ring: 200 80% 50%;
+  }
+
+  .dark.theme-pixel {
+    --background: 220 10% 12%; /* cave stone */
+    --foreground: 35 25% 90%;
+    --card: 220 10% 12%;
+    --card-foreground: 35 25% 90%;
+    --popover: 220 10% 12%;
+    --popover-foreground: 35 25% 90%;
+    --primary: 200 80% 60%; /* brighter diamond blue */
+    --primary-foreground: 200 20% 98%;
+    --secondary: 30 30% 30%; /* dark oak */
+    --secondary-foreground: 30 20% 95%;
+    --muted: 30 30% 20%;
+    --muted-foreground: 35 25% 70%;
+    --accent: 120 60% 55%; /* brighter emerald green */
+    --accent-foreground: 120 20% 98%;
+    --destructive: 0 70% 50%; /* redstone */
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 10% 5%;
+    --input: 30 30% 25%;
+    --ring: 200 80% 60%;
+    --radius: 0rem;
+    --sidebar-background: 220 15% 8%;
+    --sidebar-foreground: 35 25% 90%;
+    --sidebar-primary: 200 80% 60%;
+    --sidebar-primary-foreground: 200 20% 98%;
+    --sidebar-accent: 30 30% 15%;
+    --sidebar-accent-foreground: 30 20% 95%;
+    --sidebar-border: 20 10% 5%;
+    --sidebar-ring: 200 80% 60%;
+  }
+
+  .theme-pixel {
+    font-family: 'Silkscreen', 'PT Sans', sans-serif;
+  }
 }
 
 @layer base {
@@ -251,3 +318,5 @@ body {
 .text-underline {
   text-decoration: underline;
 }
+
+    

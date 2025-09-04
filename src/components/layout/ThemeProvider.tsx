@@ -5,7 +5,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { GameRules } from '@/types/game';
 
-type Theme = 'theme-default' | 'theme-forest' | 'theme-ocean' | 'theme-crimson';
+type Theme = 'theme-default' | 'theme-forest' | 'theme-ocean' | 'theme-crimson' | 'theme-pixel';
 type Mode = 'light' | 'dark';
 
 interface ThemeContextType {
@@ -27,7 +27,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const root = window.document.documentElement;
     
     // Remove old theme classes
-    root.classList.remove('theme-default', 'theme-forest', 'theme-ocean', 'theme-crimson');
+    root.classList.remove('theme-default', 'theme-forest', 'theme-ocean', 'theme-crimson', 'theme-pixel');
     
     // Add new theme class
     root.classList.add(themeToApply);
@@ -97,3 +97,5 @@ export const useTheme = () => {
   }
   return context;
 };
+
+    
