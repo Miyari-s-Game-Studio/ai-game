@@ -35,7 +35,7 @@ const getDynamicIcon = (iconName?: string): React.ElementType => {
 export function InventoryDialog({ 
     isOpen, 
     onOpenChange, 
-    inventory, 
+    inventory = [], 
     onItemAction, 
     language 
 }: InventoryDialogProps) {
