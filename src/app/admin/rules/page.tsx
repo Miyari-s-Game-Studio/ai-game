@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
@@ -26,6 +27,18 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogClose,
+} from "@/components/ui/dialog"
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { deleteCustomRuleset, saveCustomRuleset } from '@/lib/rulesets';
 import { useToast } from '@/hooks/use-toast';
 
@@ -72,6 +85,9 @@ function AdminRulesPage() {
   const [selectedRulesId, setSelectedRulesId] = useState<string | null>(null);
   const [rules, setRules] = useState<string>("{}");
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newRulesetId, setNewRulesetId] = useState('');
+
 
   useEffect(() => {
     // This now runs on the client and can access localStorage via the helper functions
@@ -105,14 +121,14 @@ function AdminRulesPage() {
     }
   }, [selectedRulesId, router]);
 
-  const handleCreateNew = () => {
-    const newId = prompt("Enter a unique ID for the new ruleset (e.g., 'my_story_en'):");
+  const handleConfirmCreate = () => {
+    const newId = newRulesetId.trim();
     if (!newId || !/^[a-z0-9_]+$/.test(newId)) {
-        alert("Invalid ID. Please use only lowercase letters, numbers, and underscores.");
+        toast({ variant: 'destructive', title: 'Invalid ID', description: 'Please use only lowercase letters, numbers, and underscores.' });
         return;
     }
     if (allRulesetIds.includes(newId)) {
-        alert("This ID is already in use. Please choose another one.");
+        toast({ variant: 'destructive', title: 'ID In Use', description: 'This ID is already in use. Please choose another one.' });
         return;
     }
 
@@ -124,6 +140,10 @@ function AdminRulesPage() {
     setAllRulesetIds(updatedIds);
     setSelectedRulesId(newId);
     toast({ title: 'Success', description: `New ruleset "${newId}" created locally.` });
+    
+    // Close dialog and reset input
+    setIsCreateDialogOpen(false);
+    setNewRulesetId('');
   };
 
   const handleDelete = () => {
@@ -171,10 +191,44 @@ function AdminRulesPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={handleCreateNew}>
-            <PlusCircle className="mr-2"/>
-            Create New
-          </Button>
+          
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <PlusCircle className="mr-2"/>
+                Create New
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Custom Ruleset</DialogTitle>
+                <DialogDescription>
+                  Enter a unique ID for your new scenario. This will be stored in your browser's local storage.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="ruleset-id" className="text-right">
+                          ID
+                      </Label>
+                      <Input 
+                          id="ruleset-id" 
+                          value={newRulesetId}
+                          onChange={(e) => setNewRulesetId(e.target.value)}
+                          className="col-span-3"
+                          placeholder="e.g., my_awesome_story_en"
+                      />
+                  </div>
+              </div>
+              <DialogFooter>
+                  <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <Button onClick={handleConfirmCreate}>Create</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
            {selectedIsCustom && (
             <AlertDialog>
                 <AlertDialogTrigger asChild>
