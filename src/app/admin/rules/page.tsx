@@ -2,8 +2,8 @@
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {RulesEditor} from '@/components/admin/RulesEditor';
-import {gameRulesets, getRuleset} from '@/lib/rulesets';
-import {Home, PlusCircle} from 'lucide-react';
+import {getAllRulesetIds, getRuleset, isCustomRuleset} from '@/lib/rulesets';
+import {Home, PlusCircle, Trash2} from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -11,33 +11,82 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import type {GameRules} from '@/types/game';
 import { Suspense } from 'react'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { deleteCustomRuleset, saveCustomRuleset } from '@/lib/rulesets';
+import { useToast } from '@/hooks/use-toast';
 
 
 
+const createBoilerplateRules = (id: string): GameRules => ({
+    id: id,
+    version: 1,
+    title: `New Scenario: ${id}`,
+    language: 'en',
+    theme: 'theme-default',
+    description: "A new adventure begins.",
+    actions: {
+        observe: { icon: "Eye", label: "Observe" },
+        reflect: { icon: "Archive", label: "Reflect" }
+    },
+    initial: {
+        situation: "start",
+        counters: {},
+    },
+    tracks: {},
+    situations: {
+        start: {
+            label: "The Beginning",
+            description: "This is the starting point of your new adventure. You can add more actions and situations from here.",
+            ending: true,
+            on_action: [
+                {
+                    when: { actionId: "observe" },
+                    do: [{ log: "You look around, taking in the scene." }]
+                }
+            ]
+        }
+    }
+});
 
 
 function AdminRulesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialRulesId = searchParams.get('id');
+  const { toast } = useToast();
 
-  const [selectedRulesId, setSelectedRulesId] = useState<string | null>(initialRulesId);
+  const [allRulesetIds, setAllRulesetIds] = useState<string[]>([]);
+  const [selectedRulesId, setSelectedRulesId] = useState<string | null>(null);
   const [rules, setRules] = useState<string>("{}");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (initialRulesId && gameRulesets.includes(initialRulesId)) {
-      setSelectedRulesId(initialRulesId);
-    } else if (gameRulesets.length > 0) {
-      setSelectedRulesId(gameRulesets[0]);
+    // This now runs on the client and can access localStorage via the helper functions
+    const ids = getAllRulesetIds();
+    setAllRulesetIds(ids);
+
+    const initialRulesId = searchParams.get('id');
+    if (initialRulesId && ids.includes(initialRulesId)) {
+        setSelectedRulesId(initialRulesId);
+    } else if (ids.length > 0) {
+        setSelectedRulesId(ids[0]);
     } else {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  }, [initialRulesId]);
+  }, [searchParams]);
 
   useEffect(() => {
     if (selectedRulesId) {
@@ -50,21 +99,50 @@ function AdminRulesPage() {
       }
       setIsLoading(false);
 
-      // Update URL without navigating
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('id', selectedRulesId);
-      router.replace(newUrl.toString(), {scroll: false});
-
+      if (window.location.search !== `?id=${selectedRulesId}`) {
+        router.push(`/admin/rules?id=${selectedRulesId}`, {scroll: false});
+      }
     }
   }, [selectedRulesId, router]);
 
   const handleCreateNew = () => {
-    // This would ideally involve a prompt for a new ID and creating a new file.
-    // For now, we can link to a "new" page or have a modal here.
-    // For simplicity, we'll just log it. A real implementation needs more UX.
-    console.log("TODO: Implement 'Create New' functionality.");
-    alert("Please manually create a new JSON file in `/src/lib/rulesets` and refresh.");
+    const newId = prompt("Enter a unique ID for the new ruleset (e.g., 'my_story_en'):");
+    if (!newId || !/^[a-z0-9_]+$/.test(newId)) {
+        alert("Invalid ID. Please use only lowercase letters, numbers, and underscores.");
+        return;
+    }
+    if (allRulesetIds.includes(newId)) {
+        alert("This ID is already in use. Please choose another one.");
+        return;
+    }
+
+    const boilerplate = createBoilerplateRules(newId);
+    saveCustomRuleset(boilerplate);
+
+    // Refresh list and select the new one
+    const updatedIds = getAllRulesetIds();
+    setAllRulesetIds(updatedIds);
+    setSelectedRulesId(newId);
+    toast({ title: 'Success', description: `New ruleset "${newId}" created locally.` });
   };
+
+  const handleDelete = () => {
+    if (!selectedRulesId || !isCustomRuleset(selectedRulesId)) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Only custom rulesets can be deleted.' });
+      return;
+    }
+    
+    deleteCustomRuleset(selectedRulesId);
+    
+    const updatedIds = getAllRulesetIds();
+    setAllRulesetIds(updatedIds);
+    setSelectedRulesId(updatedIds.length > 0 ? updatedIds[0] : null);
+    
+    toast({ title: 'Success', description: `Custom ruleset "${selectedRulesId}" has been deleted.` });
+  };
+  
+  const selectedIsCustom = useMemo(() => selectedRulesId ? isCustomRuleset(selectedRulesId) : false, [selectedRulesId]);
+
 
   return (
     <main className="container mx-auto p-4 md:p-8">
@@ -86,8 +164,10 @@ function AdminRulesPage() {
               <SelectValue placeholder="Select a ruleset to edit..."/>
             </SelectTrigger>
             <SelectContent>
-              {gameRulesets.map(id => (
-                <SelectItem key={id} value={id}>{id}</SelectItem>
+              {allRulesetIds.map(id => (
+                <SelectItem key={id} value={id}>
+                    {isCustomRuleset(id) ? `* ${id}` : id}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -95,7 +175,30 @@ function AdminRulesPage() {
             <PlusCircle className="mr-2"/>
             Create New
           </Button>
+           {selectedIsCustom && (
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                        <Trash2 className="mr-2" />
+                        Delete
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete the custom ruleset <strong>{selectedRulesId}</strong> from your local browser storage. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>Confirm Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+           )}
         </div>
+         <p className="text-sm text-muted-foreground mt-2">* Custom rulesets are saved in your browser's local storage.</p>
       </header>
       {isLoading ? (
         <p>Loading rules...</p>
@@ -104,12 +207,12 @@ function AdminRulesPage() {
           key={selectedRulesId} // Force re-mount on change
           rulesId={selectedRulesId}
           initialRules={rules}
+          isCustom={selectedIsCustom}
         />
       ) : (
         <div className="text-center p-8 border-dashed border-2 rounded-lg">
           <p className="text-muted-foreground">No rulesets found.</p>
-          <p className="text-muted-foreground mt-2">Create a new JSON file in <code>/src/lib/rulesets</code> to get
-            started.</p>
+          <p className="text-muted-foreground mt-2">Click 'Create New' to get started.</p>
         </div>
       )}
     </main>

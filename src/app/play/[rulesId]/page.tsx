@@ -1,4 +1,3 @@
-
 // src/app/play/[rulesId]/page.tsx
 'use client';
 import {GameUI} from '@/components/game/GameUI';
@@ -19,7 +18,9 @@ const PLAYER_STATS_KEY = 'narrativeGamePlayer';
 const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
 export default function PlayPage() {
-  const {rulesId} = useParams();
+  const params = useParams();
+  const rulesId = Array.isArray(params.rulesId) ? params.rulesId[0] : params.rulesId;
+  
   const [rules, setRules] = useState<GameRules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initialStateOverride, setInitialStateOverride] = useState<GameState | null>(null);
@@ -27,7 +28,9 @@ export default function PlayPage() {
   const {initializeTheme} = useTheme();
 
   useEffect(() => {
-    const loadedRules = getRuleset(rulesId as string);
+    if (!rulesId) return;
+
+    const loadedRules = getRuleset(rulesId);
     if (!loadedRules) {
       notFound();
       return;

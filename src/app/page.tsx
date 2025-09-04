@@ -1,5 +1,3 @@
-
-
 // src/app/page.tsx
 'use client';
 
@@ -9,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BookOpen, FolderOpen, User, Edit, Trash2, ShieldCheck, Forward, ArrowLeft } from 'lucide-react';
-import { gameRulesets, getRuleset } from '@/lib/rulesets';
+import { getAllRulesetIds, getRuleset } from '@/lib/rulesets';
 import type { GameRules, GameState, PlayerStats, Item } from '@/types/game';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -54,17 +52,24 @@ export default function GameSelectionPage() {
 
   const t = useMemo(() => getTranslator(playerStats?.language || playerLanguage), [playerStats, playerLanguage]);
 
-  const availableRules: GameRules[] = useMemo(() => {
-    if (!playerStats) return [];
-    const completedRuleIds = new Set(playerStats.history?.map(h => h.rulesId) || []);
-    return gameRulesets
-        .map(id => getRuleset(id))
-        .filter(rules => {
-            if (!rules || rules.language !== playerStats.language) return false;
+  const [availableRules, setAvailableRules] = useState<GameRules[]>([]);
+
+  useEffect(() => {
+    const allRulesIds = getAllRulesetIds();
+    const loadedRules = allRulesIds.map(id => getRuleset(id)).filter(Boolean) as GameRules[];
+
+    if (playerStats) {
+        const completedRuleIds = new Set(playerStats.history?.map(h => h.rulesId) || []);
+        const filteredRules = loadedRules.filter(rules => {
+            if (rules.language !== playerStats.language) return false;
             // Filter out scenarios that have already been completed
             if (completedRuleIds.has(rules.id)) return false;
             return true;
-        }) as GameRules[];
+        });
+        setAvailableRules(filteredRules);
+    } else {
+        setAvailableRules([]);
+    }
   }, [playerStats]);
 
   useEffect(() => {
@@ -401,5 +406,3 @@ export default function GameSelectionPage() {
     </>
   );
 }
-
-    

@@ -1,4 +1,3 @@
-
 // src/components/admin/RulesEditor.tsx
 'use client';
 
@@ -6,7 +5,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { saveRules } from '@/lib/rules-actions';
+import { saveRules as saveBuiltinRules } from '@/lib/rules-actions';
+import { saveCustomRuleset } from '@/lib/rulesets';
 import { Download, Upload, Edit, Eye } from 'lucide-react';
 import { JsonTreeView } from './JsonTreeView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,9 +15,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 interface RulesEditorProps {
   rulesId: string;
   initialRules: string;
+  isCustom: boolean;
 }
 
-export function RulesEditor({ rulesId, initialRules }: RulesEditorProps) {
+export function RulesEditor({ rulesId, initialRules, isCustom }: RulesEditorProps) {
   const [rules, setRules] = useState(initialRules);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,13 +40,25 @@ export function RulesEditor({ rulesId, initialRules }: RulesEditorProps) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Basic validation
-      JSON.parse(rules);
-      const result = await saveRules(rulesId, rules);
-      if (result.success) {
-        toast({ title: 'Success', description: 'Game rules saved successfully.' });
+      const rulesObject = JSON.parse(rules);
+       if (rulesObject.id !== rulesId) {
+        toast({ variant: 'destructive', title: 'ID Mismatch', description: `The 'id' in the JSON ("${rulesObject.id}") does not match the selected ruleset ID ("${rulesId}").` });
+        setIsSaving(false);
+        return;
+      }
+
+      if (isCustom) {
+        // Save to localStorage
+        saveCustomRuleset(rulesObject);
+        toast({ title: 'Success', description: `Custom ruleset "${rulesId}" saved to local storage.` });
       } else {
-        toast({ variant: 'destructive', title: 'Error', description: result.error });
+        // Save to filesystem via server action
+        const result = await saveBuiltinRules(rulesId, rules);
+        if (result.success) {
+          toast({ title: 'Success', description: 'Game rules saved successfully.' });
+        } else {
+          toast({ variant: 'destructive', title: 'Error', description: result.error });
+        }
       }
     } catch (e) {
       toast({ variant: 'destructive', title: 'Invalid JSON', description: 'The rules are not valid JSON. Please correct it.' });
@@ -111,7 +124,7 @@ export function RulesEditor({ rulesId, initialRules }: RulesEditorProps) {
           <Download className="mr-2 h-4 w-4" /> Export JSON
         </Button>
         <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save Rules'}
+          {isSaving ? 'Saving...' : (isCustom ? 'Save to Local Storage' : 'Save to File')}
         </Button>
       </div>
 
@@ -133,8 +146,11 @@ export function RulesEditor({ rulesId, initialRules }: RulesEditorProps) {
             />
         </TabsContent>
       </Tabs>
-      <p className="text-sm text-muted-foreground">
-        Note: Saving will update the <code>{rulesId}.json</code> file. Be careful with the structure.
+       <p className="text-sm text-muted-foreground">
+        Note: {isCustom 
+            ? `This is a custom ruleset. Saving will update it in your browser's local storage.` 
+            : `Saving will update the built-in ${rulesId}.json file on the server.`
+        }
       </p>
     </div>
   );
