@@ -1,3 +1,4 @@
+
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
@@ -6,6 +7,7 @@ import type {
   ExtractSecretInput,
   GameRules,
   GameState,
+  Item,
   LogEntry,
   LogEntryChange,
   PlayerStats,
@@ -43,6 +45,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {LatestResultModal} from './LatestResultModal';
 import {useRouter} from 'next/navigation';
 import {FightDialog} from './FightDialog';
+import { InventoryDialog } from './InventoryDialog';
 
 
 const PLAYER_STATS_KEY = 'narrativeGamePlayer';
@@ -90,6 +93,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isFightDialogOpen, setIsFightDialogOpen] = useState(false);
+  const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
 
 
@@ -381,6 +385,34 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     setTalkFollowUpActions([]);
   };
 
+  const handleItemAction = (action: 'use' | 'discard', item: Item) => {
+    let newPlayerStats;
+    if (action === 'discard') {
+      newPlayerStats = produce(gameState.player, draft => {
+        draft.inventory = draft.inventory.filter(i => i.id !== item.id);
+      });
+    } else if (action === 'use') {
+      // Placeholder for using items.
+      console.log(`Attempted to use item: ${item.name}`);
+      alert(`Using '${item.name}' is not yet implemented.`);
+      return; // Don't update state if action is not implemented
+    }
+
+    if (newPlayerStats) {
+      // This is a complex state update. We need to update player stats inside gameState
+      // AND persist the new player stats to local storage.
+      setGameState(produce(draft => {
+          draft.player = newPlayerStats!;
+      }));
+      try {
+        // Also save the updated player stats to the master record.
+        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newPlayerStats));
+      } catch (e) {
+        console.error("Failed to update player stats in storage.", e);
+      }
+    }
+  };
+
 
   if (!currentSituation) {
     return (
@@ -411,6 +443,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         language: 'en',
         attributes: {strength: 11, dexterity: 11, constitution: 12, intelligence: 9, wisdom: 10, charisma: 9},
         equipment: {},
+        inventory: [],
         history: [],
       };
       setFightTarget(enemy);
@@ -692,6 +725,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         onSave={handleSaveGame}
         onLoad={handleOpenLoadDialog}
         isPending={isLoading}
+        onOpenInventory={() => setIsInventoryOpen(true)}
       />
       <main className="flex-1 overflow-y-auto p-4 md:p-8">
         <LoadGameDialog
@@ -753,6 +787,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           onLogTargetClick={handleLogTargetClick}
           selectedAction={selectedAction}
           language={rules.language}
+        />
+        <InventoryDialog
+            isOpen={isInventoryOpen}
+            onOpenChange={setIsInventoryOpen}
+            inventory={gameState.player.inventory}
+            onItemAction={handleItemAction}
+            language={gameState.player.language}
         />
         {fightTarget && (
           <FightDialog
@@ -866,3 +907,5 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     </>
   );
 }
+
+    

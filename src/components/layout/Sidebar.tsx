@@ -33,9 +33,10 @@ interface SidebarProps {
     onSave: () => void;
     onLoad: () => void;
     isPending: boolean;
+    onOpenInventory: () => void;
 }
 
-export function Sidebar({ rules, playerStats, onSave, onLoad, isPending }: SidebarProps) {
+export function Sidebar({ rules, playerStats, onSave, onLoad, isPending, onOpenInventory }: SidebarProps) {
   const gameTitle = rules.title || 'Interactive Narrative Game';
   const t = useMemo(() => getTranslator(rules.language), [rules.language]);
 
@@ -55,7 +56,7 @@ export function Sidebar({ rules, playerStats, onSave, onLoad, isPending }: Sideb
             </SheetTitle>
           </SheetHeader>
 
-          <PlayerStatsComponent stats={playerStats} />
+          <PlayerStatsComponent stats={playerStats} onOpenInventory={onOpenInventory} />
 
           <div className="space-y-4 mt-auto">
             <Separator className="bg-sidebar-border"/>
@@ -93,3 +94,5 @@ export function Sidebar({ rules, playerStats, onSave, onLoad, isPending }: Sideb
     </aside>
   );
 }
+
+    

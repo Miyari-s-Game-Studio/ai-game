@@ -45,9 +45,6 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ stats, onOpenInventory }) => 
                 <CardTitle className="text-xl font-headline">{stats.name}</CardTitle>
                 <CardDescription>{stats.identity}</CardDescription>
             </div>
-             <Button variant="outline" size="icon" onClick={onOpenInventory}>
-                <Backpack className="h-5 w-5" />
-            </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -72,7 +69,12 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ stats, onOpenInventory }) => 
         <Separator />
 
         <div>
-             <h4 className="text-sm font-medium text-muted-foreground mb-2">{t.equipment}</h4>
+            <div className="flex justify-between items-center mb-2">
+                 <h4 className="text-sm font-medium text-muted-foreground">{t.equipment}</h4>
+                 <Button variant="outline" size="icon" className="w-7 h-7" onClick={onOpenInventory}>
+                    <Backpack className="h-4 w-4" />
+                </Button>
+            </div>
              <div className="space-y-1">
                 {Object.entries(stats.equipment)
                     .filter(([_, value]) => value) // Filter out empty slots
@@ -96,3 +98,5 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ stats, onOpenInventory }) => 
 };
 
 export default PlayerStats;
+
+    
