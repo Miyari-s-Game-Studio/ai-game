@@ -1,10 +1,11 @@
 // src/components/game/PlayerStats.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { PlayerStats as PlayerStatsType, PlayerAttributes, Equipment } from '@/types/game';
 import { Swords, PersonStanding, Heart, Brain, BookOpen, Smile, Shirt, Footprints, Sparkles, User } from 'lucide-react';
 import { Separator } from '../ui/separator';
+import { getTranslator } from '@/lib/i18n';
 
 
 interface PlayerStatsProps {
@@ -31,6 +32,8 @@ const equipmentDetails: { [key in keyof Equipment]: { icon: React.ElementType, l
 };
 
 const PlayerStats: React.FC<PlayerStatsProps> = ({ stats }) => {
+  const t = useMemo(() => getTranslator(stats.language), [stats.language]);
+
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -39,7 +42,7 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ stats }) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">Attributes</h4>
+            <h4 className="text-sm font-medium text-muted-foreground mb-2">{t.attributes}</h4>
             <div className="grid grid-cols-3 gap-x-4 gap-y-2">
                 {Object.entries(stats.attributes).map(([key, value]) => {
                     const details = attributeDetails[key as keyof PlayerAttributes];
@@ -59,7 +62,7 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ stats }) => {
         <Separator />
 
         <div>
-             <h4 className="text-sm font-medium text-muted-foreground mb-2">Equipment</h4>
+             <h4 className="text-sm font-medium text-muted-foreground mb-2">{t.equipment}</h4>
              <div className="space-y-1">
                 {Object.entries(stats.equipment)
                     .filter(([_, value]) => value) // Filter out empty slots

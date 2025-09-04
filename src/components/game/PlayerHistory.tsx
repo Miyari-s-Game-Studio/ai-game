@@ -29,7 +29,7 @@ const attributeDetails: { [key in keyof PlayerAttributes]: { icon: React.Element
 };
 
 
-const AttributeChangeRow: React.FC<{ change: AttributeChange }> = ({ change }) => {
+const AttributeChangeRow: React.FC<{ change: AttributeChange, t: any }> = ({ change, t }) => {
     const details = attributeDetails[change.attribute];
     const Icon = details.icon;
     const isIncrease = change.change > 0;
@@ -59,8 +59,8 @@ const PlayerHistory: React.FC<PlayerHistoryProps> = ({ player }) => {
       return (
         <Card>
             <CardHeader>
-                <CardTitle>Character Progression</CardTitle>
-                <CardDescription>Complete a scenario to see your character's story unfold.</CardDescription>
+                <CardTitle>{t.characterProgression}</CardTitle>
+                <CardDescription>{t.characterProgressionDescription}</CardDescription>
             </CardHeader>
         </Card>
       );
@@ -71,9 +71,9 @@ const PlayerHistory: React.FC<PlayerHistoryProps> = ({ player }) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp />
-          Character Progression
+          {t.characterProgression}
         </CardTitle>
-        <CardDescription>Your character's journey and growth across all completed scenarios.</CardDescription>
+        <CardDescription>{t.characterProgressionJourney}</CardDescription>
       </CardHeader>
       <CardContent>
         <Accordion type="single" collapsible className="w-full">
@@ -82,20 +82,20 @@ const PlayerHistory: React.FC<PlayerHistoryProps> = ({ player }) => {
                 <AccordionTrigger>
                      <div className="flex flex-col items-start text-left">
                         <h4 className="font-bold">{entry.title}</h4>
-                        <p className="text-sm text-muted-foreground">Ended with: <span className="font-semibold text-primary/90">{entry.endingSituationLabel}</span></p>
+                        <p className="text-sm text-muted-foreground">{t.endedWith}: <span className="font-semibold text-primary/90">{entry.endingSituationLabel}</span></p>
                     </div>
                 </AccordionTrigger>
                 <AccordionContent>
                     <div className="space-y-3 pl-2">
-                        <h5 className="font-semibold text-muted-foreground">Attribute Changes</h5>
+                        <h5 className="font-semibold text-muted-foreground">{t.attributeChanges}</h5>
                         {entry.attributeChanges.length > 0 ? (
                              entry.attributeChanges.map(change => (
-                                <AttributeChangeRow key={change.attribute} change={change} />
+                                <AttributeChangeRow key={change.attribute} change={change} t={t} />
                             ))
                         ) : (
-                            <p className="text-sm text-muted-foreground italic">No attributes were changed in this chapter.</p>
+                            <p className="text-sm text-muted-foreground italic">{t.noAttributeChanges}</p>
                         )}
-                       
+
                     </div>
                 </AccordionContent>
             </AccordionItem>

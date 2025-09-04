@@ -252,46 +252,14 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
   }
 };
 
-const skillDetails: Record<keyof PlayerAttributes, { icon: React.ElementType, name: string, description: string }> = {
-  strength: {
-    icon: ChevronsUp,
-    name: 'Power',
-    description: 'At end of round, add +1 to your final sum. Can be used multiple times.'
-  },
-  dexterity: {
-    icon: Footprints,
-    name: 'Sidestep',
-    description: 'When a roll makes you bust, use this to cancel that roll and immediately Stand.'
-  },
-  constitution: {
-    icon: Heart,
-    name: 'Buffer',
-    description: 'Passive. Your bust threshold is increased by your CON modifier.'
-  },
-  intelligence: {
-    icon: Eye,
-    name: 'Peek',
-    description: 'Before you Press, use this to see what the next die roll will be.'
-  },
-  wisdom: {
-    icon: BookOpen,
-    name: 'Poise',
-    description: 'When you Stand with a sum of 10 or less, use this to add +2 to your sum for comparison purposes only.'
-  },
-  charisma: {
-    icon: Smile,
-    name: 'Pressure',
-    description: 'When the enemy is about to Stand with a sum of 10 or less, use this to force them to Press instead.'
-  },
-};
-
 const SkillButton: React.FC<{
   skill: keyof PlayerAttributes,
   player: PlayerStats,
   usedCount: number,
   onClick: () => void,
   disabled: boolean,
-}> = ({skill, player, usedCount, onClick, disabled}) => {
+  skillDetails: Record<keyof PlayerAttributes, { icon: React.ElementType, name: string, description: string }>
+}> = ({skill, player, usedCount, onClick, disabled,skillDetails}) => {
   const details = skillDetails[skill];
   const mod = getMod(player.attributes[skill]);
   const remaining = mod - usedCount;
@@ -342,6 +310,15 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
   const enemyBustThreshold = 12 + enemyMod.con;
   const didPlayerBust = currentRound.playerSum > playerBustThreshold;
   const didEnemyBust = currentRound.enemySum > enemyBustThreshold;
+
+  const skillDetails: Record<keyof PlayerAttributes, { icon: React.ElementType, name: string, description: string }> = useMemo(() => ({
+    strength: { icon: ChevronsUp, name: t.skillPower, description: t.skillPowerDescription },
+    dexterity: { icon: Footprints, name: t.skillSidestep, description: t.skillSidestepDescription },
+    constitution: { icon: Heart, name: t.skillBuffer, description: t.skillBufferDescription },
+    intelligence: { icon: Eye, name: t.skillPeek, description: t.skillPeekDescription },
+    wisdom: { icon: BookOpen, name: t.skillPoise, description: t.skillPoiseDescription },
+    charisma: { icon: Smile, name: t.skillPressure, description: t.skillPressureDescription },
+  }), [t]);
 
 
   useEffect(() => {
@@ -449,10 +426,10 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl font-headline justify-center">
             <Swords/>
-            Twelve Rush: Round {state.round}
+            {t.fightTitle(state.round)}
           </DialogTitle>
           <DialogDescription className="text-center">
-            Get closer to 12 + your CON bonus than your opponent without going over. Best 2 out of 3.
+            {t.fightDescription(playerBustThreshold)}
           </DialogDescription>
         </DialogHeader>
 
@@ -482,17 +459,17 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
             </div>
             {winner && (
               <div className="text-center font-bold text-3xl p-4 text-primary animate-in fade-in-50">
-                {winner === 'player' ? 'YOU WIN THE FIGHT!' : 'YOU LOST THE FIGHT.'}
+                {winner === 'player' ? t.fightWin : t.fightLoss}
               </div>
             )}
             {isRoundOver && !winner && (
               <Button onClick={() => dispatch({type: 'START_ROUND'})} className="w-full">
-                Start Next Round
+                {t.fightNextRound}
               </Button>
             )}
             {winner && (
               <Button onClick={handleClose} className="w-full">
-                Leave
+                {t.fightLeave}
               </Button>
             )}
           </div>
@@ -508,33 +485,35 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
             {renderDice(currentRound.playerDice, showPeek, currentRound.peekResult)}
             <Separator/>
             <div className="space-y-2">
-              <p className="font-semibold">Actions</p>
+              <p className="font-semibold">{t.actions}</p>
               <div className="flex gap-2">
                 <Button onClick={handlePlayerPress}
-                        disabled={!currentRound.isPlayerTurn || didPlayerBust || currentRound.playerStand || !!winner}>Press
-                  (Hit)</Button>
+                        disabled={!currentRound.isPlayerTurn || didPlayerBust || currentRound.playerStand || !!winner}>{t.pressAction}</Button>
                 <Button onClick={handlePlayerStand}
                         disabled={!currentRound.isPlayerTurn || didPlayerBust || currentRound.playerStand || !!winner}
-                        variant="secondary">Stand</Button>
+                        variant="secondary">{t.standAction}</Button>
               </div>
             </div>
             <div className="space-y-2">
-              <p className="font-semibold">Skills</p>
+              <p className="font-semibold">{t.skills}</p>
               <div className="grid grid-cols-2 gap-2">
                 <SkillButton skill="strength" player={player} usedCount={currentRound.usedPlayerSkills.strength || 0}
                              onClick={() => dispatch({type: 'USE_SKILL', skill: 'strength', target: 'player'})}
-                             disabled={!currentRound.playerStand || !!winner}/>
+                             disabled={!currentRound.playerStand || !!winner} skillDetails={skillDetails}/>
                 <SkillButton skill="dexterity" player={player} usedCount={currentRound.usedPlayerSkills.dexterity || 0}
-                             onClick={handleSidestep} disabled={!didPlayerBust || !!winner}/>
+                             onClick={handleSidestep} disabled={!didPlayerBust || !!winner} skillDetails={skillDetails}/>
                 <SkillButton skill="intelligence" player={player}
                              usedCount={currentRound.usedPlayerSkills.intelligence || 0} onClick={handlePeek}
-                             disabled={!currentRound.isPlayerTurn || currentRound.playerStand || !!winner}/>
+                             disabled={!currentRound.isPlayerTurn || currentRound.playerStand || !!winner}
+                             skillDetails={skillDetails}/>
                 <SkillButton skill="wisdom" player={player} usedCount={currentRound.usedPlayerSkills.wisdom || 0}
                              onClick={() => {
-                             }} disabled={true}/>
+                             }} disabled={true}
+                             skillDetails={skillDetails}/>
                 <SkillButton skill="charisma" player={player} usedCount={currentRound.usedPlayerSkills.charisma || 0}
                              onClick={() => {
-                             }} disabled={true}/>
+                             }} disabled={true}
+                             skillDetails={skillDetails}/>
               </div>
             </div>
           </div>

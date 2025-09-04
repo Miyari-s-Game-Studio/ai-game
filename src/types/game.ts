@@ -18,20 +18,20 @@ export type Equipment = {
 };
 
 export type AttributeChange = {
-    attribute: keyof PlayerAttributes;
-    change: number;
-    oldValue: number;
-    newValue: number;
+  attribute: keyof PlayerAttributes;
+  change: number;
+  oldValue: number;
+  newValue: number;
 };
 
 export type CompletedScenario = {
-    rulesId: string;
-    title: string;
-    completionDate: string; // ISO String
-    endingSituationId: string;
-    endingSituationLabel: string;
-    attributeChanges: AttributeChange[];
-    finalAttributes: PlayerAttributes;
+  rulesId: string;
+  title: string;
+  completionDate: string; // ISO String
+  endingSituationId: string;
+  endingSituationLabel: string;
+  attributeChanges: AttributeChange[];
+  finalAttributes: PlayerAttributes;
 };
 
 export type PlayerStats = {
@@ -63,27 +63,27 @@ export type GameState = {
 };
 
 export type FightState = {
-    player: PlayerStats;
-    enemy: PlayerStats;
-    round: number;
-    playerRoundsWon: number;
-    enemyRoundsWon: number;
-    currentRound: {
-        playerDice: number[];
-        playerSum: number;
-        enemyDice: number[];
-        enemySum: number;
-        playerStand: boolean;
-        enemyStand: boolean;
-        isPlayerTurn: boolean;
-        log: string[];
-        usedPlayerSkills: Partial<Record<keyof PlayerAttributes, number>>;
-        usedEnemySkills: Partial<Record<keyof PlayerAttributes, number>>;
-        playerBonus: number;
-        enemyBonus: number;
-        peekResult: number | null;
-    };
-    winner: 'player' | 'enemy' | null;
+  player: PlayerStats;
+  enemy: PlayerStats;
+  round: number;
+  playerRoundsWon: number;
+  enemyRoundsWon: number;
+  currentRound: {
+    playerDice: number[];
+    playerSum: number;
+    enemyDice: number[];
+    enemySum: number;
+    playerStand: boolean;
+    enemyStand: boolean;
+    isPlayerTurn: boolean;
+    log: string[];
+    usedPlayerSkills: Partial<Record<keyof PlayerAttributes, number>>;
+    usedEnemySkills: Partial<Record<keyof PlayerAttributes, number>>;
+    playerBonus: number;
+    enemyBonus: number;
+    peekResult: number | null;
+  };
+  winner: 'player' | 'enemy' | null;
 }
 
 export type Track = {
@@ -135,6 +135,7 @@ export type Situation = {
   description?: string;
   auto_enter_if?: string; // condition to auto enter this situation
   on_action: ActionRule[];
+  ending?: boolean;
 };
 
 export type ActionDetail = {
@@ -144,12 +145,12 @@ export type ActionDetail = {
 };
 
 export type Ending = {
-    label: string;
-    description: string;
-    modifiers: {
-        attribute: keyof PlayerAttributes;
-        change: number;
-    }[];
+  label: string;
+  description: string;
+  modifiers: {
+    attribute: keyof PlayerAttributes;
+    change: number;
+  }[];
 };
 
 export type GameRules = {

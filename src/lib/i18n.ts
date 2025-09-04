@@ -50,6 +50,8 @@ const translations = {
     continue: 'Continue',
     areYouSure: 'Are you sure?',
     deleteCharacterConfirmation: "This action cannot be undone. This will permanently delete your character and all associated save files.",
+    deleteSaveConfirmation: "This action will permanently delete this save file. This action cannot be undone.",
+    delete: "Delete",
     fullActionLog: 'Full Action Log',
     actionLogDescription: 'A complete history of your actions and the resulting narrative.',
     gameControls: 'Game Controls',
@@ -76,6 +78,20 @@ const translations = {
     enterNamePlaceholder: 'e.g., Alex Ryder',
     characterIdentity: 'Character Identity / Role',
     enterIdentityPlaceholder: 'e.g., Freelance Investigator',
+    createCharacter: 'Create Character',
+    saveChanges: 'Save Changes',
+    back: 'Back',
+    allAdventuresCompleted: 'All Adventures Completed!',
+    allAdventuresCompletedDescription: "You've played through all available scenarios for this character.",
+    continueAdventure: "Continue Adventure",
+    characterProgression: 'Character Progression',
+    characterProgressionDescription: "Complete a scenario to see your character's story unfold.",
+    characterProgressionJourney: "Your character's journey and growth across all completed scenarios.",
+    endedWith: "Ended with",
+    attributeChanges: "Attribute Changes",
+    noAttributeChanges: "No attributes were changed in this chapter.",
+    attributes: "Attributes",
+    equipment: "Equipment",
     beginAdventure: 'Begin Adventure',
     validateSecretTitle: 'Validate Secret',
     validateSecretDescription: 'What do you believe the secret is? Enter it below. The AI will determine if your guess is correct.',
@@ -97,6 +113,28 @@ const translations = {
     tabLastResult: 'Last Result',
     tabStatus: 'Status',
     tabItems: 'Items',
+    fightTitle: (round: number) => `Twelve Rush: Round ${round}`,
+    fightDescription: (threshold: number) => `Get closer to ${threshold} than your opponent without going over. Best 2 out of 3.`,
+    fightWin: 'YOU WIN THE FIGHT!',
+    fightLoss: 'YOU LOST THE FIGHT.',
+    fightNextRound: 'Start Next Round',
+    fightLeave: 'Leave',
+    actions: 'Actions',
+    pressAction: 'Press (Hit)',
+    standAction: 'Stand',
+    skills: 'Skills',
+    skillPower: 'Power',
+    skillPowerDescription: 'At end of round, add +1 to your final sum. Can be used multiple times.',
+    skillSidestep: 'Sidestep',
+    skillSidestepDescription: 'When a roll makes you bust, use this to cancel that roll and immediately Stand.',
+    skillBuffer: 'Buffer',
+    skillBufferDescription: 'Passive. Your bust threshold is increased by your CON modifier.',
+    skillPeek: 'Peek',
+    skillPeekDescription: 'Before you Press, use this to see what the next die roll will be.',
+    skillPoise: 'Poise',
+    skillPoiseDescription: 'When you Stand with a sum of 10 or less, use this to add +2 to your sum for comparison purposes only.',
+    skillPressure: 'Pressure',
+    skillPressureDescription: 'When the enemy is about to Stand with a sum of 10 or less, use this to force them to Press instead.',
 
 
     // AI Flow Translations
@@ -308,6 +346,8 @@ Generate a single number for the Difficulty Class.
     continue: '继续',
     areYouSure: '你确定吗？',
     deleteCharacterConfirmation: "此操作无法撤销。这将永久删除您的角色和所有相关的存档文件。",
+    deleteSaveConfirmation: "此操作将永久删除此存档文件。此操作无法撤销。",
+    delete: "删除",
     fullActionLog: '完整行动日志',
     actionLogDescription: '你的行动和相应叙事的完整历史记录。',
     gameControls: '游戏控制',
@@ -334,6 +374,20 @@ Generate a single number for the Difficulty Class.
     enterNamePlaceholder: '例如，莱德·亚历克斯',
     characterIdentity: '角色身份/职业',
     enterIdentityPlaceholder: '例如，自由调查员',
+    createCharacter: '创建角色',
+    saveChanges: '保存更改',
+    back: '返回',
+    allAdventuresCompleted: '所有冒险已完成！',
+    allAdventuresCompletedDescription: '你已经玩过了该角色的所有可用剧本。',
+    continueAdventure: "继续冒险",
+    characterProgression: '角色成长',
+    characterProgressionDescription: '完成一个剧本以查看你的角色的故事展开。',
+    characterProgressionJourney: '你的角色在所有已完成剧本中的旅程和成长。',
+    endedWith: "结局",
+    attributeChanges: "属性变化",
+    noAttributeChanges: "本章中没有属性发生变化。",
+    attributes: "属性",
+    equipment: "装备",
     beginAdventure: '开始冒险',
     validateSecretTitle: '验证秘密',
     validateSecretDescription: '你认为秘密是什么？在下面输入。AI将判断你的猜测是否正确。',
@@ -355,6 +409,28 @@ Generate a single number for the Difficulty Class.
     tabLastResult: '最新结果',
     tabStatus: '状态',
     tabItems: '物品',
+    fightTitle: (round: number) => `十二攻心：第 ${round} 回合`,
+    fightDescription: (threshold: number) => `点数比对手更接近${threshold}且未超过。三局两胜。`,
+    fightWin: '你赢得了这场战斗！',
+    fightLoss: '你输掉了这场战斗。',
+    fightNextRound: '开始下一回合',
+    fightLeave: '离开',
+    actions: '行动',
+    pressAction: '要牌',
+    standAction: '停牌',
+    skills: '技能',
+    skillPower: '力量',
+    skillPowerDescription: '回合结束时，最终总点数+1。可多次使用。',
+    skillSidestep: '侧步',
+    skillSidestepDescription: '当一次掷骰导致你爆牌时，使用此技能可取消该次掷骰并立即停牌。',
+    skillBuffer: '缓冲',
+    skillBufferDescription: '被动技能。你的爆牌阈值增加你的体质修正值。',
+    skillPeek: '窥视',
+    skillPeekDescription: '在你要牌前，使用此技能可预知下一次掷骰的点数。',
+    skillPoise: '沉着',
+    skillPoiseDescription: '当你以10点或更少的总点数停牌时，使用此技能可在最终比较时总点数+2。',
+    skillPressure: '施压',
+    skillPressureDescription: '当对手以10点或更少的总点数将要停牌时，使用此技能可迫使他们要牌。',
 
 
     // AI Flow Translations
@@ -534,5 +610,13 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 };
 
 export function getTranslator(language: Language) {
-  return translations[language] || translations.en;
+  const translationsForLang = translations[language] || translations.en;
+
+  // Add a simple proxy to handle function-based translations
+  return new Proxy(translationsForLang, {
+    get(target, prop, receiver) {
+      // Return the value from the target object
+      return Reflect.get(target, prop, receiver);
+    },
+  }) as typeof translations.en;
 }

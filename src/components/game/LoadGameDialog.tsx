@@ -45,7 +45,7 @@ interface LoadGameDialogProps {
 
 export function LoadGameDialog({ isOpen, onOpenChange, saveFiles, onLoad, onDelete, language }: LoadGameDialogProps) {
   const t = useMemo(() => getTranslator(language), [language]);
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -82,14 +82,14 @@ export function LoadGameDialog({ isOpen, onOpenChange, saveFiles, onLoad, onDele
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will permanently delete this save file. This action cannot be undone.
+                                {t.deleteSaveConfirmation}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => onDelete(file.key)}>Delete</AlertDialogAction>
+                              <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onDelete(file.key)}>{t.delete}</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>

@@ -47,7 +47,7 @@ export default function GameSelectionPage() {
   const [playerName, setPlayerName] = useState('');
   const [playerIdentity, setPlayerIdentity] = useState('');
   const [playerLanguage, setPlayerLanguage] = useState<'en' | 'zh'>('en');
-  
+
   const t = useMemo(() => getTranslator(playerStats?.language || playerLanguage), [playerStats, playerLanguage]);
 
   const availableRules: GameRules[] = useMemo(() => {
@@ -93,11 +93,11 @@ export default function GameSelectionPage() {
 
           const keyWithoutPrefix = key.substring(SAVE_PREFIX.length);
           const lastUnderscoreIndex = keyWithoutPrefix.lastIndexOf('_');
-          if (lastUnderscoreIndex === -1) continue; 
+          if (lastUnderscoreIndex === -1) continue;
 
           const ruleId = keyWithoutPrefix.substring(0, lastUnderscoreIndex);
           const timestamp = keyWithoutPrefix.substring(lastUnderscoreIndex + 1);
-          
+
           const rules = getRuleset(ruleId);
           const title = rules?.title || ruleId;
 
@@ -128,13 +128,13 @@ export default function GameSelectionPage() {
     localStorage.removeItem(key);
     findSaveFiles(); // Refresh the list
   }
-  
+
   const handleStartGame = (rulesId: string) => {
       if (!playerStats) return;
       sessionStorage.setItem(PLAYER_STATS_TO_LOAD_KEY, JSON.stringify(playerStats));
       router.push(`/play/${rulesId}`);
   };
-  
+
   const handleSaveCharacter = () => {
     if (!playerName.trim() || !playerIdentity.trim()) {
       alert('Please enter a name and identity.');
@@ -157,7 +157,7 @@ export default function GameSelectionPage() {
         alert("Could not save character. Your browser storage might be full.");
     }
   };
-  
+
   const handleEditCharacter = () => {
       if (playerStats) {
           setPlayerName(playerStats.name);
@@ -166,7 +166,7 @@ export default function GameSelectionPage() {
           setIsEditingCharacter(true);
       }
   };
-  
+
   const confirmDeleteCharacter = () => {
     localStorage.removeItem(PLAYER_STATS_KEY);
     // Also remove all save files associated with this character
@@ -215,10 +215,10 @@ export default function GameSelectionPage() {
         <CardFooter className="flex justify-between">
           <Button onClick={handleSaveCharacter} className="text-lg py-6" disabled={!playerName.trim() || !playerIdentity.trim()}>
             <User className="mr-2" />
-            {isEditingCharacter ? 'Save Changes' : 'Create Character'}
+            {isEditingCharacter ? t.saveChanges : t.createCharacter}
           </Button>
           {isEditingCharacter && (
-              <Button variant="ghost" onClick={() => setIsEditingCharacter(false)}>Cancel</Button>
+              <Button variant="ghost" onClick={() => setIsEditingCharacter(false)}>{t.cancel}</Button>
           )}
         </CardFooter>
       </Card>
@@ -235,7 +235,7 @@ export default function GameSelectionPage() {
                 onClick={() => setIsContinuing(false)}
              >
                 <ArrowLeft className="mr-2" />
-                Back
+                {t.back}
              </Button>
           </header>
 
@@ -260,8 +260,8 @@ export default function GameSelectionPage() {
         {availableRules.length === 0 && (
             <Card className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center border-dashed p-8">
                  <CardHeader className="text-center">
-                    <CardTitle className="font-headline text-2xl">All Adventures Completed!</CardTitle>
-                    <CardDescription>You've played through all available scenarios for this character.</CardDescription>
+                    <CardTitle className="font-headline text-2xl">{t.allAdventuresCompleted}</CardTitle>
+                    <CardDescription>{t.allAdventuresCompletedDescription}</CardDescription>
                 </CardHeader>
             </Card>
         )}
@@ -273,7 +273,7 @@ export default function GameSelectionPage() {
   return (
     <>
     <LoadGameDialog
-        isOpen={isLoadDialogOpen} 
+        isOpen={isLoadDialogOpen}
         onOpenChange={setIsLoadDialogOpen}
         saveFiles={saveFiles}
         onLoad={handleLoadGame}
@@ -298,7 +298,7 @@ export default function GameSelectionPage() {
     </AlertDialog>
 
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 md:p-8">
-      
+
       {!playerStats ? renderCharacterCreator() : isEditingCharacter ? renderCharacterCreator() : (
         isContinuing ? renderScenarioSelector() : (
             // Main character hub
@@ -318,7 +318,7 @@ export default function GameSelectionPage() {
                 <div className="lg:col-span-5 flex flex-col items-center justify-center gap-6 mt-8">
                     <Button size="lg" className="text-xl py-8 px-10" onClick={() => setIsContinuing(true)}>
                         <Forward className="mr-3" />
-                        Continue Adventure
+                        {t.continueAdventure}
                     </Button>
                     <div className="flex gap-4">
                         <Button variant="outline" onClick={handleOpenLoadDialog}>
