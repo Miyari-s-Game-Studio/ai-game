@@ -74,7 +74,7 @@ const CounterItem: React.FC<{ label: string; value: number | boolean; iconMap?: 
 
 
 const HeaderStatus: React.FC<HeaderStatusProps> = ({ tracks, counters, rules }) => {
-    const numericCounters = Object.entries(counters).filter(([, value]) => typeof value === 'number' && value > 0);
+    const numericCounters = Object.entries(counters).filter(([, value]) => typeof value === 'number' && value >= 0);
     const booleanCounters = Object.entries(counters).filter(([, value]) => typeof value === 'boolean' && value);
     const allCounters = [...numericCounters, ...booleanCounters];
 
