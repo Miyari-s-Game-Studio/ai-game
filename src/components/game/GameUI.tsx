@@ -879,28 +879,21 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                 </Button>
               </CardHeader>
             </Card>
-            <Tabs defaultValue="status" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="status">{t.tabStatus}</TabsTrigger>
-                <TabsTrigger value="items">{t.tabItems}</TabsTrigger>
-              </TabsList>
-              <TabsContent value="status">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {Object.entries(gameState.tracks).map(([id, track]) => (
-                      <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]}/>
-                    ))}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="items">
-                <CountersDisplay counters={gameState.counters} iconMap={rules.ui?.counterIcons}
-                                 title={t.keyItemsAndInfo}/>
-              </TabsContent>
-            </Tabs>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-headline">{t.environmentalStatus}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.entries(gameState.tracks).map(([id, track]) => (
+                  <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]}/>
+                ))}
+              </CardContent>
+            </Card>
+            <CountersDisplay 
+              counters={gameState.counters} 
+              iconMap={rules.ui?.counterIcons}
+              title={t.keyItemsAndInfo}
+            />
           </div>
         </div>
       </main>
