@@ -8,7 +8,7 @@
 
 ### 1.1. 顶层属性
 
-- `id` (string, 必需): 唯一标识符。约定格式为 `[名称]_[语言]`，例如 `eco_crisis_zh`。
+- `id` (string, 必需): 唯一标识符。约定格式为 `[名称]_[语言]`，例如 `my_story_zh`。
 - `title` (string, 必需): 显示给玩家的场景名称。
 - `language` (string, 必需): 内容的语言 (`"en"` 或 `"zh"`)。这也决定了使用哪个 AI 提示翻译。
 - `theme` (string, 可选): 场景的视觉主题。可选值: `"theme-default"`, `"theme-forest"`, `"theme-ocean"`, `"theme-crimson"`。
@@ -62,8 +62,8 @@
 `when` 块指定了触发规则的条件。引擎从上到下检查这些规则，并执行*第一个*匹配的规则。
 
 - `actionId`: 玩家选择的行动 ID (例如 `"investigate"`)。
-- `targets` (可选): 一个用管道符 `|` 分隔的字符串列表，用于需要目标的行动。玩家的目标必须匹配其中之一。例如 `"outlet|oil|dead fish"`。
-- `require` (可选): 一个必须评估为 `true` 的 JavaScript 表达式字符串。你可以在表达式中使用 `counters`, `tracks` 和 `player` 变量 (例如 `"counters.clues >= 2 && tracks['eco.pollution'].value < 5"`)。
+- `targets` (可选): 一个用管道符 `|` 分隔的字符串列表，用于需要目标的行动。玩家的目标必须匹配其中之一。例如 `"拉杆|电脑|奇怪的装置"`。
+- `require` (可选): 一个必须评估为 `true` 的 JavaScript 表达式字符串。你可以在表达式中使用 `counters`, `tracks` 和 `player` 变量 (例如 `"counters.my_counter >= 2 && tracks['some_track'].value < 5"`)。
 
 ### 2.3. `do` 与 `fail`: 效果
 
@@ -71,11 +71,11 @@
 
 效果是具有单个键定义效果类型的对象。
 
-- `{"add": "counters.clues,1"}`: 为一个数值计数器增加一个值。路径 (`counters.clues`) 和值 (`1`) 用逗号分隔。使用负数来减去。
-- `{"set": "counters.testimony,true"}`: 设置一个值。可以将计数器设置为布尔值或数字，或者设置 `"next_situation"` 以在行动叙述后将玩家移动到新场景。
-- `{"track": "eco.pollution,-1"}`: 增加或减少一个进度条的值。该值会自动限制在 0 和轨道的最大值之间。
-- `{"log": "你发现了一条线索。"}`: 添加一个程序性日志条目。此日志会发送给 AI，以帮助其生成叙述。
-- `{"if": "counters.clues > 2"}`: 这个键可以添加到任何效果中，使其成为条件性的。
+- `{"add": "counters.my_counter,1"}`: 为一个数值计数器增加一个值。路径 (`counters.my_counter`) 和值 (`1`) 用逗号分隔。使用负数来减去。
+- `{"set": "counters.some_flag,true"}`: 设置一个值。可以将计数器设置为布尔值或数字，或者设置 `"next_situation"` 以在行动叙述后将玩家移动到新场景。
+- `{"track": "some_track,-1"}`: 增加或减少一个进度条的值。该值会自动限制在 0 和轨道的最大值之间。
+- `{"log": "你发现了一些有趣的东西。"}`: 添加一个程序性日志条目。此日志会发送给 AI，以帮助其生成叙述。
+- `{"if": "counters.my_counter > 2"}`: 这个键可以添加到任何效果中，使其成为条件性的。
 
 ## 3. 迷你游戏系统与特殊规则
 
@@ -94,17 +94,17 @@
 1.  **Extract a Secret (探查秘密)**:
     ```json
     "do": [
-      { "secret": "工厂在夜间有可疑的排放。" },
-      { "set": "counters.testimony,true" }
+      { "secret": "市长已经被一个冒名顶替者取代了。" },
+      { "set": "counters.has_secret,true" }
     ]
     ```
-    - `secret` 的值是玩家需要弄清楚的内容。然后玩家可以打开一个对话框来猜测秘密。如果他们是正确的，`do` 块中的*其他*效果（如 `set: "counters.testimony,true"`）将被执行。
+    - `secret` 的值是玩家需要弄清楚的内容。然后玩家可以打开一个对话框来猜测秘密。如果他们是正确的，`do` 块中的*其他*效果（如 `set: "counters.has_secret,true"`）将被执行。
 
 2.  **Reach an Agreement (达成协议)**:
     ```json
     "do": [
-      { "agreement": "工厂将停产整改。" },
-      { "set": "counters.shutdown_ok,true" }
+      { "agreement": "卫兵们会退下，让你通过。" },
+      { "set": "counters.agreement_reached,true" }
     ]
     ```
     - `agreement` 的值是玩家必须说服 NPC 说出的短语。如果 NPC 的回应包含“我同意 [你的目标]”，则目标达成，并且 `do` 块中的其他效果将被执行。
@@ -117,14 +117,14 @@
 只需向一个 `on_action` 规则添加一个 `fail` 数组。`fail` 块的存在告诉引擎这个行动需要一次技能检定。
 
 ```json
-"when": { "actionId": "investigate", "targets": "上游工厂" },
+"when": { "actionId": "investigate", "targets": "上锁的门" },
 "do": [
-  { "add": "counters.clues,1" },
-  { "set": "next_situation,interview_industry" }
+  { "add": "counters.items_found,1" },
+  { "set": "next_situation,inner_sanctum" }
 ],
 "fail": [
-  { "track": "eco.media,1" },
-  { "log": "你的调查陷入停滞，媒体开始报道进展不力。" }
+  { "track": "some_track,1" },
+  { "log": "你的尝试失败了，并且你听到了脚步声正在靠近。" }
 ]
 ```
 
@@ -176,10 +176,10 @@
 在你的 `situations` 对象中的任何一个情境里，添加 `"ending": true`。
 
 ```json
-"restored": {
-  "label": "治理成功",
+"victory_hall": {
+  "label": "胜利！",
   "ending": true,
-  "auto_enter_if": "tracks['eco.pollution'].value <= 2 && tracks['eco.governance'].value >= 7",
+  "auto_enter_if": "tracks['some_track'].value <= 2 && tracks['another_track'].value >= 7",
   "on_action": []
 }
 ```
