@@ -111,6 +111,7 @@
   "situations": {
     "investigate_area": {
       "label": "On-Site Investigation",
+      "description": "The riverbank smells acrid. A few dead fish float on the discolored water, and a small crowd of residents is murmuring nearby. An industrial complex is visible upstream.",
       "on_action": [
         {
           "when": {
@@ -270,6 +271,7 @@
     },
     "interview_industry": {
       "label": "Factory Interview",
+      "description": "Inside the factory's sterile meeting room, the manager offers you a seat while anxiously tapping a pen on the table.",
       "on_action": [
         {
           "when": {
@@ -330,6 +332,7 @@
     },
     "technical_ops": {
       "label": "Technical Operations",
+      "description": "Engineers and workers are setting up water purification equipment along the river. The hum of machinery fills the air.",
       "on_action": [
         {
           "when": {
@@ -387,100 +390,27 @@
     },
     "disaster": {
       "label": "Ecological Collapse",
+      "ending": true,
       "auto_enter_if": "tracks['eco.pollution'].value >= tracks['eco.pollution'].max",
-      "on_action": [
-        {
-          "when": {
-            "actionId": "reflect"
-          },
-          "do": [
-            {
-              "log": "Pollution spiraled out of control, contaminating drinking water. The team will submit a postmortem report and face accountability."
-            }
-          ]
-        }
-      ]
+      "on_action": []
     },
     "scandal": {
       "label": "Public Backlash",
+      "ending": true,
       "auto_enter_if": "tracks['eco.media'].value >= tracks['eco.media'].max && tracks['eco.governance'].value < 5",
-      "on_action": [
-        {
-          "when": {
-            "actionId": "reflect"
-          },
-          "do": [
-            {
-              "log": "Media attention peaked while governance lagged, triggering a crisis of trust and audit."
-            }
-          ]
-        }
-      ]
+      "on_action": []
     },
     "restored": {
       "label": "Successful Remediation",
+      "ending": true,
       "auto_enter_if": "tracks['eco.pollution'].value <= 2 && tracks['eco.governance'].value >= 7",
-      "on_action": [
-        {
-          "when": {
-            "actionId": "celebrate"
-          },
-          "do": [
-            {
-              "log": "Pollution dropped below the safety threshold and the governance system ran smoothly, creating a model case."
-            }
-          ]
-        }
-      ]
+      "on_action": []
     },
     "partial_success": {
       "label": "Partial Success",
+      "ending": true,
       "auto_enter_if": "tracks['eco.pollution'].value <= 4 && tracks['eco.governance'].value >= 5 && tracks['eco.media'].value <= 6",
-      "on_action": [
-        {
-          "when": {
-            "actionId": "reflect"
-          },
-          "do": [
-            {
-              "log": "The trend improved significantly but further engineering and enforcement are needed for consolidation."
-            }
-          ]
-        }
-      ]
+      "on_action": []
     }
-  },
-  "endings": {
-      "restored": {
-          "label": "Ecosystem Restored",
-          "description": "A model case of successful environmental governance.",
-          "modifiers": [
-              { "attribute": "wisdom", "change": 2 },
-              { "attribute": "charisma", "change": 1 }
-          ]
-      },
-      "partial_success": {
-          "label": "Partial Success",
-          "description": "The situation is under control, but requires long-term monitoring.",
-          "modifiers": [
-              { "attribute": "constitution", "change": 1 },
-              { "attribute": "intelligence", "change": 1 }
-          ]
-      },
-      "scandal": {
-          "label": "Public Scandal",
-          "description": "The handling of the case led to a crisis of public trust.",
-          "modifiers": [
-              { "attribute": "charisma", "change": -2 }
-          ]
-      },
-      "disaster": {
-          "label": "Ecological Disaster",
-          "description": "The river ecosystem has collapsed, with severe consequences.",
-          "modifiers": [
-              { "attribute": "wisdom", "change": -1 },
-              { "attribute": "constitution", "change": -1 }
-          ]
-      }
   }
 }

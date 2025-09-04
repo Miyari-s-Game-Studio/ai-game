@@ -157,15 +157,6 @@ export type ActionDetail = {
   description?: string;
 };
 
-export type Ending = {
-  label: string;
-  description: string;
-  modifiers: {
-    attribute: keyof PlayerAttributes;
-    change: number;
-  }[];
-};
-
 export type GameRules = {
   version: number;
   id: string;
@@ -181,7 +172,6 @@ export type GameRules = {
   };
   tracks: Record<string, Track>;
   situations: Record<string, Situation>;
-  endings?: Record<string, Ending>;
   ui?: {
     counterIcons?: Record<string, string>; // keyword -> lucide icon name
     trackStyles?: Record<string, { icon: string; color: string; progressColor: string; }>;

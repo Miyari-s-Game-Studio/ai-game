@@ -30,7 +30,6 @@ import NarrativeLog from './NarrativeLog';
 import {Skeleton} from '../ui/skeleton';
 import {Button} from '../ui/button';
 import {LoadGameDialog, type SaveFile} from './LoadGameDialog';
-import {ActionLogDialog} from './ActionLogDialog';
 import {TalkDialog} from './TalkDialog';
 import {produce} from 'immer';
 import {getTranslator} from '@/lib/i18n';
@@ -44,6 +43,8 @@ import {useRouter} from 'next/navigation';
 import {FightDialog} from './FightDialog';
 import { InventoryDialog } from './InventoryDialog';
 import HeaderStatus from './HeaderStatus';
+import CountersDisplay from "./CountersDisplay";
+import TrackDisplay from "./TrackDisplay";
 
 
 const PLAYER_STATS_KEY = 'narrativeGamePlayer';
@@ -127,7 +128,15 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
   const allowedActions = useMemo(() => {
     if (!currentSituation) return [];
-    const actionIds = currentSituation.on_action.map(rule => rule.when.actionId);
+    let actionIds = currentSituation.on_action.map(rule => rule.when.actionId);
+    if (currentSituation.ending) {
+      // Automatically add "reflect" or "celebrate" to endings
+      if (currentSituation.label.toLowerCase().includes('success') || currentSituation.label.toLowerCase().includes('restored') || currentSituation.label.toLowerCase().includes('celebrate')) {
+        actionIds.push('celebrate');
+      } else {
+        actionIds.push('reflect');
+      }
+    }
     return [...new Set(actionIds)];
   }, [currentSituation]);
 
@@ -144,7 +153,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
   useEffect(() => {
     if (currentSituation) {
-      if (rules.endings?.[gameState.situation]) {
+      if (currentSituation.ending) {
         setIsEnding(true);
         // Save the final player state to local storage when an ending is reached.
         localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(gameState.player));
@@ -382,32 +391,44 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     setTalkFollowUpActions([]);
   };
 
-  const handleItemAction = (action: 'use' | 'discard', item: Item) => {
-    let newPlayerStats;
-    if (action === 'discard') {
-      newPlayerStats = produce(gameState.player, draft => {
-        draft.inventory = draft.inventory.filter(i => i.id !== item.id);
-      });
-    } else if (action === 'use') {
-      // Placeholder for using items.
-      console.log(`Attempted to use item: ${item.name}`);
-      alert(`Using '${item.name}' is not yet implemented.`);
-      return; // Don't update state if action is not implemented
-    }
+  const handleItemAction = (action: 'use' | 'discard' | 'equip' | 'unequip', item: Item) => {
+      if (!gameState.player) return;
 
-    if (newPlayerStats) {
+      const newStats = produce(gameState.player, draft => {
+          if (action === 'discard') {
+              draft.inventory = draft.inventory.filter(i => i.id !== item.id);
+          } else if (action === 'equip') {
+              if (item.slot) {
+                  // Unequip any existing item in the same slot
+                  const currentItemInSlot = draft.inventory.find(i => i.slot === item.slot && draft.equipment[item.slot] === i.name);
+                  if (currentItemInSlot) {
+                      // No action needed on item itself, just update equipment
+                  }
+                  draft.equipment[item.slot] = item.name;
+              }
+          } else if (action === 'unequip') {
+              if (item.slot && draft.equipment[item.slot] === item.name) {
+                  delete draft.equipment[item.slot];
+              }
+          } else if (action === 'use') {
+              // Placeholder for using items.
+              console.log(`Attempted to use item: ${item.name}`);
+              alert(`Using '${item.name}' is not yet implemented.`);
+              return; // Don't update state if action is not implemented
+          }
+      });
+
       // This is a complex state update. We need to update player stats inside gameState
       // AND persist the new player stats to local storage.
       setGameState(produce(draft => {
-          draft.player = newPlayerStats!;
+          draft.player = newStats;
       }));
       try {
         // Also save the updated player stats to the master record.
-        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newPlayerStats));
+        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newStats));
       } catch (e) {
         console.error("Failed to update player stats in storage.", e);
       }
-    }
   };
 
 
@@ -774,6 +795,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             isOpen={isInventoryOpen}
             onOpenChange={setIsInventoryOpen}
             inventory={gameState.player.inventory}
+            equipment={gameState.player.equipment}
             onItemAction={handleItemAction}
             language={gameState.player.language}
         />
