@@ -94,7 +94,7 @@
 1.  **Extract a Secret (探查秘密)**:
     ```json
     "do": [
-      { "secret": "市长已经被一个冒名顶替者取代了。" },
+      { "secret": "能源隐藏在瀑布后面。" },
       { "set": "counters.has_secret,true" }
     ]
     ```
@@ -103,7 +103,7 @@
 2.  **Reach an Agreement (达成协议)**:
     ```json
     "do": [
-      { "agreement": "卫兵们会退下，让你通过。" },
+      { "agreement": "店主会把钥匙给你。" },
       { "set": "counters.agreement_reached,true" }
     ]
     ```
@@ -117,7 +117,7 @@
 只需向一个 `on_action` 规则添加一个 `fail` 数组。`fail` 块的存在告诉引擎这个行动需要一次技能检定。
 
 ```json
-"when": { "actionId": "investigate", "targets": "上锁的门" },
+"when": { "actionId": "investigate", "targets": "可疑的装置" },
 "do": [
   { "add": "counters.items_found,1" },
   { "set": "next_situation,inner_sanctum" }
@@ -145,13 +145,13 @@
 ```json
 "when": {
   "actionId": "fight",
-  "targets": "保安"
+  "targets": "保安机器人"
 },
 "do": [
-  { "log": "你打赢了和保安的架。" }
+  { "log": "你打赢了和保安机器人的架。" }
 ],
 "fail": [
-  { "log": "你输掉了和保安的架。" }
+  { "log": "你输掉了和保安机器人的架。" }
 ]
 ```
 

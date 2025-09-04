@@ -94,7 +94,7 @@ The `do` block for a talk action must define the conversation's objective.
 1.  **Extract a Secret**:
     ```json
     "do": [
-      { "secret": "The mayor has been replaced by an imposter." },
+      { "secret": "The power source is hidden behind the waterfall." },
       { "set": "counters.has_secret,true" }
     ]
     ```
@@ -103,7 +103,7 @@ The `do` block for a talk action must define the conversation's objective.
 2.  **Reach an Agreement**:
     ```json
     "do": [
-      { "agreement": "The guards will stand down and let you pass." },
+      { "agreement": "The shopkeeper will give you the key." },
       { "set": "counters.agreement_reached,true" }
     ]
     ```
@@ -117,7 +117,7 @@ You can require a successful dice roll for an action to succeed.
 Simply add a `fail` array to an `on_action` rule. The presence of a `fail` block tells the engine that this action requires a skill check.
 
 ```json
-"when": { "actionId": "investigate", "targets": "locked_door" },
+"when": { "actionId": "investigate", "targets": "suspicious device" },
 "do": [
   { "add": "counters.items_found,1" },
   { "set": "next_situation,inner_sanctum" }
@@ -145,13 +145,13 @@ Create an `on_action` rule for `actionId: "fight"`. The `targets` can be used to
 ```json
 "when": {
   "actionId": "fight",
-  "targets": "guard"
+  "targets": "security drone"
 },
 "do": [
-  { "log": "You won the fight against the guard." }
+  { "log": "You won the fight against the security drone." }
 ],
 "fail": [
-  { "log": "You lost the fight against the guard." }
+  { "log": "You lost the fight against the security drone." }
 ]
 ```
 
