@@ -2,6 +2,8 @@
 
 This document outlines the structure, gameplay flow, and key features of the interactive narrative game engine.
 
+**For a detailed guide on how to create your own scenarios and write the rules JSON, please see the [Ruleset Authoring Guide](AUTHORING_GUIDE.md).**
+
 ## 1. Core Game Structure
 
 The game is built around a flexible, rules-driven engine that allows for the creation of multiple, distinct scenarios.
