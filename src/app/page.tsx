@@ -147,13 +147,20 @@ export default function GameSelectionPage() {
       alert('Please enter a name and identity.');
       return;
     }
+    const startingInventory: Item[] = [
+        { id: 'jacket_01', name: 'Sturdy Jacket', description: 'A durable jacket suitable for fieldwork.', icon: 'Shirt', slot: 'top' },
+        { id: 'pants_01', name: 'Cargo Pants', description: 'Pants with plenty of pockets.', icon: 'User', slot: 'bottom' },
+        { id: 'boots_01', name: 'Work Boots', description: 'Protects your feet from harsh environments.', icon: 'Footprints', slot: 'shoes' },
+        { id: 'badge_01', name: 'ID Badge', description: 'An official-looking identification badge.', icon: 'Sparkles', slot: 'accessory' }
+    ];
+    
     const newPlayerStats: PlayerStats = {
       name: playerName,
       identity: playerIdentity,
       language: playerLanguage,
       attributes: { strength: 10, dexterity: 12, constitution: 11, intelligence: 14, wisdom: 13, charisma: 12 },
-      equipment: { top: 'Sturdy Jacket', bottom: 'Cargo Pants', shoes: 'Work Boots', accessory: 'ID Badge' },
-      inventory: playerStats?.inventory || [], // Preserve inventory if editing
+      equipment: {}, // Start with nothing equipped
+      inventory: isEditingCharacter ? playerStats?.inventory || [] : startingInventory,
       history: isEditingCharacter ? playerStats?.history : [], // Preserve history if editing
     };
     try {
@@ -394,3 +401,5 @@ export default function GameSelectionPage() {
     </>
   );
 }
+
+    
