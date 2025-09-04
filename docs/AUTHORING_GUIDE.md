@@ -8,7 +8,7 @@ The entire logic and content for a scenario is defined in a single `.json` file 
 
 ### 1.1. Top-Level Properties
 
-- `id` (string, required): A unique identifier. Convention is `[name]_[language]`, e.g., `eco_crisis_en`.
+- `id` (string, required): A unique identifier. Convention is `[name]_[language]`, e.g., `my_story_en`.
 - `title` (string, required): The name of the scenario displayed to the player.
 - `language` (string, required): The language of the content (`"en"` or `"zh"`). This also determines which AI prompt translations are used.
 - `theme` (string, optional): The visual theme for the scenario. Options: `"theme-default"`, `"theme-forest"`, `"theme-ocean"`, `"theme-crimson"`.
@@ -62,8 +62,8 @@ Each situation has an `on_action` array, which is a list of rules that are check
 The `when` block specifies the conditions under which a rule is triggered. The engine checks these rules from top to bottom and executes the *first one* that matches.
 
 - `actionId`: The ID of the action the player chose (e.g., `"investigate"`).
-- `targetPattern` (optional): A string or pipe-separated list of strings for actions that require a target. The player's target must match one of these. E.g., `"outlet|oil|dead fish"`.
-- `require` (optional): A JavaScript expression string that must evaluate to `true`. You can use `counters`, `tracks`, and `player` variables in the expression (e.g., `"counters.clues >= 2 && tracks['eco.pollution'].value < 5"`).
+- `targets` (optional): A pipe-separated `|` list of strings for actions that require a target. The player's target must match one of these. E.g., `"lever|computer|strange device"`.
+- `require` (optional): A JavaScript expression string that must evaluate to `true`. You can use `counters`, `tracks`, and `player` variables in the expression (e.g., `"counters.my_counter >= 2 && tracks['some_track'].value < 5"`).
 
 ### 2.3. `do` and `fail`: The Effects
 
@@ -71,11 +71,11 @@ The `do` array lists the effects that happen when an action is successful. The `
 
 Effects are objects with a single key defining the effect type.
 
-- `{"add": "counters.clues,1"}`: Adds a value to a numeric counter. The path (`counters.clues`) and value (`1`) are comma-separated. Use a negative number to subtract.
-- `{"set": "counters.testimony,true"}`: Sets a value. Can set a counter to a boolean or number, or set `"next_situation"` to move the player to a new scene after the action narrative.
-- `{"track": "eco.pollution,-1"}`: Adds or subtracts from a track's value. The value is automatically clamped between 0 and the track's max.
-- `{"log": "You found a clue."}`: Adds a procedural log entry. This log is sent to the AI to help it generate the narrative.
-- `{"if": "counters.clues > 2"}`: This key can be added to any effect to make it conditional.
+- `{"add": "counters.my_counter,1"}`: Adds a value to a numeric counter. The path (`counters.my_counter`) and value (`1`) are comma-separated. Use a negative number to subtract.
+- `{"set": "counters.some_flag,true"}`: Sets a value. Can set a counter to a boolean or number, or set `"next_situation"` to move the player to a new scene after the action narrative.
+- `{"track": "some_track,-1"}`: Adds or subtracts from a track's value. The value is automatically clamped between 0 and the track's max.
+- `{"log": "You found something interesting."}`: Adds a procedural log entry. This log is sent to the AI to help it generate the narrative.
+- `{"if": "counters.my_counter > 2"}`: This key can be added to any effect to make it conditional.
 
 ## 3. Minigame Systems & Special Rules
 
@@ -94,17 +94,17 @@ The `do` block for a talk action must define the conversation's objective.
 1.  **Extract a Secret**:
     ```json
     "do": [
-      { "secret": "The factory makes suspicious discharges at night." },
-      { "set": "counters.testimony,true" }
+      { "secret": "The power source is hidden behind the waterfall." },
+      { "set": "counters.has_secret,true" }
     ]
     ```
-    - The `secret` value is what the player needs to figure out. The player can then open a dialog to guess the secret. If they are correct, the `do` block's *other* effects (like `set: "counters.testimony,true"`) are executed.
+    - The `secret` value is what the player needs to figure out. The player can then open a dialog to guess the secret. If they are correct, the `do` block's *other* effects (like `set: "counters.has_secret,true"`) are executed.
 
 2.  **Reach an Agreement**:
     ```json
     "do": [
-      { "agreement": "The factory will suspend production for rectification." },
-      { "set": "counters.shutdown_ok,true" }
+      { "agreement": "The shopkeeper will give you the key." },
+      { "set": "counters.agreement_reached,true" }
     ]
     ```
     - The `agreement` value is the phrase the player must persuade the NPC to say. If the NPC's response includes "I agree to [your objective]", the objective is achieved, and the other effects in the `do` block are executed.
@@ -117,14 +117,14 @@ You can require a successful dice roll for an action to succeed.
 Simply add a `fail` array to an `on_action` rule. The presence of a `fail` block tells the engine that this action requires a skill check.
 
 ```json
-"when": { "actionId": "investigate", "targetPattern": "upstream factory" },
+"when": { "actionId": "investigate", "targets": "suspicious device" },
 "do": [
-  { "add": "counters.clues,1" },
-  { "set": "next_situation,interview_industry" }
+  { "add": "counters.items_found,1" },
+  { "set": "next_situation,inner_sanctum" }
 ],
 "fail": [
-  { "track": "eco.media,1" },
-  { "log": "Your investigation stalls, and the media reports on the lack of progress." }
+  { "track": "some_track,1" },
+  { "log": "Your attempt fails, and you hear footsteps approaching." }
 ]
 ```
 
@@ -140,18 +140,18 @@ Simply add a `fail` array to an `on_action` rule. The presence of a `fail` block
 The `fight` action triggers a card-game-like combat minigame called "Twelve Rush".
 
 **How to Trigger:**
-Create an `on_action` rule for `actionId: "fight"`. The `targetPattern` can be used to define the opponent.
+Create an `on_action` rule for `actionId: "fight"`. The `targets` can be used to define the opponent.
 
 ```json
 "when": {
   "actionId": "fight",
-  "targetPattern": "guard"
+  "targets": "security drone"
 },
 "do": [
-  { "log": "You won the fight against the guard." }
+  { "log": "You won the fight against the security drone." }
 ],
 "fail": [
-  { "log": "You lost the fight against the guard." }
+  { "log": "You lost the fight against the security drone." }
 ]
 ```
 
@@ -176,10 +176,10 @@ The game concludes when the player enters a situation that is marked as an endin
 Add `"ending": true` to any situation in your `situations` object.
 
 ```json
-"restored": {
-  "label": "Successful Remediation",
+"victory_hall": {
+  "label": "Victory!",
   "ending": true,
-  "auto_enter_if": "tracks['eco.pollution'].value <= 2 && tracks['eco.governance'].value >= 7",
+  "auto_enter_if": "tracks['some_track'].value <= 2 && tracks['another_track'].value >= 7",
   "on_action": []
 }
 ```

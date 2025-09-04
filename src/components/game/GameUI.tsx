@@ -401,7 +401,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           } else if (action === 'equip') {
               if (item.slot) {
                   // Unequip any existing item in the same slot
-                  const currentItemInSlot = draft.inventory.find(i => i.slot === item.slot && draft.equipment[item.slot] === i.name);
+                  const currentItemInSlot = draft.inventory.find(i => i.slot === item.slot && draft.equipment[item.slot!] === i.name);
                   if (currentItemInSlot) {
                       // No action needed on item itself, just update equipment
                   }
@@ -811,15 +811,22 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           />
         )}
 
-        <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 overflow-hidden">
+        <HeaderStatus
+          tracks={gameState.tracks}
+          counters={gameState.counters}
+          rules={rules}
+          language={rules.language}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 overflow-hidden">
           <div className="lg:col-span-2 space-y-6 flex flex-col">
-            <Card className="flex-grow flex flex-col">
+            <Card className="flex flex-col">
               <CardHeader>
                 <CardTitle className="text-2xl font-headline">
                   {isEnding ? "Scenario Complete" : t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-grow overflow-y-auto pr-4">
+              <CardContent className="max-h-2-3-screen overflow-y-auto pr-4">
                 {isGeneratingScene ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-full"/>
@@ -876,18 +883,20 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
           <Card className="lg:col-span-1 flex flex-col">
             <CardHeader>
-              <CardTitle className="text-xl font-headline">{t.tabStatus}</CardTitle>
+              <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow overflow-y-auto space-y-6">
-                <div className="space-y-4">
-                    {Object.entries(gameState.tracks).map(([id, track]) => (
-                        <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
-                    ))}
-                </div>
-                <CountersDisplay
-                    counters={gameState.counters}
-                    iconMap={rules.ui?.counterIcons}
-                    title={t.keyItemsAndInfo}
+            <CardContent className="flex-grow overflow-hidden">
+                <NarrativeLog
+                    log={gameState.log}
+                    knownTargets={knownTargets}
+                    actionRules={currentSituation.on_action}
+                    actionDetails={rules.actions}
+                    allowedActions={allowedActions}
+                    onTargetClick={handleTargetClick}
+                    onLogTargetClick={handleLogTargetClick}
+                    selectedAction={selectedAction}
+                    isScrollable={true}
+                    language={rules.language}
                 />
             </CardContent>
           </Card>
