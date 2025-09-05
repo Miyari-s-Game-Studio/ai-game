@@ -1,0 +1,612 @@
+{
+  "version": 1,
+  "id": "tutorial_zh",
+  "title": "龙影下的逃生（新手引导）",
+  "language": "zh",
+  "theme": "theme-default",
+  "description": "被押往边境小镇的你在处决广场上迎来一场天崩地裂。在混乱与抉择中，快速体验交谈、检定、战斗与结局。",
+  "actions": {
+    "observe": {
+      "icon": "Eye",
+      "label": "观察"
+    },
+    "move": {
+      "icon": "Navigation",
+      "label": "移动/跟随"
+    },
+    "investigate": {
+      "icon": "Search",
+      "label": "调查/检定"
+    },
+    "unlock": {
+      "icon": "KeySquare",
+      "label": "开锁/破拆"
+    },
+    "take": {
+      "icon": "Hand",
+      "label": "拾取"
+    },
+    "talk": {
+      "icon": "MessageSquare",
+      "label": "交谈"
+    },
+    "fight": {
+      "icon": "Sword",
+      "label": "战斗：十二攻心"
+    }
+  },
+  "ui": {
+    "counterIcons": {
+      "counters.gold": "Coins",
+      "counters.cuffs_locked": "Lock",
+      "counters.has_secret": "Key",
+      "counters.agreement_reached": "ScrollText",
+      "counters.chosen_side": "Swords"
+    },
+    "trackStyles": {
+      "chaos": {
+        "icon": "Flame",
+        "color": "#7f1d1d",
+        "progressColor": "#ef4444"
+      },
+      "trust_rebels": {
+        "icon": "Flag",
+        "color": "#0f766e",
+        "progressColor": "#14b8a6"
+      },
+      "trust_empire": {
+        "icon": "Shield",
+        "color": "#1e3a8a",
+        "progressColor": "#60a5fa"
+      },
+      "wounds": {
+        "icon": "FirstAidKit",
+        "color": "#7c2d12",
+        "progressColor": "#fb923c"
+      },
+      "tutorial": {
+        "icon": "GraduationCap",
+        "color": "#065f46",
+        "progressColor": "#10b981"
+      }
+    }
+  },
+  "initial": {
+    "situation": "cart_intro",
+    "counters": {
+      "gold": 0,
+      "cuffs_locked": true,
+      "has_secret": false,
+      "agreement_reached": false,
+      "chosen_side": 0
+    },
+    "inventory": []
+  },
+  "tracks": {
+    "chaos": {
+      "name": "混乱",
+      "max": 5,
+      "value": 0
+    },
+    "trust_rebels": {
+      "name": "叛军好感",
+      "max": 5,
+      "value": 0
+    },
+    "trust_empire": {
+      "name": "帝国好感",
+      "max": 5,
+      "value": 0
+    },
+    "wounds": {
+      "name": "伤势",
+      "max": 5,
+      "value": 0
+    },
+    "tutorial": {
+      "name": "引导进度",
+      "max": 6,
+      "value": 0
+    }
+  },
+  "situations": {
+    "cart_intro": {
+      "label": "囚车上的颠簸",
+      "description": "铁链勒腕，车轮碾过霜土。与你同车的是一位眼神游移的青年与一名沉默的军士。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "observe"
+          },
+          "do": [
+            {
+              "log": "你深吸一口气，留意四周：押解的旗帜、士兵的编号、同伴的神色。"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "talk",
+            "targets": "同车青年"
+          },
+          "do": [
+            {
+              "secret": "青年其实是叛军的线人，他害怕暴露。"
+            },
+            {
+              "set": "counters.has_secret,true"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            },
+            {
+              "log": "你捕捉到对方话语里的疏漏：他无意中提到只有叛军才知道的口令。"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "move",
+            "targets": "边境小镇·登记处"
+          },
+          "do": [
+            {
+              "log": "囚车减速，你被押解至木栅门后的登记处。"
+            },
+            {
+              "set": "next_situation,checkpoint_registry"
+            }
+          ]
+        }
+      ]
+    },
+    "checkpoint_registry": {
+      "label": "登记处的名单",
+      "description": "粗糙的木桌上摊着名册，盔甲吱呀作响。队长扫你一眼，示意抄写员准备墨笔。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "talk",
+            "targets": "队长"
+          },
+          "do": [
+            {
+              "agreement": "暂缓处决，先核对名单。"
+            },
+            {
+              "set": "counters.agreement_reached,true"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            },
+            {
+              "add": "tracks.trust_empire,1"
+            },
+            {
+              "log": "你冷静陈述籍贯与押解路线的矛盾，队长犹豫片刻，点头示意抄写员翻册。"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "investigate",
+            "targets": "名册"
+          },
+          "do": [
+            {
+              "log": "你趁抄写员分神，扫过名册的页角水印与涂改痕迹。"
+            },
+            {
+              "set": "counters.gold,1"
+            },
+            {
+              "log": "你从桌边扫过的零钱里‘借’走一枚铜币。"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            }
+          ],
+          "fail": [
+            {
+              "log": "抄写员啪地合上名册，狐疑地盯着你。"
+            },
+            {
+              "track": "trust_empire,-1"
+            },
+            {
+              "track": "chaos,1"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "move",
+            "targets": "处决广场"
+          },
+          "do": [
+            {
+              "log": "你被押往广场，寒风吹动绞索，远处传来沉闷的回声。"
+            },
+            {
+              "set": "next_situation,execution_square"
+            }
+          ]
+        }
+      ]
+    },
+    "execution_square": {
+      "label": "广场的阴影",
+      "description": "人群喧哗，刽子手校刀。天空一声异响，尘土自屋檐簌簌而下。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "observe"
+          },
+          "do": [
+            {
+              "log": "你抬头望去，一团黑影掠过云层。"
+            },
+            {
+              "track": "chaos,2"
+            },
+            {
+              "set": "next_situation,dragon_attack"
+            }
+          ]
+        }
+      ]
+    },
+    "dragon_attack": {
+      "label": "天崩地裂",
+      "description": "巨影掠下，尖啸撕裂空气。木架倒塌，人群四散。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "unlock",
+            "targets": "手铐",
+            "require": "counters.cuffs_locked === true && player.hasItem?.('铁钥匙')"
+          },
+          "do": [
+            {
+              "log": "你用‘铁钥匙’解开枷锁，手腕重获自由。"
+            },
+            {
+              "set": "counters.cuffs_locked,false"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "unlock",
+            "targets": "手铐",
+            "require": "counters.cuffs_locked === true && !player.hasItem?.('铁钥匙')"
+          },
+          "do": [
+            {
+              "log": "你用铁片撬扭锁舌，汗水顺指背滑落。"
+            },
+            {
+              "set": "counters.cuffs_locked,false"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            }
+          ],
+          "fail": [
+            {
+              "log": "锁芯卡滞，倒塌的梁木砸在你身侧。"
+            },
+            {
+              "track": "wounds,1"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "move",
+            "targets": "城堡走廊",
+            "require": "counters.cuffs_locked === false"
+          },
+          "do": [
+            {
+              "log": "你贴墙疾走，穿过卷轴挂毯后的侧门。"
+            },
+            {
+              "set": "next_situation,keep_corridor"
+            }
+          ]
+        }
+      ]
+    },
+    "keep_corridor": {
+      "label": "走廊的分岔",
+      "description": "走廊尽头两拨人影对峙：蓝绿披风的叛军与铁蓝甲的帝国兵。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "talk",
+            "targets": "叛军士兵"
+          },
+          "do": [
+            {
+              "agreement": "跟我们走，活下去。"
+            },
+            {
+              "add": "tracks.trust_rebels,2"
+            },
+            {
+              "set": "counters.chosen_side,1"
+            },
+            {
+              "log": "叛军递来一块破旧的护符，示意你紧跟后侧通道。"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "talk",
+            "targets": "帝国士兵"
+          },
+          "do": [
+            {
+              "agreement": "服从指挥，我们保你周全。"
+            },
+            {
+              "add": "tracks.trust_empire,2"
+            },
+            {
+              "set": "counters.chosen_side,2"
+            },
+            {
+              "log": "帝国兵把短剑柄面朝你递来，示意靠后。"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "fight",
+            "targets": "趁火打劫的囚犯"
+          },
+          "do": [
+            {
+              "log": "你稳住节奏，三局两胜压制对手。"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            },
+            {
+              "set": "next_situation,armory"
+            }
+          ],
+          "fail": [
+            {
+              "log": "对手穷追不舍，你被逼得连连后退。"
+            },
+            {
+              "track": "wounds,1"
+            }
+          ]
+        }
+      ]
+    },
+    "armory": {
+      "label": "兵械室",
+      "description": "火把将墙上兵器的影子拉长。尘封的箱子里传来金属轻响。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "take",
+            "targets": "短剑|木盾|简易药水"
+          },
+          "do": [
+            {
+              "log": "你收好一把短剑、一面木盾与一瓶止血药水。"
+            },
+            {
+              "give_item": {
+                "id": "短剑",
+                "qty": 1
+              }
+            },
+            {
+              "give_item": {
+                "id": "木盾",
+                "qty": 1
+              }
+            },
+            {
+              "give_item": {
+                "id": "简易药水",
+                "qty": 1
+              }
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "investigate",
+            "targets": "兵器架"
+          },
+          "do": [
+            {
+              "log": "你找到一把磨损却平衡良好的短剑。"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            }
+          ],
+          "fail": [
+            {
+              "log": "松动的横梁噗地落下，你本能侧身，仍被划出血痕。"
+            },
+            {
+              "track": "wounds,1"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "move",
+            "targets": "内城庭院"
+          },
+          "do": [
+            {
+              "log": "你推门而出，风携着热浪与灰烬扑面。"
+            },
+            {
+              "set": "next_situation,courtyard"
+            }
+          ]
+        }
+      ]
+    },
+    "courtyard": {
+      "label": "庭院的烈焰",
+      "description": "巨影再临，火舌舔过石柱。混乱中有怪物窜行，嘶嘶作响。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "fight",
+            "targets": "趁乱而出的怪蜥"
+          },
+          "do": [
+            {
+              "log": "你抓住空隙反击，险胜而出。"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            },
+            {
+              "set": "next_situation,escape_tunnel"
+            }
+          ],
+          "fail": [
+            {
+              "log": "怪蜥尾鞭横扫，你的手臂一阵发麻。"
+            },
+            {
+              "track": "wounds,1"
+            }
+          ]
+        }
+      ]
+    },
+    "escape_tunnel": {
+      "label": "逃生地道",
+      "description": "潮湿的气息扑面而来，前方土层松软，偶尔有碎石滑落。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "investigate",
+            "targets": "塌方路段"
+          },
+          "do": [
+            {
+              "log": "你用盾顶住上方松土，猫腰穿过最窄的缝隙。"
+            },
+            {
+              "add": "tracks.tutorial,1"
+            },
+            {
+              "set": "next_situation,outside_ridge"
+            }
+          ],
+          "fail": [
+            {
+              "log": "一抔湿泥砸落，你被迫后退几步，胸口发闷。"
+            },
+            {
+              "track": "wounds,1"
+            }
+          ]
+        }
+      ]
+    },
+    "outside_ridge": {
+      "label": "岭上冷风",
+      "description": "你与引路者立在乱石后。下方小镇火光跳跃，巨影远去。",
+      "on_action": [
+        {
+          "when": {
+            "actionId": "talk",
+            "targets": "引路者"
+          },
+          "do": [
+            {
+              "log": "对方询问你的去处：跟谁走，走到哪。"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "move",
+            "targets": "随叛军潜行",
+            "require": "counters.chosen_side === 1"
+          },
+          "do": [
+            {
+              "log": "你与叛军一起滑入荆棘间，避开巡逻火把。"
+            },
+            {
+              "set": "next_situation,ending_rebels"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "move",
+            "targets": "随帝国撤离",
+            "require": "counters.chosen_side === 2"
+          },
+          "do": [
+            {
+              "log": "你随帝国小队隐入山径，沿着溪涧撤离。"
+            },
+            {
+              "set": "next_situation,ending_empire"
+            }
+          ]
+        },
+        {
+          "when": {
+            "actionId": "move",
+            "targets": "独自潜行",
+            "require": "counters.chosen_side === 0"
+          },
+          "do": [
+            {
+              "log": "你谢过双方，独自消失在冷风与松影里。"
+            },
+            {
+              "set": "next_situation,ending_lone"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_rebels": {
+      "label": "山影下的誓言",
+      "ending": true,
+      "description": "你随叛军潜入山岭深处，火光在身后渐熄。",
+      "on_action": []
+    },
+    "ending_empire": {
+      "label": "秩序的承诺",
+      "ending": true,
+      "description": "你随帝国小队撤离至驿站，远处号角低鸣。",
+      "on_action": []
+    },
+    "ending_lone": {
+      "label": "独行者",
+      "ending": true,
+      "description": "你独自行走在薄雪与乱石间，新的旅程正要开始。",
+      "on_action": []
+    }
+  }
+}
