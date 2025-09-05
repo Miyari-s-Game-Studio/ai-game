@@ -1,3 +1,4 @@
+
 // src/components/game/EffectPreview.tsx
 import React from 'react';
 import type { GameRules, DoAction } from '@/types/game';
@@ -49,7 +50,8 @@ const EffectPreview: React.FC<EffectPreviewProps> = ({ effects, rules }) => {
         if (isNaN(val)) return null;
 
         const [obj, key] = path.split('.');
-        
+        if (!key) return null; // Add defensive check here
+
         let name = key;
         if (type === 'track' && rules.tracks[key]) {
             name = rules.tracks[key].name;
@@ -71,14 +73,20 @@ const EffectPreview: React.FC<EffectPreviewProps> = ({ effects, rules }) => {
       }
       case 'set': {
         const [path, valStr] = (params as string).split(',');
-        const [obj, key] = path.split('.');
+        const parts = path.split('.');
+        if (!parts[0]) return null; // Add defensive check here
 
-        if (obj === 'counters') {
-            const counterIconName = rules.ui?.counterIcons?.[key] || rules.ui?.counterIcons?.default;
-            icon = getDynamicIcon(counterIconName);
-            label = key.replace(/_/g, ' ');
-            value = <span className="font-semibold ml-auto text-primary">{valStr}</span>
-        } else if (path === 'next_situation') {
+        if (parts.length === 2) {
+            const [obj, key] = parts;
+            if (obj === 'counters') {
+                const counterIconName = rules.ui?.counterIcons?.[key] || rules.ui?.counterIcons?.default;
+                icon = getDynamicIcon(counterIconName);
+                label = key.replace(/_/g, ' ');
+                value = <span className="font-semibold ml-auto text-primary">{valStr}</span>
+            } else {
+                 return null; // Don't preview other set types
+            }
+        } else if (parts[0] === 'next_situation') {
             icon = ChevronsRight;
             label = "Next Situation";
             const situationLabel = rules.situations[valStr]?.label || valStr;
