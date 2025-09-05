@@ -12,6 +12,7 @@ import {
 import NarrativeLog from './NarrativeLog';
 import type { LogEntry, ActionRule, ActionDetail } from '@/types/game';
 import { getTranslator } from '@/lib/i18n';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface ActionLogDialogProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ export function ActionLogDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex-grow overflow-hidden">
-            <NarrativeLog
+             <NarrativeLog
                 log={log}
                 knownTargets={knownTargets}
                 actionRules={actionRules}

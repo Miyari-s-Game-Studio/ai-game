@@ -119,17 +119,6 @@ const MarkdownRenderer: React.FC<{
 
 
 const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRules, actionDetails, allowedActions, onTargetClick, onLogTargetClick, selectedAction, isScrollable = false, language = 'en' }) => {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollAreaRef.current && isScrollable) {
-        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
-    }
-  }, [log, isScrollable]);
-
   const LogContent = () => (
     <div className="space-y-4">
       {log.length === 0 && !isScrollable && (
@@ -137,7 +126,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
           The story will unfold here...
         </div>
       )}
-      {log.map((entry, index) => {
+      {log.slice().reverse().map((entry, index) => {
         const details = logTypeDetails[entry.type];
         const Icon = details.icon;
         const isSingleNarrative = log.length === 1 && entry.type === 'narrative';
@@ -215,7 +204,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
 
   if (isScrollable) {
       return (
-        <ScrollArea className="h-full w-full pr-4" ref={scrollAreaRef}>
+        <ScrollArea className="h-full w-full pr-4">
           <LogContent />
         </ScrollArea>
       );
