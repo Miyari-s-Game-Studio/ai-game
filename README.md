@@ -1,3 +1,7 @@
+# 中文文档
+[中文文档](README_zh.md)
+
+
 # Interactive Narrative Game Engine
 
 This project is a flexible, AI-powered engine for creating and playing interactive narrative games. It combines a JSON-based ruleset system with generative AI to create dynamic, choice-driven stories. Players take on a role, make decisions, and see the world change in response to their actions, with an AI Game Master weaving the procedural outcomes into a compelling narrative.
