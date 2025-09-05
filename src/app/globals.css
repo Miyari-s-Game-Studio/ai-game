@@ -44,38 +44,38 @@ body {
     --sidebar-ring: 140 29% 34%;
   }
   .dark.theme-default {
-    --background: 140 5% 15%;
-    --foreground: 60 33% 98%;
-    --card: 140 5% 15%;
-    --card-foreground: 60 33% 98%;
-    --popover: 140 5% 15%;
-    --popover-foreground: 60 33% 98%;
-    --primary: 140 29% 45%;
-    --primary-foreground: 60 33% 98%;
-    --secondary: 140 10% 30%;
-    --secondary-foreground: 60 33% 98%;
-    --muted: 140 10% 25%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 33 100% 50%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 140 10% 30%;
-    --input: 140 10% 25%;
-    --ring: 140 29% 45%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
+    --background: 220 15% 18%; /* Dark Blue-Grey */
+    --foreground: 210 20% 95%; /* Light Grey */
+    --card: 220 15% 18%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 15% 12%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 210 90% 60%; /* Bright Blue */
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 15% 30%; /* Medium Grey-Blue */
+    --secondary-foreground: 210 20% 95%;
+    --muted: 220 15% 25%;
+    --muted-foreground: 210 20% 65%;
+    --accent: 210 90% 60%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 25%;
+    --input: 220 15% 22%;
+    --ring: 210 90% 60%;
+    --chart-1: 210 90% 60%;
+    --chart-2: 160 70% 50%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 140 5% 10%;
-    --sidebar-foreground: 60 33% 98%;
-    --sidebar-primary: 140 29% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 140 5% 20%;
-    --sidebar-accent-foreground: 60 33% 98%;
-    --sidebar-border: 140 5% 20%;
-    --sidebar-ring: 140 29% 45%;
+    --sidebar-background: 220 15% 12%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 210 90% 60%;
+    --sidebar-primary-foreground: 210 20% 98%;
+    --sidebar-accent: 220 15% 25%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 210 90% 60%;
   }
 
   /* Sci-fi Theme */
