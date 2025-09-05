@@ -67,7 +67,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
         onTargetChange(actionTarget.target);
       }
     }
-  }, [actionTarget, actionRules, onSelectedActionChange, onTargetChange]);
+  }, [actionTarget]);
 
   const handleActionSelect = (actionId: string) => {
     const requiresTarget = doesActionRequireTarget(actionId);

@@ -74,7 +74,7 @@ const MarkdownRenderer: React.FC<{
             return <span key={index}>{part}</span>;
           }
 
-          // NEW LOGIC: If an action is already selected, just make the target clickable
+          // If an action is selected, highlight the target if it's valid for that action.
           if (selectedAction && validActions.some(action => action.when.actionId === selectedAction)) {
             return (
               <span
@@ -86,36 +86,9 @@ const MarkdownRenderer: React.FC<{
               </span>
             );
           }
-
-
-          // OLD LOGIC: If no action is selected, show the popover
-          return (
-            <Popover key={index}>
-              <PopoverTrigger asChild>
-                <span className="text-underline text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80">
-                  {part}
-                </span>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-2">
-                <div className="flex flex-col gap-1">
-                  {validActions.map(rule => (
-                    <Button
-                      key={rule.when.actionId}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onTargetClick(rule.when.actionId, part)}
-                      className="justify-start"
-                    >
-                      <ChevronRight className="w-4 h-4 mr-2" />
-                      <span>
-                        {actionDetails[rule.when.actionId]?.label || rule.when.actionId}
-                      </span>
-                    </Button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          );
+          
+          // If no action is selected, don't highlight.
+          return <span key={index}>{part}</span>;
         }
         return part;
       });
