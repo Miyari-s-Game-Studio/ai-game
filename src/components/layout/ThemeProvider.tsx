@@ -5,7 +5,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { GameRules } from '@/types/game';
 
-type Theme = 'theme-default' | 'theme-forest' | 'theme-ocean' | 'theme-crimson' | 'theme-pixel';
+type Theme = 'theme-default' | 'theme-pixel' | 'theme-scifi' | 'theme-darksouls';
 
 interface ThemeContextType {
   theme: Theme;
@@ -23,10 +23,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const root = window.document.documentElement;
     
     // Remove old theme classes
-    root.classList.remove('theme-default', 'theme-forest', 'theme-ocean', 'theme-crimson', 'theme-pixel');
+    root.classList.remove('theme-default', 'theme-pixel', 'theme-scifi', 'theme-darksouls');
     
     // Add new theme class
     root.classList.add(themeToApply);
+
+    if (themeToApply === 'theme-pixel') {
+        root.classList.add('font-pixel');
+    } else {
+        root.classList.remove('font-pixel');
+    }
 
     // Always apply dark mode
     root.classList.add('dark');

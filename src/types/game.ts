@@ -163,7 +163,7 @@ export type GameRules = {
   title: string;
   description: string;
   language: 'en' | 'zh';
-  theme?: 'theme-default' | 'theme-forest' | 'theme-ocean' | 'theme-crimson' | 'theme-pixel';
+  theme?: 'theme-default' | 'theme-pixel' | 'theme-scifi' | 'theme-darksouls';
   actions: Record<string, ActionDetail>;
   initial: {
     situation: string;
@@ -261,4 +261,3 @@ export interface GenerateDifficultyClassInput {
   situation: Situation;
   relevantAttributes: (keyof PlayerAttributes)[];
 }
-

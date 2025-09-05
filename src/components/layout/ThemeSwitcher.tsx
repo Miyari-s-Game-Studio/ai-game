@@ -31,10 +31,9 @@ export function ThemeSwitcher() {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setTheme('theme-default')}>Default</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('theme-forest')}>Forest</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('theme-ocean')}>Ocean</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('theme-crimson')}>Crimson</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('theme-pixel')}>Pixel</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('theme-scifi')}>Sci-fi</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('theme-darksouls')}>Darksouls</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
