@@ -11,10 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Palette, Sun, Moon } from 'lucide-react';
+import { Palette } from 'lucide-react';
 
 export function ThemeSwitcher() {
-  const { theme, setTheme, mode, toggleMode } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="flex items-center justify-between px-2">
@@ -37,12 +37,7 @@ export function ThemeSwitcher() {
             <DropdownMenuItem onClick={() => setTheme('theme-pixel')}>Pixel</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="ghost" size="icon" onClick={toggleMode}>
-          {mode === 'dark' ? <Sun /> : <Moon />}
-        </Button>
       </div>
     </div>
   );
 }
-
-    
