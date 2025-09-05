@@ -70,18 +70,11 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   }, [actionTarget]);
 
   const handleActionSelect = (actionId: string) => {
-    const requiresTarget = doesActionRequireTarget(actionId);
-
-    if (requiresTarget) {
-      if (selectedAction === actionId) {
-        onSelectedActionChange(null);
-      } else {
-        onSelectedActionChange(actionId);
-        onTargetChange('');
-      }
+    if (selectedAction === actionId) {
+      onSelectedActionChange(null); // Deselect if clicking the same action
     } else {
-      onAction(actionId);
-      onSelectedActionChange(null);
+      onSelectedActionChange(actionId);
+      onTargetChange(''); // Clear target when a new action is selected
     }
   }
 
@@ -91,6 +84,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     if (selectedAction === 'talk') {
       onTalk(target);
     } else {
+      // For actions without a target, the target parameter will be an empty string, which is fine.
       onAction(selectedAction, target);
     }
 
@@ -98,26 +92,34 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     onSelectedActionChange(null);
   }
 
+  const requiresTarget = selectedAction ? doesActionRequireTarget(selectedAction) : false;
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        {selectedAction && currentActionDetails && doesActionRequireTarget(selectedAction) && (
+        {selectedAction && currentActionDetails && (
           <div className="rounded-lg border bg-background/60 p-4 shadow-sm animate-in fade-in-50">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-lg font-semibold text-primary">
                 {React.createElement(getDynamicIcon(currentActionDetails.icon), {className: 'h-6 w-6'})}
                 <span>{currentActionDetails.label}</span>
               </div>
-              <Input
-                type="text"
-                placeholder="Specify target..."
-                value={target}
-                onChange={(e) => onTargetChange(e.target.value)}
-                disabled={disabled}
-                className="flex-grow bg-background text-base"
-                onKeyDown={(e) => e.key === 'Enter' && target && handleExecute()}
-              />
-              <Button onClick={handleExecute} disabled={disabled || !target}>
+              {requiresTarget && (
+                <Input
+                  type="text"
+                  placeholder="Specify target..."
+                  value={target}
+                  onChange={(e) => onTargetChange(e.target.value)}
+                  disabled={disabled}
+                  className="flex-grow bg-background text-base"
+                  onKeyDown={(e) => e.key === 'Enter' && target && handleExecute()}
+                />
+              )}
+              <Button 
+                onClick={handleExecute} 
+                disabled={disabled || (requiresTarget && !target)}
+                className={!requiresTarget ? 'ml-auto' : ''}
+              >
                 <ChevronRight className="mr-2"/>
                 Execute
               </Button>
