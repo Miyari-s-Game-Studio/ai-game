@@ -49,7 +49,7 @@ import TrackDisplay from "./TrackDisplay";
 import { LatestResultModal } from './LatestResultModal';
 
 
-const PLAYER_STATS_KEY = 'narrativeGamePlayer';
+const PLAYERS_KEY = 'narrativeGame_players';
 
 
 interface GameUIProps {
@@ -257,7 +257,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           const timestamp = keyWithoutPrefix.substring(lastUnderscoreIndex + 1);
 
           // Only show saves for the current game
-          if (ruleId !== rules.id) continue;
+          if (ruleId !== rules.id || state.player.id !== gameState.player.id) continue;
 
           const title = rules.title;
 
@@ -435,7 +435,12 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
       }));
       try {
         // Also save the updated player stats to the master record.
-        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newStats));
+        const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
+        if (allPlayersJson) {
+            const allPlayers = JSON.parse(allPlayersJson);
+            const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === newStats.id ? newStats : p);
+            localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
+        }
       } catch (e) {
         console.error("Failed to update player stats in storage.", e);
       }
@@ -463,9 +468,14 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     // Handle special end-game action
     if (actionId === '__end_scenario__') {
-      localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(gameState.player));
-      router.push('/');
-      return;
+        const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
+        if (allPlayersJson) {
+            const allPlayers = JSON.parse(allPlayersJson);
+            const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === gameState.player.id ? gameState.player : p);
+            localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
+        }
+        router.push('/');
+        return;
     }
 
     // Talk has its own handler
@@ -477,6 +487,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     if (actionId === 'fight') {
       // For now, create a default enemy. This can be expanded later.
       const enemy: PlayerStats = {
+        id: 'enemy', // static id for temp enemy
         name: target || "Guard",
         identity: "A tough-looking guard",
         language: 'en',
