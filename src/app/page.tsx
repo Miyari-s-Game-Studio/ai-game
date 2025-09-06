@@ -1,3 +1,4 @@
+
 // src/app/page.tsx
 'use client';
 
@@ -6,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BookOpen, FolderOpen, User, Edit, Trash2, PlusCircle, ArrowLeft } from 'lucide-react';
+import { BookOpen, FolderOpen, User, Edit, Trash2, PlusCircle, ArrowLeft, Wrench } from 'lucide-react';
 import { getAllRulesetIds, getRuleset } from '@/lib/rulesets';
 import type { GameRules, GameState, PlayerStats, Item } from '@/types/game';
 import { useState, useMemo, useEffect } from 'react';
@@ -321,10 +322,13 @@ export default function GameSelectionPage() {
                 </div>
              )}
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-between">
             <Button onClick={() => handleOpenCreator(null)}>
                 <PlusCircle className="mr-2" />
                 Create New Character
+            </Button>
+            <Button asChild variant="outline">
+                <Link href="/admin/rules"><Wrench className="mr-2" /> {t.manageRules}</Link>
             </Button>
         </CardFooter>
       </Card>
@@ -337,7 +341,7 @@ export default function GameSelectionPage() {
           <CardDescription>{t.defineYourRoleIn} the adventures to come.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-            <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="playerLanguage" className="text-lg">{t.language}</Label>
             <Select value={playerLanguage} onValueChange={(value) => setPlayerLanguage(value as 'en' | 'zh')}>
                 <SelectTrigger id="playerLanguage" className="text-base">
@@ -399,6 +403,9 @@ export default function GameSelectionPage() {
                          }}>
                             <ArrowLeft className="mr-2" />
                             Switch Character
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href="/admin/rules"><Wrench className="mr-2" /> {t.manageRules}</Link>
                         </Button>
                     </div>
                 </div>
@@ -507,11 +514,6 @@ export default function GameSelectionPage() {
 
       {renderView()}
 
-      <div className="absolute bottom-4 right-4">
-          <Button asChild variant="outline">
-              <Link href="/admin/rules">{t.manageRules}</Link>
-          </Button>
-      </div>
     </main>
     </>
   );
