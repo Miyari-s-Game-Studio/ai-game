@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useMemo } from 'react';
 import type { ActionRule, ActionDetail, LogEntry, LogEntryChange } from '@/types/game';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -114,7 +115,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
           The story will unfold here...
         </div>
       )}
-      {log.map((entry, index) => {
+      {log.slice().reverse().map((entry, index) => {
         const details = logTypeDetails[entry.type];
         const Icon = details.icon;
         const isSingleNarrative = log.length === 1 && entry.type === 'narrative';
