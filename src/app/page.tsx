@@ -1,4 +1,3 @@
-
 // src/app/page.tsx
 'use client';
 
@@ -7,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BookOpen, FolderOpen, User, Edit, Trash2, PlusCircle, ArrowLeft, Wrench } from 'lucide-react';
+import { BookOpen, FolderOpen, User, Edit, Trash2, PlusCircle, ArrowLeft, Wrench, Languages } from 'lucide-react';
 import { getAllRulesetIds, getRuleset } from '@/lib/rulesets';
 import type { GameRules, GameState, PlayerStats, Item } from '@/types/game';
 import { useState, useMemo, useEffect } from 'react';
@@ -58,7 +57,10 @@ export default function GameSelectionPage() {
   const [playerIdentity, setPlayerIdentity] = useState('');
   const [playerLanguage, setPlayerLanguage] = useState<'en' | 'zh'>('en');
 
-  const t = useMemo(() => getTranslator(activePlayer?.language || playerLanguage), [activePlayer, playerLanguage]);
+  // New state for the global language switcher
+  const [menuLanguage, setMenuLanguage] = useState<'en' | 'zh'>('en');
+  const t = useMemo(() => getTranslator(activePlayer?.language || menuLanguage), [activePlayer, menuLanguage]);
+
 
   const [availableRules, setAvailableRules] = useState<GameRules[]>([]);
 
@@ -82,6 +84,7 @@ export default function GameSelectionPage() {
             const lastActivePlayer = players.find(p => p.id === activeId);
             if (lastActivePlayer) {
                 setActivePlayer(lastActivePlayer);
+                setMenuLanguage(lastActivePlayer.language);
                 setView('character_hub');
             }
         }
@@ -120,6 +123,7 @@ export default function GameSelectionPage() {
 
   const selectPlayer = (player: PlayerStats) => {
       setActivePlayer(player);
+      setMenuLanguage(player.language);
       localStorage.setItem(ACTIVE_PLAYER_ID_KEY, player.id);
       setView('character_hub');
   };
@@ -188,7 +192,7 @@ export default function GameSelectionPage() {
       } else {
           setPlayerName('');
           setPlayerIdentity('');
-          setPlayerLanguage('en');
+          setPlayerLanguage(menuLanguage);
       }
       setView('character_creator');
   }
@@ -208,7 +212,7 @@ export default function GameSelectionPage() {
             language: playerLanguage,
         };
         updatedPlayers = allPlayers.map(p => p.id === editingPlayer.id ? updatedPlayer : p);
-        setActivePlayer(updatedPlayer);
+        selectPlayer(updatedPlayer);
     } else { // Creating new player
         const startingInventory: Item[] = [
             { id: 'jacket_01', name: 'Sturdy Jacket', description: 'A durable jacket suitable for fieldwork.', icon: 'Shirt', slot: 'top' },
@@ -227,8 +231,7 @@ export default function GameSelectionPage() {
             history: [],
         };
         updatedPlayers = [...allPlayers, newPlayer];
-        setActivePlayer(newPlayer);
-        localStorage.setItem(ACTIVE_PLAYER_ID_KEY, newPlayer.id);
+        selectPlayer(newPlayer);
     }
 
     savePlayers(updatedPlayers);
@@ -300,7 +303,7 @@ export default function GameSelectionPage() {
   const renderCharacterSelector = () => (
     <Card className="w-full max-w-2xl animate-in fade-in-50">
         <CardHeader>
-          <CardTitle className="text-3xl font-headline">Select a Character</CardTitle>
+          <CardTitle className="text-3xl font-headline">{t.yourStory}</CardTitle>
           <CardDescription>Choose a character to continue their story, or create a new one.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -308,7 +311,7 @@ export default function GameSelectionPage() {
                  <div key={player.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
                      <div>
                          <p className="font-bold text-lg">{player.name}</p>
-                         <p className="text-sm text-muted-foreground">{player.identity}</p>
+                         <p className="text-sm text-muted-foreground">{player.identity} ({player.language === 'en' ? 'EN' : 'ZH'})</p>
                      </div>
                      <div className="flex gap-2">
                         <Button variant="outline" onClick={() => selectPlayer(player)}>Select</Button>
@@ -325,7 +328,7 @@ export default function GameSelectionPage() {
         <CardFooter className="flex justify-between">
             <Button onClick={() => handleOpenCreator(null)}>
                 <PlusCircle className="mr-2" />
-                Create New Character
+                {t.createYourCharacter}
             </Button>
             <Button asChild variant="outline">
                 <Link href="/admin/rules"><Wrench className="mr-2" /> {t.manageRules}</Link>
@@ -510,11 +513,27 @@ export default function GameSelectionPage() {
       </AlertDialogContent>
     </AlertDialog>
 
-    <main className="flex flex-col items-center justify-center min-h-screen bg-background p-4 md:p-8">
+    <main className="relative flex flex-col items-center justify-center min-h-screen bg-background p-4 md:p-8">
+        <div className="absolute top-4 right-4 z-10">
+            <Select value={menuLanguage} onValueChange={(value) => setMenuLanguage(value as 'en' | 'zh')}>
+                <SelectTrigger className="w-[140px]">
+                    <div className="flex items-center gap-2">
+                        <Languages />
+                        <SelectValue placeholder="Language" />
+                    </div>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="en">{t.languageEnglish}</SelectItem>
+                    <SelectItem value="zh">{t.languageChinese}</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
 
-      {renderView()}
+        {renderView()}
 
     </main>
     </>
   );
 }
+
+      
