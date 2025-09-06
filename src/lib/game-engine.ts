@@ -64,13 +64,14 @@ async function handleEnding(rules: GameRules, state: GameState): Promise<GameSta
 // This is a placeholder for where you might get the player's stats before the scenario began.
 // In a real implementation, you'd fetch this from a more persistent source when the game starts.
 const initialPlayerStats: PlayerStats = {
-    name: "Player",
-    identity: "An adventurer",
-    language: 'en',
-    attributes: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
-    equipment: {},
-    inventory: [],
-    history: [],
+  name: "Player",
+  identity: "An adventurer",
+  language: 'en',
+  attributes: {strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10},
+  equipment: {},
+  inventory: [],
+  history: [],
+  id: ''
 };
 
 
