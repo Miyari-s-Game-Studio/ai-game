@@ -45,6 +45,7 @@ export type CompletedScenario = {
 };
 
 export type PlayerStats = {
+  id: string;
   name: string;
   identity: string;
   language: 'en' | 'zh';

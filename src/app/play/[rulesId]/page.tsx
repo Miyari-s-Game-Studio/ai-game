@@ -6,6 +6,7 @@ import {useState, useEffect} from 'react';
 import type {PlayerStats, GameRules, GameState} from '@/types/game';
 import {useTheme} from '@/components/layout/ThemeProvider';
 import {notFound, redirect, useParams} from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
 
 interface PlayPageProps {
   params: {
@@ -14,7 +15,8 @@ interface PlayPageProps {
 }
 
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
-const PLAYER_STATS_KEY = 'narrativeGamePlayer';
+const PLAYERS_KEY = 'narrativeGame_players';
+const ACTIVE_PLAYER_ID_KEY = 'narrativeGame_activePlayerId';
 const PLAYER_STATS_TO_LOAD_KEY = 'narrativePlayerStatsToLoad';
 
 export default function PlayPage() {
@@ -71,11 +73,19 @@ export default function PlayPage() {
             return;
         }
     } else {
-        // If there's no saved state and no new player info, check local storage for a player
-        const savedPlayerJson = localStorage.getItem(PLAYER_STATS_KEY);
-         if (savedPlayerJson) {
+        // If there's no saved state and no new player info, check local storage for an active player
+        const activePlayerId = localStorage.getItem(ACTIVE_PLAYER_ID_KEY);
+        const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
+        if (activePlayerId && allPlayersJson) {
             try {
-                setInitialPlayerStats(JSON.parse(savedPlayerJson));
+                const allPlayers = JSON.parse(allPlayersJson);
+                const activePlayer = allPlayers.find((p: PlayerStats) => p.id === activePlayerId);
+                if (activePlayer) {
+                    setInitialPlayerStats(activePlayer);
+                } else {
+                    redirect('/');
+                    return;
+                }
             } catch (e) {
                 console.error("Failed to parse player stats from local storage", e);
                 redirect('/');
