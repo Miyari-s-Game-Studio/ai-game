@@ -39,6 +39,7 @@ interface TalkDialogProps {
   sceneDescription: string;
   conversationType: ConversationType;
   characterProfile: CharacterProfile | null;
+  playerIdentity: string;
   isGenerating: boolean;
   onConversationEnd: (log: LogEntry[], objectiveAchieved: boolean) => void;
   conversationFlow: ConversationFlow | null;
@@ -53,6 +54,7 @@ export function TalkDialog({
                              sceneDescription,
                              conversationType,
                              characterProfile,
+                             playerIdentity,
                              isGenerating,
                              onConversationEnd,
                              conversationFlow,
@@ -123,6 +125,7 @@ export function TalkDialog({
       const result = await conversationFlow({
         language,
         characterProfile,
+        playerIdentity,
         conversationHistory: history,
         playerInput: sentInput,
         objective,

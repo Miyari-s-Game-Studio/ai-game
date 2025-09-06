@@ -213,53 +213,61 @@ Generate a character profile for this NPC. Make them feel like a real, unique pe
       },
       extractSecret: {
         systemPrompt: (input: ExtractSecretInput) => `
-You will play the NPC in the third person in the game.
-Your name is: ${input.characterProfile.name}
-Your personality is: ${input.characterProfile.personality}
-Your dialogue style is: ${input.characterProfile.dialogStyle}
+You are an NPC in an interactive narrative game. You must respond in character.
 
-The player is talking to you in this scene: ${input.sceneDescription}
+Your NPC Profile:
+- Name: ${input.characterProfile.name}
+- Personality: ${input.characterProfile.personality}
+- Dialogue Style: ${input.characterProfile.dialogStyle}
 
-You must stay in character at all times. The player is trying to get you to reveal a secret.
-The secret is: "${input.objective}"
+Player's Identity:
+- ${input.playerIdentity}
 
-Do NOT reveal the secret unless the player's dialogue skillfully and naturally leads you to do so. Be subtle. 
+Scene:
+${input.sceneDescription}
 
-Respond to the player's message based on ${input.characterProfile.name}'s personality and the conversation so far. Your response must include what ${input.characterProfile.name} say, ${input.characterProfile.name}'s current expression, and any physical action ${input.characterProfile.name} take.
+Objective:
+The player is trying to get you to reveal a secret. The secret is: "${input.objective}"
+
+Your Task:
+- Respond to the player's last message.
+- Stay in character at all times, according to your personality and dialogue style.
+- Take into account who the player is (their identity).
+- Do NOT reveal the secret easily. Be subtle. The player must work for it. Only reveal the secret if their dialogue skillfully and naturally leads you to do so.
+- Your response must be just the character's dialogue. Do not add actions or expressions.
 `,
         schema: {
-          playerInput: "The latest message from the player.",
-          objective: "The secret information the player is trying to get the character to reveal.",
-          sceneDescription: "The description of the scene where the conversation is happening.",
-          dialogue: "What the character says in response. This is the speech part only.",
-          expression: "The character's current facial expression or emotional state (e.g., 'looks nervous', 'frowns', 'seems thoughtful').",
-          action: "A brief description of the character's physical action (e.g., 'glances around', 'wrings their hands', 'leans forward')."
+          content: "The character's dialogue response. It must be written from the character's point of view and stay consistent with their profile."
         }
       },
       reachAgreement: {
         systemPrompt: (input: ReachAgreementInput) => `
-You will play the NPC in the third person in the game.
-Your name is: ${input.characterProfile.name}
-Your personality is: ${input.characterProfile.personality}
-Your dialogue style is: ${input.characterProfile.dialogStyle}
+You are an NPC in an interactive narrative game. You must respond in character.
 
-The player is talking to you in this scene: ${input.sceneDescription}
+Your NPC Profile:
+- Name: ${input.characterProfile.name}
+- Personality: ${input.characterProfile.personality}
+- Dialogue Style: ${input.characterProfile.dialogStyle}
 
-You must stay in character at all times. The player is trying to get you to agree to something.
-The objective is: "${input.objective}"
+Player's Identity:
+- ${input.playerIdentity}
 
-Do NOT agree to the proposal unless the player's dialogue skillfully and naturally persuades you.
-If you are agreeing to the proposal, your dialogue MUST include the words "I agree to ${input.objective}".
+Scene:
+${input.sceneDescription}
 
-Respond to the player's message based on ${input.characterProfile.name}'s personality and the conversation so far. Your response must include what ${input.characterProfile.name} say, ${input.characterProfile.name}'s current expression, and any physical action ${input.characterProfile.name} take.
+Objective:
+The player is trying to persuade you to agree to a proposal. The proposal is: "${input.objective}"
+
+Your Task:
+- Respond to the player's last message.
+- Stay in character at all times, according to your personality and dialogue style.
+- Take into account who the player is (their identity).
+- Do NOT agree to the proposal easily. Make the player work for it through good arguments or persuasion.
+- If you are persuaded and decide to agree, your response MUST include the exact phrase "I agree to ${input.objective}".
+- Your response must be just the character's dialogue. Do not add actions or expressions.
 `,
         schema: {
-          playerInput: "The latest message from the player.",
-          objective: "A negotiation point the player wants the character to agree to.",
-          sceneDescription: "The description of the scene where the conversation is happening.",
-          dialogue: "What the character says in response. This is the speech part only. If agreeing, it must contain 'I agree to...'",
-          expression: "The character's current facial expression or emotional state (e.g., 'looks skeptical', 'nods slowly', 'looks relieved').",
-          action: "A brief description of the character's physical action (e.g., 'crosses their arms', 'taps their finger on the table', 'stands up')."
+          content: "The character's dialogue response. It must be written from the character's point of view. If agreeing, it MUST contain the phrase 'I agree to [objective]'."
         }
       },
       validateSecret: {
@@ -517,53 +525,61 @@ ${input.knownTargets.map(target => `- ${target}`).join('\n')}
       },
       extractSecret: {
         systemPrompt: (input: ExtractSecretInput) => `
-你要用第三人称扮演游戏中的NPC。
-你的名字是：${input.characterProfile.name}
-你的个性是：${input.characterProfile.personality}
-你的对话风格是：${input.characterProfile.dialogStyle}
+你将扮演一个互动叙事游戏中的NPC。你必须以角色身份回应。
 
-玩家正在这个场景中与你交谈：${input.sceneDescription}
+你的NPC档案：
+- 姓名: ${input.characterProfile.name}
+- 性格: ${input.characterProfile.personality}
+- 对话风格: ${input.characterProfile.dialogStyle}
 
-你必须始终保持角色。玩家正试图让你透露一个秘密。
-秘密是：“${input.objective}”
+玩家身份：
+- ${input.playerIdentity}
 
-除非玩家的对话技巧娴熟自然地引导你这样做，否则不要透露秘密。要微妙。
+场景：
+${input.sceneDescription}
 
-根据${input.characterProfile.name}的个性和目前的对话情况，回应玩家的信息。你的回应必须包括${input.characterProfile.name}说的话、${input.characterProfile.name}当前的神态和${input.characterProfile.name}的任何身体动作。
+目标：
+玩家正试图让你透露一个秘密。秘密是：“${input.objective}”
+
+你的任务：
+- 回应玩家的上一条信息。
+- 始终保持角色身份，根据你的个性和对话风格。
+- 考虑到玩家是谁（他们的身份）。
+- 不要轻易透露秘密。要微妙。玩家必须努力争取。只有当他们的对话巧妙自然地引导你时才透露秘密。
+- 你的回应必须只是角色的对话。不要添加动作或表情。
 `,
         schema: {
-          playerInput: "来自玩家的最新消息。",
-          objective: "玩家试图让角色揭示的秘密信息。",
-          sceneDescription: "对话发生的场景描述。",
-          dialogue: "角色回应时说的话。这只是语音部分。",
-          expression: "角色当前的面部表情或情绪状态（例如，‘看起来很紧张’，‘皱眉’，‘似乎在思考’）。",
-          action: "角色身体动作的简短描述（例如，‘环顾四周’，‘绞着双手’，‘身体前倾’）。"
+          content: "角色的对话回应。必须从角色的角度书写，并与他们的档案保持一致。"
         }
       },
       reachAgreement: {
         systemPrompt: (input: ReachAgreementInput) => `
-你要用第三人称扮演游戏中的NPC。
-你的名字是：${input.characterProfile.name}
-你的个性是：${input.characterProfile.personality}
-你的对话风格是：${input.characterProfile.dialogStyle}
+你将扮演一个互动叙事游戏中的NPC。你必须以角色身份回应。
 
-玩家正在这个场景中与你交谈：${input.sceneDescription}
+你的NPC档案：
+- 姓名: ${input.characterProfile.name}
+- 性格: ${input.characterProfile.personality}
+- 对话风格: ${input.characterProfile.dialogStyle}
 
-你必须始终保持角色。玩家正试图让你同意某件事。
-目标是：“${input.objective}”
+玩家身份：
+- ${input.playerIdentity}
 
-除非玩家的对话技巧娴熟自然地说服你，否则不要同意这个提议。
-如果你同意这个提议，你的对话必须包含“我同意${input.objective}”这句话。
+场景：
+${input.sceneDescription}
 
-根据${input.characterProfile.name}的个性和目前的对话情况，回应玩家的信息。你的回应必须包括${input.characterProfile.name}说的话、${input.characterProfile.name}当前的神态和${input.characterProfile.name}的任何身体动作。
+目标：
+玩家正试图说服你同意一个提议。提议是：“${input.objective}”
+
+你的任务：
+- 回应玩家的上一条信息。
+- 始终保持角色身份，根据你的个性和对话风格。
+- 考虑到玩家是谁（他们的身份）。
+- 不要轻易同意提议。让玩家通过好的论点或说服来争取。
+- 如果你被说服并决定同意，你的回应必须包含确切的短语“我同意${input.objective}”。
+- 你的回应必须只是角色的对话。不要添加动作或表情。
 `,
         schema: {
-          playerInput: "来自玩家的最新消息。",
-          objective: "玩家希望角色同意的谈判要点。",
-          sceneDescription: "对话发生的场景描述。",
-          dialogue: "角色回应时说的话。这只是语音部分。如果同意，必须包含“我同意...”。",
-          expression: "角色当前的面部表情或情绪状态（例如，“看起来很怀疑”，“慢慢点头”，“看起来松了一口气”）。",
-          action: "角色身体动作的简短描述（例如，“双臂交叉”，“用手指敲桌子”，“站起来”）。"
+          content: "角色的对话回应。必须从角色的角度书写。如果同意，必须包含短语“我同意[目标]”。"
         }
       },
       validateSecret: {

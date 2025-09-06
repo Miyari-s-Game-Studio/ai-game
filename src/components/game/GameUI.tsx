@@ -39,7 +39,6 @@ import {generateSceneDescription} from "@/ai/simple/generate-scene-description";
 import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import {DiceRollDialog} from "@/components/game/DiceRollDialog";
-import {LatestResultModal} from './LatestResultModal';
 import {useRouter} from 'next/navigation';
 import {FightDialog} from './FightDialog';
 import { InventoryDialog } from './InventoryDialog';
@@ -58,12 +57,22 @@ interface GameUIProps {
 }
 
 const getInitialState = (rules: GameRules, playerStats: PlayerStats): GameState => {
+  const finalPlayerStats = produce(playerStats, draft => {
+    // Override identity and inventory if specified in rules
+    if (rules.initial.identity) {
+      draft.identity = rules.initial.identity;
+    }
+    if (rules.initial.inventory) {
+      draft.inventory = rules.initial.inventory;
+    }
+  });
+
   return {
     situation: rules.initial.situation,
     counters: {...rules.initial.counters},
     tracks: JSON.parse(JSON.stringify(rules.tracks)),
     log: [],
-    player: playerStats,
+    player: finalPlayerStats,
     characters: {},
     sceneDescriptions: {},
     actionChecks: {},
@@ -84,13 +93,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   });
   const [sceneDescription, setSceneDescription] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
-  const [latestNarrative, setLatestNarrative] = useState<LogEntry[]>([]);
-  const [actionTarget, setActionTarget] = useState<{ actionId: string, target: string }>();
   const [isPending, startTransition] = useTransition();
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
-  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isFightDialogOpen, setIsFightDialogOpen] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
@@ -448,6 +454,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   }
 
   const handleAction = async (actionId: string, target?: string) => {
+    // Reset selection after execution
+    setSelectedAction(null);
+    setTargetForAction('');
+
     // Talk has its own handler
     if (actionId === 'talk') {
       if (target) handleTalk(target);
@@ -698,14 +708,10 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           changes: changes.length > 0 ? changes : undefined,
         };
 
-        setLatestNarrative([narrativeLog]);
         setGameState(prevState => ({
           ...newState,
           log: [...prevState.log, actionLog, ...engineLogs, narrativeLog],
         }));
-
-        setIsResultModalOpen(true);
-
 
       } catch (error) {
         console.error('Error processing action:', error);
@@ -720,15 +726,14 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
 
   const handleTargetClick = (actionId: string, target: string) => {
-    if (actionId === 'talk') {
-      handleTalk(target);
-    } else {
-      setActionTarget({actionId, target});
-    }
-  };
-
-  const handleLogTargetClick = (target: string) => {
+    setSelectedAction(actionId);
     setTargetForAction(target);
+  };
+  
+  const handleLogTargetClick = (target: string) => {
+    if (selectedAction) {
+        setTargetForAction(target);
+    }
   };
 
   const isLoading = isPending || isGeneratingScene || isGeneratingCharacter || isGeneratingDiceCheck;
@@ -761,6 +766,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           sceneDescription={currentSituation.description || currentSituation.label}
           conversationType={conversationType}
           characterProfile={characterProfile}
+          playerIdentity={gameState.player.identity}
           isGenerating={isGeneratingCharacter}
           onConversationEnd={handleEndTalk}
           conversationFlow={conversationFlow}
@@ -777,19 +783,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           playerStats={gameState.player}
           isGenerating={isGeneratingDiceCheck}
           onRollComplete={handleDiceRollComplete}
-          language={rules.language}
-        />
-        <LatestResultModal
-          isOpen={isResultModalOpen}
-          onOpenChange={setIsResultModalOpen}
-          latestNarrative={latestNarrative}
-          knownTargets={knownTargets}
-          actionRules={currentSituation.on_action}
-          actionDetails={rules.actions}
-          allowedActions={allowedActions}
-          onTargetClick={handleTargetClick}
-          onLogTargetClick={handleLogTargetClick}
-          selectedAction={selectedAction}
           language={rules.language}
         />
         <InventoryDialog
@@ -820,13 +813,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 overflow-hidden">
           <div className="lg:col-span-2 space-y-6 flex flex-col">
-            <Card className="flex flex-col">
+            <Card className="flex flex-col flex-grow">
               <CardHeader>
                 <CardTitle className="text-2xl font-headline">
                   {isEnding ? "Scenario Complete" : t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="max-h-2-3-screen overflow-y-auto pr-4">
+              <CardContent className="flex-grow overflow-y-auto pr-4">
                 {isGeneratingScene ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-full"/>
@@ -869,13 +862,11 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                   actionDetails={rules.actions}
                   actionRules={currentSituation.on_action}
                   onAction={handleAction}
-                  onTalk={handleTalk}
                   disabled={isLoading}
                   selectedAction={selectedAction}
                   onSelectedActionChange={setSelectedAction}
                   target={targetForAction}
                   onTargetChange={setTargetForAction}
-                  actionTarget={actionTarget}
                 />
               )}
             </div>

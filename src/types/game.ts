@@ -169,6 +169,7 @@ export type GameRules = {
     situation: string;
     counters: Record<string, number | boolean>;
     inventory?: Item[];
+    identity?: string;
   };
   tracks: Record<string, Track>;
   situations: Record<string, Situation>;
@@ -218,6 +219,7 @@ export interface GenerateCharacterInput {
 export interface ConversationInput {
   language: 'en' | 'zh';
   characterProfile: CharacterProfile;
+  playerIdentity: string;
   conversationHistory: ConversationHistory;
   playerInput: string;
   objective: string;
@@ -231,9 +233,7 @@ export interface ReachAgreementInput extends ConversationInput {
 };
 
 export interface ConversationOutput {
-  dialogue: string;
-  expression: string;
-  action: string;
+  content: string;
 }
 
 export interface ValidateSecretInput {

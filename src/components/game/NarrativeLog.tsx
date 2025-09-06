@@ -41,13 +41,10 @@ const MarkdownRenderer: React.FC<{
   text: string;
   targets: string[];
   rules: ActionRule[];
-  actionDetails: Record<string, ActionDetail>;
-  allowedActions: string[];
-  onTargetClick: (actionId: string, target: string) => void;
   onLogTargetClick: (target: string) => void;
   selectedAction: string | null;
   language?: 'en' | 'zh';
-}> = ({ text, targets, rules, actionDetails, allowedActions, onTargetClick, onLogTargetClick, selectedAction, language }) => {
+}> = ({ text, targets, rules, onLogTargetClick, selectedAction, language }) => {
 
   const processNode = (node: React.ReactNode, key: number): React.ReactNode => {
     if (typeof node === 'string') {
@@ -62,33 +59,24 @@ const MarkdownRenderer: React.FC<{
       return parts.map((part, index) => {
         const isTarget = targets.some(t => new RegExp(`^${t}$`, 'i').test(part));
 
-        if (isTarget) {
-          const validActions = rules.filter(rule => {
-            if (!allowedActions.includes(rule.when.actionId)) return false;
-            if (!rule.when.targets) return false;
-            const targetPatterns = rule.when.targets.split('|').map(p => p.trim());
-            return targetPatterns.some(p => new RegExp(`^${p}$`, 'i').test(part));
-          });
+        if (isTarget && selectedAction) {
+           const isActionValidForTarget = rules.some(rule =>
+                rule.when.actionId === selectedAction &&
+                rule.when.targets &&
+                new RegExp(`^(${rule.when.targets})$`, 'i').test(part)
+            );
 
-          if (validActions.length === 0) {
-            return <span key={index}>{part}</span>;
-          }
-
-          // If an action is selected, highlight the target if it's valid for that action.
-          if (selectedAction && validActions.some(action => action.when.actionId === selectedAction)) {
+          if (isActionValidForTarget) {
             return (
               <span
                 key={index}
                 onClick={() => onLogTargetClick(part)}
-                className="text-underline text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80"
+                className="underline bg-accent/20 text-accent-foreground font-semibold rounded-md px-1 py-0.5 cursor-pointer hover:opacity-80"
               >
                 {part}
               </span>
             );
           }
-          
-          // If no action is selected, don't highlight.
-          return <span key={index}>{part}</span>;
         }
         return part;
       });
@@ -157,9 +145,6 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
                     text={entry.message}
                     targets={knownTargets}
                     rules={actionRules}
-                    actionDetails={actionDetails}
-                    allowedActions={allowedActions}
-                    onTargetClick={onTargetClick}
                     onLogTargetClick={onLogTargetClick}
                     selectedAction={selectedAction}
                     language={language}

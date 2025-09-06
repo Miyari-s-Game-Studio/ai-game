@@ -20,13 +20,11 @@ interface ActionPanelProps {
   actionDetails: Record<string, ActionDetail>;
   actionRules: ActionRule[];
   onAction: (actionId: string, target?: string) => void;
-  onTalk: (target: string) => void;
   disabled: boolean;
   selectedAction: string | null;
   onSelectedActionChange: (actionId: string | null) => void;
   target: string;
   onTargetChange: (target: string) => void;
-  actionTarget?: { actionId: string, target: string };
 }
 
 const getDynamicIcon = (iconName: string): React.ElementType => {
@@ -42,13 +40,11 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
                                                    actionDetails,
                                                    actionRules,
                                                    onAction,
-                                                   onTalk,
                                                    disabled,
                                                    selectedAction,
                                                    onSelectedActionChange,
                                                    target,
                                                    onTargetChange,
-                                                   actionTarget
                                                  }) => {
 
   const currentActionDetails = useMemo(() => {
@@ -60,14 +56,6 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     return actionRules.some(rule => rule.when.actionId === actionId && rule.when.targets);
   };
 
-  useEffect(() => {
-    if (actionTarget) {
-      if (doesActionRequireTarget(actionTarget.actionId)) {
-        onSelectedActionChange(actionTarget.actionId);
-        onTargetChange(actionTarget.target);
-      }
-    }
-  }, [actionTarget]);
 
   const handleActionSelect = (actionId: string) => {
     if (selectedAction === actionId) {
@@ -80,16 +68,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
 
   const handleExecute = () => {
     if (!selectedAction) return;
-
-    if (selectedAction === 'talk') {
-      onTalk(target);
-    } else {
-      // For actions without a target, the target parameter will be an empty string, which is fine.
-      onAction(selectedAction, target);
-    }
-
-    onTargetChange('');
-    onSelectedActionChange(null);
+    onAction(selectedAction, target);
   }
 
   const requiresTarget = selectedAction ? doesActionRequireTarget(selectedAction) : false;
