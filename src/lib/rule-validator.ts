@@ -97,20 +97,27 @@ function validateSituations(rules: GameRules, errors: ValidationError[]) {
             // Validate 'do' block
             check(errors, Array.isArray(actionRule.do), 'error', "Missing required 'do' array.", `${rulePath}.do`);
             if (actionRule.do) {
-                actionRule.do.forEach((effect, i) => validateEffect(effect, `${rulePath}.do[${i}]`, errors));
+                validateEffectList(actionRule.do, `${rulePath}.do`, errors);
             }
 
             // Validate 'fail' block if it exists
             if (actionRule.fail) {
                  check(errors, Array.isArray(actionRule.fail), 'error', "'fail' must be an array if it exists.", `${rulePath}.fail`);
-                 actionRule.fail.forEach((effect, i) => validateEffect(effect, `${rulePath}.fail[${i}]`, errors));
+                 validateEffectList(actionRule.fail, `${rulePath}.fail`, errors);
             }
         });
     }
 }
 
-function validateEffect(effect: DoAction, path: string, errors: ValidationError[]) {
-    check(errors, typeof effect === 'object' && !Array.isArray(effect), 'error', 'Each effect must be an object.', path);
-    const keys = Object.keys(effect).filter(k => k !== 'if' && k !== 'cap');
-    check(errors, keys.length === 1, 'error', `Each effect must have exactly one action key (e.g., "add", "set"). Found: ${keys.join(', ')}`, path);
+function validateEffectList(effects: DoAction[], path: string, errors: ValidationError[]) {
+    effects.forEach((effect, index) => {
+        const effectPath = `${path}[${index}]`;
+        check(errors, typeof effect === 'object' && !Array.isArray(effect), 'error', 'Each effect must be an object.', effectPath);
+        const keys = Object.keys(effect).filter(k => k !== 'if' && k !== 'cap');
+        check(errors, keys.length === 1, 'error', `Each effect must have exactly one action key (e.g., "add", "set"). Found: ${keys.join(', ')}`, effectPath);
+
+        if ('log' in effect) {
+            check(errors, index === effects.length - 1, 'error', "The 'log' effect must be the last item in an effects list.", effectPath);
+        }
+    });
 }
