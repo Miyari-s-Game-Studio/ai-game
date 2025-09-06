@@ -45,6 +45,7 @@ import { InventoryDialog } from './InventoryDialog';
 import HeaderStatus from './HeaderStatus';
 import CountersDisplay from "./CountersDisplay";
 import TrackDisplay from "./TrackDisplay";
+import { LatestResultModal } from './LatestResultModal';
 
 
 const PLAYER_STATS_KEY = 'narrativeGamePlayer';
@@ -100,6 +101,8 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [isFightDialogOpen, setIsFightDialogOpen] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
+  const [isLatestResultModalOpen, setIsLatestResultModalOpen] = useState(false);
+  const [latestNarrative, setLatestNarrative] = useState<LogEntry[]>([]);
 
 
   // State for ActionPanel that is now managed here
@@ -606,6 +609,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     startTransition(async () => {
       try {
         const oldState = gameState;
+        const oldLogLength = oldState.log.length;
 
         const actionLog: LogEntry = {
           id: Date.now(),
@@ -707,11 +711,12 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           message: narrativeOutput.narrative,
           changes: changes.length > 0 ? changes : undefined,
         };
+        
+        const finalLog = [...oldState.log, actionLog, ...engineLogs, narrativeLog];
+        setGameState({ ...newState, log: finalLog });
+        setLatestNarrative(finalLog.slice(oldLogLength));
+        setIsLatestResultModalOpen(true);
 
-        setGameState(prevState => ({
-          ...newState,
-          log: [...prevState.log, actionLog, ...engineLogs, narrativeLog],
-        }));
 
       } catch (error) {
         console.error('Error processing action:', error);
@@ -793,6 +798,25 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             onItemAction={handleItemAction}
             language={gameState.player.language}
         />
+         <LatestResultModal
+            isOpen={isLatestResultModalOpen}
+            onOpenChange={setIsLatestResultModalOpen}
+            latestNarrative={latestNarrative}
+            knownTargets={knownTargets}
+            actionRules={currentSituation.on_action}
+            actionDetails={rules.actions}
+            allowedActions={allowedActions}
+            onTargetClick={(actionId, target) => {
+                handleTargetClick(actionId, target);
+                setIsLatestResultModalOpen(false);
+            }}
+            onLogTargetClick={(target) => {
+                handleLogTargetClick(target);
+                setIsLatestResultModalOpen(false);
+            }}
+            selectedAction={selectedAction}
+            language={rules.language}
+        />
         {fightTarget && (
           <FightDialog
             isOpen={isFightDialogOpen}
@@ -811,7 +835,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           language={rules.language}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 flex-grow overflow-hidden">
           <div className="lg:col-span-2 space-y-6 flex flex-col overflow-hidden">
             <Card className="flex flex-col flex-grow min-h-0">
               <CardHeader>
@@ -844,7 +868,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
               </CardContent>
             </Card>
 
-            <div>
+            <div className="shrink-0">
               {isLoading && !isEnding ? (
                 <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
                   <Loader2 className="h-8 w-8 animate-spin text-primary"/>

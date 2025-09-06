@@ -1,3 +1,4 @@
+
 // src/components/game/LatestResultModal.tsx
 'use client';
 import React, { useMemo } from 'react';
