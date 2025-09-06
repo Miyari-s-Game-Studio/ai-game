@@ -114,7 +114,7 @@ const NarrativeLog: React.FC<NarrativeLogProps> = ({ log, knownTargets, actionRu
           The story will unfold here...
         </div>
       )}
-      {log.slice().reverse().map((entry, index) => {
+      {log.map((entry, index) => {
         const details = logTypeDetails[entry.type];
         const Icon = details.icon;
         const isSingleNarrative = log.length === 1 && entry.type === 'narrative';

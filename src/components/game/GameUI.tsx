@@ -896,11 +896,11 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             </div>
           </div>
 
-          <Card className="lg:col-span-1 flex flex-col">
+          <Card className="lg:col-span-1 flex flex-col overflow-hidden">
             <CardHeader>
               <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow overflow-hidden">
+            <CardContent className="flex-grow overflow-y-auto">
                 <NarrativeLog
                     log={gameState.log}
                     knownTargets={knownTargets}
