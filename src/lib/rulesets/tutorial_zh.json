@@ -120,10 +120,10 @@
           },
           "do": [
             {
-              "log": "你深吸一口气，留意四周：押解的旗帜、士兵的编号、同伴的神色。"
+              "add": "tracks.tutorial,1"
             },
             {
-              "add": "tracks.tutorial,1"
+              "log": "你深吸一口气，留意四周：押解的旗帜、士兵的编号、同伴的神色。"
             }
           ]
         },
@@ -154,10 +154,10 @@
           },
           "do": [
             {
-              "log": "囚车减速，你被押解至木栅门后的登记处。"
+              "set": "next_situation,checkpoint_registry"
             },
             {
-              "set": "next_situation,checkpoint_registry"
+              "log": "囚车减速，你被押解至木栅门后的登记处。"
             }
           ]
         }
@@ -197,27 +197,24 @@
           },
           "do": [
             {
-              "log": "你趁抄写员分神，扫过名册的页角水印与涂改痕迹。"
-            },
-            {
               "set": "counters.gold,1"
             },
             {
-              "log": "你从桌边扫过的零钱里‘借’走一枚铜币。"
+              "add": "tracks.tutorial,1"
             },
             {
-              "add": "tracks.tutorial,1"
+              "log": "你趁抄写员分神，扫过名册的页角水印与涂改痕迹。你从桌边扫过的零钱里‘借’走一枚铜币。"
             }
           ],
           "fail": [
-            {
-              "log": "抄写员啪地合上名册，狐疑地盯着你。"
-            },
             {
               "track": "trust_empire,-1"
             },
             {
               "track": "chaos,1"
+            },
+            {
+              "log": "抄写员啪地合上名册，狐疑地盯着你。"
             }
           ]
         },
@@ -228,10 +225,10 @@
           },
           "do": [
             {
-              "log": "你被押往广场，寒风吹动绞索，远处传来沉闷的回声。"
+              "set": "next_situation,execution_square"
             },
             {
-              "set": "next_situation,execution_square"
+              "log": "你被押往广场，寒风吹动绞索，远处传来沉闷的回声。"
             }
           ]
         }
@@ -247,13 +244,13 @@
           },
           "do": [
             {
-              "log": "你抬头望去，一团黑影掠过云层。"
-            },
-            {
               "track": "chaos,2"
             },
             {
               "set": "next_situation,dragon_attack"
+            },
+            {
+              "log": "你抬头望去，一团黑影掠过云层。"
             }
           ]
         }
@@ -271,13 +268,13 @@
           },
           "do": [
             {
-              "log": "你用‘铁钥匙’解开枷锁，手腕重获自由。"
-            },
-            {
               "set": "counters.cuffs_locked,false"
             },
             {
               "add": "tracks.tutorial,1"
+            },
+            {
+              "log": "你用‘铁钥匙’解开枷锁，手腕重获自由。"
             }
           ]
         },
@@ -289,21 +286,21 @@
           },
           "do": [
             {
-              "log": "你用铁片撬扭锁舌，汗水顺指背滑落。"
-            },
-            {
               "set": "counters.cuffs_locked,false"
             },
             {
               "add": "tracks.tutorial,1"
+            },
+            {
+              "log": "你用铁片撬扭锁舌，汗水顺指背滑落。"
             }
           ],
           "fail": [
             {
-              "log": "锁芯卡滞，倒塌的梁木砸在你身侧。"
+              "track": "wounds,1"
             },
             {
-              "track": "wounds,1"
+              "log": "锁芯卡滞，倒塌的梁木砸在你身侧。"
             }
           ]
         },
@@ -315,10 +312,10 @@
           },
           "do": [
             {
-              "log": "你贴墙疾走，穿过卷轴挂毯后的侧门。"
+              "set": "next_situation,keep_corridor"
             },
             {
-              "set": "next_situation,keep_corridor"
+              "log": "你贴墙疾走，穿过卷轴挂毯后的侧门。"
             }
           ]
         }
@@ -375,21 +372,21 @@
           },
           "do": [
             {
-              "log": "你稳住节奏，三局两胜压制对手。"
-            },
-            {
               "add": "tracks.tutorial,1"
             },
             {
               "set": "next_situation,armory"
+            },
+            {
+              "log": "你稳住节奏，三局两胜压制对手。"
             }
           ],
           "fail": [
             {
-              "log": "对手穷追不舍，你被逼得连连后退。"
+              "track": "wounds,1"
             },
             {
-              "track": "wounds,1"
+              "log": "对手穷追不舍，你被逼得连连后退。"
             }
           ]
         }
@@ -405,9 +402,6 @@
             "targets": "短剑|木盾|简易药水"
           },
           "do": [
-            {
-              "log": "你收好一把短剑、一面木盾与一瓶止血药水。"
-            },
             {
               "give_item": {
                 "id": "短剑",
@@ -425,6 +419,9 @@
                 "id": "简易药水",
                 "qty": 1
               }
+            },
+            {
+              "log": "你收好一把短剑、一面木盾与一瓶止血药水。"
             }
           ]
         },
@@ -435,18 +432,18 @@
           },
           "do": [
             {
-              "log": "你找到一把磨损却平衡良好的短剑。"
+              "add": "tracks.tutorial,1"
             },
             {
-              "add": "tracks.tutorial,1"
+              "log": "你找到一把磨损却平衡良好的短剑。"
             }
           ],
           "fail": [
             {
-              "log": "松动的横梁噗地落下，你本能侧身，仍被划出血痕。"
+              "track": "wounds,1"
             },
             {
-              "track": "wounds,1"
+              "log": "松动的横梁噗地落下，你本能侧身，仍被划出血痕。"
             }
           ]
         },
@@ -457,10 +454,10 @@
           },
           "do": [
             {
-              "log": "你推门而出，风携着热浪与灰烬扑面。"
+              "set": "next_situation,courtyard"
             },
             {
-              "set": "next_situation,courtyard"
+              "log": "你推门而出，风携着热浪与灰烬扑面。"
             }
           ]
         }
@@ -477,21 +474,21 @@
           },
           "do": [
             {
-              "log": "你抓住空隙反击，险胜而出。"
-            },
-            {
               "add": "tracks.tutorial,1"
             },
             {
               "set": "next_situation,escape_tunnel"
+            },
+            {
+              "log": "你抓住空隙反击，险胜而出。"
             }
           ],
           "fail": [
             {
-              "log": "怪蜥尾鞭横扫，你的手臂一阵发麻。"
+              "track": "wounds,1"
             },
             {
-              "track": "wounds,1"
+              "log": "怪蜥尾鞭横扫，你的手臂一阵发麻。"
             }
           ]
         }
@@ -508,21 +505,21 @@
           },
           "do": [
             {
-              "log": "你用盾顶住上方松土，猫腰穿过最窄的缝隙。"
-            },
-            {
               "add": "tracks.tutorial,1"
             },
             {
               "set": "next_situation,outside_ridge"
+            },
+            {
+              "log": "你用盾顶住上方松土，猫腰穿过最窄的缝隙。"
             }
           ],
           "fail": [
             {
-              "log": "一抔湿泥砸落，你被迫后退几步，胸口发闷。"
+              "track": "wounds,1"
             },
             {
-              "track": "wounds,1"
+              "log": "一抔湿泥砸落，你被迫后退几步，胸口发闷。"
             }
           ]
         }
@@ -551,10 +548,10 @@
           },
           "do": [
             {
-              "log": "你与叛军一起滑入荆棘间，避开巡逻火把。"
+              "set": "next_situation,ending_rebels"
             },
             {
-              "set": "next_situation,ending_rebels"
+              "log": "你与叛军一起滑入荆棘间，避开巡逻火把。"
             }
           ]
         },
@@ -566,10 +563,10 @@
           },
           "do": [
             {
-              "log": "你随帝国小队隐入山径，沿着溪涧撤离。"
+              "set": "next_situation,ending_empire"
             },
             {
-              "set": "next_situation,ending_empire"
+              "log": "你随帝国小队隐入山径，沿着溪涧撤离。"
             }
           ]
         },
@@ -581,10 +578,10 @@
           },
           "do": [
             {
-              "log": "你谢过双方，独自消失在冷风与松影里。"
+              "set": "next_situation,ending_lone"
             },
             {
-              "set": "next_situation,ending_lone"
+              "log": "你谢过双方，独自消失在冷风与松影里。"
             }
           ]
         }

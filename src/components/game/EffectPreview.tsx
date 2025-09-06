@@ -14,7 +14,7 @@ interface EffectPreviewProps {
 
 const getDynamicIcon = (iconName?: string): React.ElementType => {
   if (iconName && LucideIcons[iconName as keyof typeof LucideIcons]) {
-    return LucideIcons[iconName as keyof typeof LucideIcons];
+    return LucideIcons[iconName as keyof typeof LucideIcons] as any;
   }
   return LucideIcons.Star;
 };

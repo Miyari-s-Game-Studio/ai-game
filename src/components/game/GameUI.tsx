@@ -24,12 +24,10 @@ import {
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useToast} from '@/hooks/use-toast';
-import {BookOpen, ChevronsRight, Loader2} from 'lucide-react';
+import {Loader2} from 'lucide-react';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import {Skeleton} from '../ui/skeleton';
-import {Button} from '../ui/button';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {LoadGameDialog, type SaveFile} from './LoadGameDialog';
 import {TalkDialog} from './TalkDialog';
 import {produce} from 'immer';
@@ -41,11 +39,9 @@ import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/g
 import {DiceRollDialog} from "@/components/game/DiceRollDialog";
 import {useRouter} from 'next/navigation';
 import {FightDialog} from './FightDialog';
-import { InventoryDialog } from './InventoryDialog';
+import {InventoryDialog} from './InventoryDialog';
 import HeaderStatus from './HeaderStatus';
-import CountersDisplay from "./CountersDisplay";
-import TrackDisplay from "./TrackDisplay";
-import { LatestResultModal } from './LatestResultModal';
+import {LatestResultModal} from './LatestResultModal';
 
 
 const PLAYER_STATS_KEY = 'narrativeGamePlayer';
@@ -711,7 +707,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           message: narrativeOutput.narrative,
           changes: changes.length > 0 ? changes : undefined,
         };
-        
+
         const finalLog = [...oldState.log, actionLog, ...engineLogs, narrativeLog];
         setGameState({ ...newState, log: finalLog });
         setLatestNarrative(finalLog.slice(oldLogLength));
@@ -734,7 +730,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     setSelectedAction(actionId);
     setTargetForAction(target);
   };
-  
+
   const handleLogTargetClick = (target: string) => {
     if (selectedAction) {
         setTargetForAction(target);

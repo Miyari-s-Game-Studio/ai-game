@@ -99,6 +99,16 @@ export async function processAction(
               if (cap !== undefined && (draft.counters[key] as number) > cap) {
                 draft.counters[key] = cap;
               }
+            }else if(obj === 'tracks'){
+              if (draft.tracks[key]) {
+                draft.tracks[key].value += val;
+                if (draft.tracks[key].value > draft.tracks[key].max) {
+                  draft.tracks[key].value = draft.tracks[key].max;
+                }
+                if (draft.tracks[key].value < 0) {
+                  draft.tracks[key].value = 0;
+                }
+              }
             }
             break;
           }
@@ -214,7 +224,7 @@ export async function processAction(
         }
         draft.history.push(historyEntry);
      });
-     
+
      newState = produce(newState, draft => {
         draft.player = playerAfterEnding;
      });
