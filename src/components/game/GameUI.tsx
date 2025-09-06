@@ -3,6 +3,7 @@
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
   ActionCheckState,
+  ActionDetail,
   CharacterProfile,
   ExtractSecretInput,
   GameRules,
@@ -24,10 +25,12 @@ import {
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useToast} from '@/hooks/use-toast';
-import {Loader2} from 'lucide-react';
+import {BookOpen, ChevronsRight, Loader2, LogOut} from 'lucide-react';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import {Skeleton} from '../ui/skeleton';
+import {Button} from '../ui/button';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {LoadGameDialog, type SaveFile} from './LoadGameDialog';
 import {TalkDialog} from './TalkDialog';
 import {produce} from 'immer';
@@ -41,6 +44,8 @@ import {useRouter} from 'next/navigation';
 import {FightDialog} from './FightDialog';
 import {InventoryDialog} from './InventoryDialog';
 import HeaderStatus from './HeaderStatus';
+import CountersDisplay from "./CountersDisplay";
+import TrackDisplay from "./TrackDisplay";
 import {LatestResultModal} from './LatestResultModal';
 
 
@@ -96,7 +101,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
   const [isFightDialogOpen, setIsFightDialogOpen] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
-  const [isEnding, setIsEnding] = useState(false);
   const [isLatestResultModalOpen, setIsLatestResultModalOpen] = useState(false);
   const [latestNarrative, setLatestNarrative] = useState<LogEntry[]>([]);
 
@@ -131,20 +135,27 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const t = useMemo(() => getTranslator(rules.language), [rules.language]);
 
   const currentSituation: Situation | undefined = rules.situations[gameState.situation];
+  const isEnding = currentSituation?.ending === true;
 
-  const allowedActions = useMemo(() => {
-    if (!currentSituation) return [];
+  const { allowedActions, actionDetails } = useMemo(() => {
+    if (!currentSituation) return { allowedActions: [], actionDetails: {} };
+
     let actionIds = currentSituation.on_action.map(rule => rule.when.actionId);
-    if (currentSituation.ending) {
-      // Automatically add "reflect" or "celebrate" to endings
-      if (currentSituation.label.toLowerCase().includes('success') || currentSituation.label.toLowerCase().includes('restored') || currentSituation.label.toLowerCase().includes('celebrate')) {
-        actionIds.push('celebrate');
-      } else {
-        actionIds.push('reflect');
+    const newActionDetails: Record<string, ActionDetail> = { ...rules.actions };
+
+    if (isEnding) {
+      actionIds = ['__end_scenario__'];
+      newActionDetails['__end_scenario__'] = {
+        icon: "LogOut",
+        label: t.endScenario,
+        description: t.endScenarioDescription
+      };
       }
-    }
-    return [...new Set(actionIds)];
-  }, [currentSituation]);
+    return {
+      allowedActions: [...new Set(actionIds)],
+      actionDetails: newActionDetails
+    };
+  }, [currentSituation, rules.actions, isEnding, t]);
 
   const knownTargets = useMemo(() => {
     if (!currentSituation) return [];
@@ -159,13 +170,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
   useEffect(() => {
     if (currentSituation) {
-      if (currentSituation.ending) {
-        setIsEnding(true);
-        // Save the final player state to local storage when an ending is reached.
-        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(gameState.player));
-      } else {
-        setIsEnding(false);
-      }
       generateNewScene(gameState.situation, currentSituation);
     }
   }, [gameState.situation]);
@@ -457,6 +461,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     setSelectedAction(null);
     setTargetForAction('');
 
+    // Handle special end-game action
+    if (actionId === '__end_scenario__') {
+      localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(gameState.player));
+      router.push('/');
+      return;
+    }
+
     // Talk has its own handler
     if (actionId === 'talk') {
       if (target) handleTalk(target);
@@ -476,13 +487,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
       };
       setFightTarget(enemy);
       setIsFightDialogOpen(true);
-      return;
-    }
-
-    if (isEnding) {
-      if (actionId === 'reflect' || actionId === 'celebrate') {
-        router.push('/');
-      }
       return;
     }
 
@@ -621,8 +625,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           isSuccess,
           actionRulesOverride
         );
-
-        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(newState.player));
 
         const changes: LogEntryChange[] = [];
 
@@ -800,7 +802,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             latestNarrative={latestNarrative}
             knownTargets={knownTargets}
             actionRules={currentSituation.on_action}
-            actionDetails={rules.actions}
+            actionDetails={actionDetails}
             allowedActions={allowedActions}
             onTargetClick={(actionId, target) => {
                 handleTargetClick(actionId, target);
@@ -836,7 +838,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
             <Card className="flex flex-col flex-grow min-h-0">
               <CardHeader>
                 <CardTitle className="text-2xl font-headline">
-                  {isEnding ? "Scenario Complete" : t.currentSituation}: {currentSituation.label}
+                  {isEnding ? t.scenarioComplete : t.currentSituation}: {currentSituation.label}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-grow overflow-y-auto pr-4">
@@ -852,7 +854,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                       log={[{id: 0, type: 'narrative', message: sceneDescription}]}
                       knownTargets={knownTargets}
                       actionRules={currentSituation.on_action}
-                      actionDetails={rules.actions}
+                      actionDetails={actionDetails}
                       allowedActions={allowedActions}
                       onTargetClick={handleTargetClick}
                       onLogTargetClick={handleLogTargetClick}
@@ -879,7 +881,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                 <ActionPanel
                   rules={rules}
                   allowedActions={allowedActions}
-                  actionDetails={rules.actions}
+                  actionDetails={actionDetails}
                   actionRules={currentSituation.on_action}
                   onAction={handleAction}
                   disabled={isLoading}
@@ -901,7 +903,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
                     log={gameState.log}
                     knownTargets={knownTargets}
                     actionRules={currentSituation.on_action}
-                    actionDetails={rules.actions}
+                    actionDetails={actionDetails}
                     allowedActions={allowedActions}
                     onTargetClick={handleTargetClick}
                     onLogTargetClick={handleLogTargetClick}
