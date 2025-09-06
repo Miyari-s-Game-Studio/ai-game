@@ -16,6 +16,64 @@ function evaluateCondition(condition: string, state: GameState): boolean {
   }
 }
 
+async function handleEnding(rules: GameRules, state: GameState): Promise<GameState> {
+    const endingSituation = rules.situations[state.situation];
+    if (!endingSituation || !endingSituation.ending) {
+        return state;
+    }
+    
+    // Check if this specific ending has already been added to history
+    const hasHistoryEntry = state.player.history?.some(h => h.rulesId === rules.id);
+    if (hasHistoryEntry) {
+        return state; // Avoid duplicating history on re-enter/reload
+    }
+
+    return produce(state, draft => {
+        const oldAttributes = { ...initialPlayerStats.attributes }; // Assuming you can get the pre-scenario stats
+        const attributeChanges: AttributeChange[] = [];
+
+        (Object.keys(draft.player.attributes) as Array<keyof PlayerAttributes>).forEach(attr => {
+            const oldValue = oldAttributes[attr] || 0;
+            const newValue = draft.player.attributes[attr];
+            if (newValue !== oldValue) {
+                attributeChanges.push({
+                    attribute: attr,
+                    change: newValue - oldValue,
+                    oldValue: oldValue,
+                    newValue: newValue,
+                });
+            }
+        });
+
+        const historyEntry: CompletedScenario = {
+            rulesId: rules.id,
+            title: rules.title,
+            completionDate: new Date().toISOString(),
+            endingSituationId: draft.situation,
+            endingSituationLabel: endingSituation.label,
+            attributeChanges: attributeChanges,
+            finalAttributes: { ...draft.player.attributes },
+        };
+
+        if (!draft.player.history) {
+            draft.player.history = [];
+        }
+        draft.player.history.push(historyEntry);
+    });
+}
+// This is a placeholder for where you might get the player's stats before the scenario began.
+// In a real implementation, you'd fetch this from a more persistent source when the game starts.
+const initialPlayerStats: PlayerStats = {
+    name: "Player",
+    identity: "An adventurer",
+    language: 'en',
+    attributes: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+    equipment: {},
+    inventory: [],
+    history: [],
+};
+
+
 export async function processAction(
   rules: GameRules,
   currentState: GameState,
@@ -197,27 +255,8 @@ export async function processAction(
   }
 
   // If the situation has changed, check if the new situation is an ending.
-  if (situationChanged && newState.situation && rules.situations[newState.situation]?.ending) {
-     const playerAfterEnding = produce(newState.player, draft => {
-        const historyEntry: CompletedScenario = {
-            rulesId: rules.id,
-            title: rules.title,
-            completionDate: new Date().toISOString(),
-            endingSituationId: newState.situation,
-            endingSituationLabel: rules.situations[newState.situation].label,
-            attributeChanges: [], // Attribute changes are not implemented yet
-            finalAttributes: {...draft.attributes},
-        };
-
-        if (!draft.history) {
-            draft.history = [];
-        }
-        draft.history.push(historyEntry);
-     });
-     
-     newState = produce(newState, draft => {
-        draft.player = playerAfterEnding;
-     });
+  if (situationChanged) {
+      newState = await handleEnding(rules, newState);
   }
 
 

@@ -185,7 +185,7 @@ Add `"ending": true` to any situation in your `situations` object.
 ```
 
 **How it Works:**
-1. When the player enters a situation with `"ending": true`, the game is considered over.
-2. The UI will automatically add a final action button (e.g., "Celebrate" or "Reflect"). This is done programmatically and does not need to be added to the `on_action` array.
-3. When the player clicks this final action, the game session concludes, and they are returned to the main scenario selection screen.
-4. The system will also automatically save any permanent changes to the player's stats to their profile.
+1.  When the player enters a situation with `"ending": true`, the game engine automatically records the outcome in the player's history.
+2.  The UI will hide the normal action bar and show a single "End Scenario" button.
+3.  When the player clicks this button, the game session concludes, and they are returned to the main scenario selection screen where they can see their updated character history.
+4.  You do **not** need to define an action in the `on_action` array for the ending. The button is added automatically.
