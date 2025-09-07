@@ -29,14 +29,14 @@ import {generateCharacter, extractSecret, reachAgreement, type ConversationOutpu
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Home, Save, User, Wrench } from 'lucide-react';
+import { Gamepad2, Home, Save, User, Wrench, MessageSquare } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
 import { DiceRollDialog } from '@/components/game/DiceRollDialog';
 import { InventoryDialog } from '@/components/game/InventoryDialog';
 import { LatestResultModal } from '@/components/game/LatestResultModal';
 import { FightDialog } from '@/components/game/FightDialog';
-import { TalkScreen } from '@/components/game/TalkScreen';
+import { TalkScreen } from '@/components/game/v2/TalkScreen';
 import { GameView } from '@/components/game/v2/GameView';
 import { CharacterView } from '@/components/game/v2/CharacterView';
 import { SavesView } from '@/components/game/v2/SavesView';
@@ -591,12 +591,18 @@ export default function PlayPageV2() {
       
       <header className="flex items-center justify-between p-2 border-b shrink-0">
         <h1 className="text-xl font-bold font-headline pl-2">{rules.title}</h1>
-        <div className={cn(activeView === 'talk' && 'invisible')}>
+        <div>
           <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
             <TabsList>
               <TabsTrigger value="game"><Gamepad2 className="mr-2" />Game</TabsTrigger>
               <TabsTrigger value="character"><User className="mr-2" />Character</TabsTrigger>
               <TabsTrigger value="saves"><Save className="mr-2" />Saves</TabsTrigger>
+              {activeView === 'talk' && (
+                <TabsTrigger value="talk">
+                  <MessageSquare className="mr-2" />
+                  {characterProfile?.name || 'Talk'}
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
         </div>
@@ -607,18 +613,18 @@ export default function PlayPageV2() {
       </header>
 
       <main className="flex-1 overflow-hidden">
-          <div className={cn("w-full h-full", activeView !== 'game' && 'hidden')}>
+          <TabsContent value="game" className={cn("w-full h-full mt-0", activeView !== 'game' && 'hidden')}>
             <GameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} isProcessing={isProcessing} t={t} handleAction={handleAction} setSelectedAction={setSelectedAction} targetForAction={targetForAction} setTargetForAction={setTargetForAction} isEnding={isEnding} />
-          </div>
-          <div className={cn("w-full h-full", activeView !== 'character' && 'hidden')}>
+          </TabsContent>
+          <TabsContent value="character" className={cn("w-full h-full mt-0", activeView !== 'character' && 'hidden')}>
             <CharacterView player={gameState.player} counters={gameState.counters} rules={rules} onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />
-          </div>
-           <div className={cn("w-full h-full", activeView !== 'saves' && 'hidden')}>
+          </TabsContent>
+           <TabsContent value="saves" className={cn("w-full h-full mt-0", activeView !== 'saves' && 'hidden')}>
             <SavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />
-          </div>
-           <div className={cn("w-full h-full", activeView !== 'talk' && 'hidden')}>
+          </TabsContent>
+           <TabsContent value="talk" className={cn("w-full h-full mt-0", activeView !== 'talk' && 'hidden')}>
             <TalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective} conversationType={conversationType} conversationFlow={conversationFlow} onConversationEnd={handleEndTalk} />
-          </div>
+          </TabsContent>
       </main>
     </div>
   );
