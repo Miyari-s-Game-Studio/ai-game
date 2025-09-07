@@ -2,7 +2,6 @@
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import {getRuleset} from '@/lib/rulesets';
-import {useState, useEffect} from 'react';
 import type {
   PlayerStats,
   GameRules,
@@ -14,7 +13,8 @@ import type {
   LogEntry,
   LogEntryChange,
   ReachAgreementInput,
-  Situation
+  Situation,
+  ActionDetail
 } from '@/types/game';
 import {useTheme} from '@/components/layout/ThemeProvider';
 import {notFound, redirect, useParams, useRouter} from 'next/navigation';
