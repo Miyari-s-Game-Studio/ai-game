@@ -827,16 +827,16 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
 
         <TabsContent value="character" className={cn("mt-0", activeView === 'character' && 'flex-1 flex overflow-hidden')}>
              <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
-                 <PlayerStatsComponent stats={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} />
-                 <div className="relative w-full flex-grow rounded-lg overflow-hidden shadow-lg border border-border">
+                 <div className="relative w-full h-1/2 rounded-lg overflow-hidden shadow-lg border border-border">
                     <Image
-                        src="https://placehold.co/600x800/292524/a8a29e?text=Portrait"
+                        src="https://placehold.co/600x400/292524/a8a29e?text=Portrait"
                         alt="Character Portrait"
                         fill
                         style={{ objectFit: 'cover' }}
                         data-ai-hint="fantasy character portrait"
                     />
                 </div>
+                 <PlayerStatsComponent stats={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} />
             </aside>
             <main className="w-1/2 flex flex-col p-8 space-y-6 overflow-y-auto">
                  <InventoryDisplay
