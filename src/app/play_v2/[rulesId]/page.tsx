@@ -30,7 +30,7 @@ import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/g
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Gamepad2, Home, Save, User, Wrench, MessageSquare } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
 import { DiceRollDialog } from '@/components/game/DiceRollDialog';
 import { InventoryDialog } from '@/components/game/InventoryDialog';
