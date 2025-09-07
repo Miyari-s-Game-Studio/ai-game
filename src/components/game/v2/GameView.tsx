@@ -53,7 +53,7 @@ export function GameView({
   if (!currentSituation) return null;
 
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div className="flex-1 flex h-full overflow-hidden">
         {/* Left "Page" */}
         <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
             <div className="relative w-full h-2/3 rounded-lg overflow-hidden shadow-lg border border-border">
@@ -73,9 +73,8 @@ export function GameView({
         </aside>
 
         {/* Right "Page" */}
-        <main className="w-1/2 flex flex-col p-8 space-y-6">
-            <div className="flex-grow flex flex-col min-h-0">
-            <h2 className="text-3xl font-headline font-bold text-primary mb-4 shrink-0">
+        <main className="w-1/2 flex flex-col p-8 space-y-6 overflow-hidden">
+            <h2 className="text-3xl font-headline font-bold text-primary shrink-0">
                 {isEnding ? t.scenarioComplete : currentSituation.label}
             </h2>
             <div className="flex-grow overflow-y-auto pr-4">
@@ -98,7 +97,6 @@ export function GameView({
                         language={rules.language}
                     />
                 )}
-            </div>
             </div>
 
             <div className="shrink-0">
