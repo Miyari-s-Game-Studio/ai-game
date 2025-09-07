@@ -24,11 +24,12 @@ import {
 } from '@/ai/simple/generate-conversation';
 import Image from 'next/image';
 import {useToast} from '@/hooks/use-toast';
-import {BookOpen, ChevronsRight, Loader2, LogOut, Home, User, Save, Settings, PanelLeft } from 'lucide-react';
+import {BookOpen, ChevronsRight, Loader2, LogOut, Home, User, Save, Settings, PanelLeft, Wrench, Gamepad2 } from 'lucide-react';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import {Skeleton} from '../ui/skeleton';
 import {Button} from '../ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {LoadGameDialog, type SaveFile} from './LoadGameDialog';
 import {TalkDialog} from './TalkDialog';
 import {produce} from 'immer';
@@ -376,7 +377,7 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
     return (
       <div className="p-8 text-center">
         <h2 className="text-xl font-bold text-destructive">{t.error}</h2>
-        <p>{t.invalidSituation} `({gameState.situation})`</p>
+        <p>{t.invalidSituation} \`({gameState.situation})\`</p>
         <p>{t.pleaseCheckRules}</p>
       </div>
     );
@@ -656,123 +657,6 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
 
   const isLoading = isPending || isGeneratingScene || isGeneratingCharacter || isGeneratingDiceCheck;
 
-  const renderGameView = () => (
-    <div className="flex flex-1 overflow-hidden">
-         {/* Left "Page" */}
-        <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
-            <div className="relative w-full h-2/3 rounded-lg overflow-hidden shadow-lg border border-border">
-            <Image
-                src="https://placehold.co/600x800/221e2c/a89fbe?text=Scene"
-                alt="Scene illustration"
-                fill
-                style={{ objectFit: 'cover' }}
-                data-ai-hint="fantasy landscape"
-            />
-            </div>
-            <div className="space-y-4">
-                {Object.entries(gameState.tracks).map(([id, track]) => (
-                    <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
-                ))}
-            </div>
-        </aside>
-
-        {/* Right "Page" */}
-        <main className="w-1/2 flex flex-col p-8 space-y-6">
-            <div className="flex-grow flex flex-col min-h-0">
-            <h2 className="text-3xl font-headline font-bold text-primary mb-4 shrink-0">
-                {isEnding ? t.scenarioComplete : currentSituation.label}
-            </h2>
-            <div className="flex-grow overflow-y-auto pr-4">
-                {isGeneratingScene ? (
-                    <div className="space-y-2">
-                        <Skeleton className="h-6 w-full"/>
-                        <Skeleton className="h-6 w-full"/>
-                        <Skeleton className="h-6 w-5/6"/>
-                    </div>
-                ) : (
-                    <NarrativeLog
-                        log={[{id: 0, type: 'narrative', message: sceneDescription}]}
-                        knownTargets={knownTargets}
-                        actionRules={currentSituation.on_action}
-                        actionDetails={actionDetails}
-                        allowedActions={allowedActions}
-                        onTargetClick={handleTargetClick}
-                        onLogTargetClick={handleLogTargetClick}
-                        selectedAction={selectedAction}
-                        language={rules.language}
-                    />
-                )}
-            </div>
-            </div>
-
-            <div className="shrink-0">
-                {isLoading && !isEnding ? (
-                <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary"/>
-                    <p className="ml-4 text-lg">
-                    {isGeneratingScene ? t.loadingScene :
-                        isGeneratingCharacter ? t.characterApproaching :
-                        isGeneratingDiceCheck ? t.aiCalculatingAction :
-                            t.aiCraftingStory}
-                    </p>
-                </div>
-                ) : (
-                <ActionPanel
-                    rules={rules}
-                    allowedActions={allowedActions}
-                    actionDetails={actionDetails}
-                    actionRules={currentSituation.on_action}
-                    onAction={handleAction}
-                    disabled={isLoading}
-                    selectedAction={selectedAction}
-                    onSelectedActionChange={setSelectedAction}
-                    target={targetForAction}
-                    onTargetChange={setTargetForAction}
-                />
-                )}
-            </div>
-        </main>
-    </div>
-  );
-
-  const renderCharacterView = () => (
-    <div className="p-8 max-w-4xl mx-auto w-full space-y-8">
-        <h2 className="text-4xl font-headline text-center">Character Sheet</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <PlayerStatsComponent stats={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} />
-            <PlayerHistory player={gameState.player} />
-        </div>
-    </div>
-  );
-
-  const renderSavesView = () => {
-    // This is a placeholder. You'd replace this with a real save/load UI.
-    // For now, it just shows a message and a save button.
-    return (
-        <div className="p-8 max-w-md mx-auto w-full text-center space-y-4">
-            <h2 className="text-4xl font-headline">Save & Load</h2>
-            <p className="text-muted-foreground">Manage your game progress here.</p>
-            <Button onClick={handleSaveGame} size="lg">
-                <Save className="mr-2" /> Quick Save
-            </Button>
-            <p className="text-sm text-muted-foreground italic">(Full load functionality would be here)</p>
-        </div>
-    );
-  }
-
-  const renderActiveView = () => {
-    switch (activeView) {
-        case 'character':
-            return renderCharacterView();
-        case 'saves':
-            return renderSavesView();
-        case 'game':
-        default:
-            return renderGameView();
-    }
-  }
-
-
   return (
     <div className="flex h-screen bg-background text-foreground font-body flex-col">
       {/* Dialogs that can be opened from anywhere */}
@@ -842,33 +726,123 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
       )}
       
       {/* Header */}
-      <header className="flex items-center justify-between p-2 border-b shrink-0">
-        <div className="flex items-center gap-1">
-            <Button variant={activeView === 'game' ? 'secondary' : 'ghost'} onClick={() => setActiveView('game')} size="icon">
-                <PanelLeft />
-            </Button>
+      <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="flex flex-col h-full">
+        <header className="flex items-center justify-between p-2 border-b shrink-0">
             <h1 className="text-xl font-bold font-headline pl-2">{rules.title}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-            <Button variant={activeView === 'character' ? 'secondary' : 'ghost'} onClick={() => setActiveView('character')}>
-                <User className="mr-2" /> Character
-            </Button>
-            <Button variant={activeView === 'saves' ? 'secondary' : 'ghost'} onClick={() => setActiveView('saves')}>
-                <Save className="mr-2" /> Saves
-            </Button>
-            <Button variant="ghost" asChild>
-                <Link href="/">
-                    <Home className="mr-2" /> Scenarios
-                </Link>
-            </Button>
-        </div>
-      </header>
+            <TabsList>
+                <TabsTrigger value="game"><Gamepad2 className="mr-2"/>Game</TabsTrigger>
+                <TabsTrigger value="character"><User className="mr-2"/>Character</TabsTrigger>
+                <TabsTrigger value="saves"><Save className="mr-2"/>Saves</TabsTrigger>
+            </TabsList>
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" asChild>
+                    <Link href="/admin/rules"><Wrench className="h-4 w-4" /></Link>
+                </Button>
+                <Button variant="ghost" asChild>
+                    <Link href="/"><Home className="h-4 w-4" /></Link>
+                </Button>
+            </div>
+        </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {renderActiveView()}
-      </div>
+        {/* Main Content Area */}
+        <TabsContent value="game" className="flex-1 flex overflow-hidden mt-0">
+             {/* Left "Page" */}
+            <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
+                <div className="relative w-full h-2/3 rounded-lg overflow-hidden shadow-lg border border-border">
+                <Image
+                    src="https://placehold.co/600x800/221e2c/a89fbe?text=Scene"
+                    alt="Scene illustration"
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    data-ai-hint="fantasy landscape"
+                />
+                </div>
+                <div className="space-y-4">
+                    {Object.entries(gameState.tracks).map(([id, track]) => (
+                        <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
+                    ))}
+                </div>
+            </aside>
 
+            {/* Right "Page" */}
+            <main className="w-1/2 flex flex-col p-8 space-y-6">
+                <div className="flex-grow flex flex-col min-h-0">
+                <h2 className="text-3xl font-headline font-bold text-primary mb-4 shrink-0">
+                    {isEnding ? t.scenarioComplete : currentSituation.label}
+                </h2>
+                <div className="flex-grow overflow-y-auto pr-4">
+                    {isGeneratingScene ? (
+                        <div className="space-y-2">
+                            <Skeleton className="h-6 w-full"/>
+                            <Skeleton className="h-6 w-full"/>
+                            <Skeleton className="h-6 w-5/6"/>
+                        </div>
+                    ) : (
+                        <NarrativeLog
+                            log={[{id: 0, type: 'narrative', message: sceneDescription}]}
+                            knownTargets={knownTargets}
+                            actionRules={currentSituation.on_action}
+                            actionDetails={actionDetails}
+                            allowedActions={allowedActions}
+                            onTargetClick={handleTargetClick}
+                            onLogTargetClick={handleLogTargetClick}
+                            selectedAction={selectedAction}
+                            language={rules.language}
+                        />
+                    )}
+                </div>
+                </div>
+
+                <div className="shrink-0">
+                    {isLoading && !isEnding ? (
+                    <div className="flex items-center justify-center p-8 rounded-lg border bg-background/60">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+                        <p className="ml-4 text-lg">
+                        {isGeneratingScene ? t.loadingScene :
+                            isGeneratingCharacter ? t.characterApproaching :
+                            isGeneratingDiceCheck ? t.aiCalculatingAction :
+                                t.aiCraftingStory}
+                        </p>
+                    </div>
+                    ) : (
+                    <ActionPanel
+                        rules={rules}
+                        allowedActions={allowedActions}
+                        actionDetails={actionDetails}
+                        actionRules={currentSituation.on_action}
+                        onAction={handleAction}
+                        disabled={isLoading}
+                        selectedAction={selectedAction}
+                        onSelectedActionChange={setSelectedAction}
+                        target={targetForAction}
+                        onTargetChange={setTargetForAction}
+                    />
+                    )}
+                </div>
+            </main>
+        </TabsContent>
+
+        <TabsContent value="character" className="flex-1 overflow-y-auto mt-0">
+            <div className="p-8 max-w-4xl mx-auto w-full space-y-8">
+                <h2 className="text-4xl font-headline text-center">Character Sheet</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <PlayerStatsComponent stats={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} />
+                    <PlayerHistory player={gameState.player} />
+                </div>
+            </div>
+        </TabsContent>
+        
+        <TabsContent value="saves" className="flex-1 overflow-y-auto mt-0">
+            <div className="p-8 max-w-md mx-auto w-full text-center space-y-4">
+                <h2 className="text-4xl font-headline">Save & Load</h2>
+                <p className="text-muted-foreground">Manage your game progress here.</p>
+                <Button onClick={handleSaveGame} size="lg">
+                    <Save className="mr-2" /> Quick Save
+                </Button>
+                <p className="text-sm text-muted-foreground italic">(Full load functionality would be here)</p>
+            </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
