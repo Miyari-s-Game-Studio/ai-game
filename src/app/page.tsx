@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BookOpen, FolderOpen, User, Edit, Trash2, PlusCircle, ArrowLeft, Wrench, Languages } from 'lucide-react';
+import { BookOpen, FolderOpen, User, Edit, Trash2, PlusCircle, ArrowLeft, Wrench, Languages, Book } from 'lucide-react';
 import { getAllRulesetIds, getRuleset } from '@/lib/rulesets';
 import type { GameRules, GameState, PlayerStats, Item } from '@/types/game';
 import { useState, useMemo, useEffect } from 'react';
@@ -177,10 +177,11 @@ export default function GameSelectionPage() {
     findSaveFiles(); // Refresh the list
   }
 
-  const handleStartGame = (rulesId: string) => {
+  const handleStartGame = (rulesId: string, version: 'v1' | 'v2' = 'v1') => {
       if (!activePlayer) return;
       sessionStorage.setItem(PLAYER_STATS_TO_LOAD_KEY, JSON.stringify(activePlayer));
-      router.push(`/play/${rulesId}`);
+      const path = version === 'v2' ? `/play_v2/${rulesId}` : `/play/${rulesId}`;
+      router.push(path);
   };
 
   const handleOpenCreator = (playerToEdit: PlayerStats | null) => {
@@ -441,10 +442,14 @@ export default function GameSelectionPage() {
             <CardContent className="flex-grow">
                 <p className="text-sm text-muted-foreground">{t.version}: {rules.version}</p>
             </CardContent>
-            <CardFooter>
-              <Button onClick={() => handleStartGame(rules.id)} className="w-full">
+            <CardFooter className="flex-col items-stretch gap-2">
+              <Button onClick={() => handleStartGame(rules.id, 'v1')} className="w-full">
                 <BookOpen className="mr-2" />
-                {t.playScenario}
+                Play (V1)
+              </Button>
+               <Button onClick={() => handleStartGame(rules.id, 'v2')} className="w-full" variant="secondary">
+                <Book className="mr-2" />
+                Play (V2 Book)
               </Button>
             </CardFooter>
           </Card>
@@ -535,5 +540,3 @@ export default function GameSelectionPage() {
     </>
   );
 }
-
-      
