@@ -5,17 +5,18 @@ import Image from 'next/image';
 import PlayerStatsComponent from '@/components/game/PlayerStats';
 import InventoryDisplay from '@/components/game/InventoryDisplay';
 import CountersDisplay from '@/components/game/CountersDisplay';
-import type { PlayerStats, GameRules, Item } from '@/types/game';
+import type { PlayerStats, GameRules, Item, GameState } from '@/types/game';
 
 interface CharacterViewProps {
   player: PlayerStats;
+  counters: GameState['counters'];
   rules: GameRules;
   onItemAction: (action: 'use' | 'discard' | 'equip' | 'unequip', item: Item) => void;
   onOpenInventory: () => void;
   t: any;
 }
 
-export function CharacterView({ player, rules, onItemAction, onOpenInventory, t }: CharacterViewProps) {
+export function CharacterView({ player, counters, rules, onItemAction, onOpenInventory, t }: CharacterViewProps) {
   return (
     <div className="flex-1 flex overflow-hidden">
         <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
@@ -38,7 +39,7 @@ export function CharacterView({ player, rules, onItemAction, onOpenInventory, t 
                 language={rules.language}
             />
             <CountersDisplay
-                counters={player.counters}
+                counters={counters}
                 iconMap={rules.ui?.counterIcons}
                 title={t.keyItemsAndInfo}
             />

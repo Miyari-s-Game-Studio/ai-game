@@ -611,7 +611,7 @@ export default function PlayPageV2() {
         ) : (
           <>
             {activeView === 'game' && <GameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} isProcessing={isProcessing} t={t} handleAction={handleAction} setSelectedAction={setSelectedAction} targetForAction={targetForAction} setTargetForAction={setTargetForAction} isEnding={isEnding} />}
-            {activeView === 'character' && <CharacterView player={gameState.player} rules={rules} onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />}
+            {activeView === 'character' && <CharacterView player={gameState.player} counters={gameState.counters} rules={rules} onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />}
             {activeView === 'saves' && <SavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />}
           </>
         )}
