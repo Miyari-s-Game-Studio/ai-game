@@ -18,7 +18,7 @@ interface CharacterViewProps {
 
 export function CharacterView({ player, counters, rules, onItemAction, onOpenInventory, t }: CharacterViewProps) {
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div className="flex-1 flex h-full overflow-hidden">
         <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
             <div className="relative w-full h-1/2 rounded-lg overflow-hidden shadow-lg border border-border">
                 <Image

@@ -40,6 +40,7 @@ import { TalkScreen } from '@/components/game/TalkScreen';
 import { GameView } from '@/components/game/v2/GameView';
 import { CharacterView } from '@/components/game/v2/CharacterView';
 import { SavesView } from '@/components/game/v2/SavesView';
+import { cn } from '@/lib/utils';
 
 
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
@@ -590,7 +591,7 @@ export default function PlayPageV2() {
       
       <header className="flex items-center justify-between p-2 border-b shrink-0">
         <h1 className="text-xl font-bold font-headline pl-2">{rules.title}</h1>
-        <div className={activeView === 'talk' ? 'invisible' : ''}>
+        <div className={cn(activeView === 'talk' && 'invisible')}>
           <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
             <TabsList>
               <TabsTrigger value="game"><Gamepad2 className="mr-2" />Game</TabsTrigger>
@@ -606,15 +607,18 @@ export default function PlayPageV2() {
       </header>
 
       <main className="flex-1 overflow-hidden">
-        {activeView === 'talk' ? (
-          <TalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective} conversationType={conversationType} conversationFlow={conversationFlow} onConversationEnd={handleEndTalk} />
-        ) : (
-          <>
-            {activeView === 'game' && <GameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} isProcessing={isProcessing} t={t} handleAction={handleAction} setSelectedAction={setSelectedAction} targetForAction={targetForAction} setTargetForAction={setTargetForAction} isEnding={isEnding} />}
-            {activeView === 'character' && <CharacterView player={gameState.player} counters={gameState.counters} rules={rules} onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />}
-            {activeView === 'saves' && <SavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />}
-          </>
-        )}
+          <div className={cn("w-full h-full", activeView !== 'game' && 'hidden')}>
+            <GameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} isProcessing={isProcessing} t={t} handleAction={handleAction} setSelectedAction={setSelectedAction} targetForAction={targetForAction} setTargetForAction={setTargetForAction} isEnding={isEnding} />
+          </div>
+          <div className={cn("w-full h-full", activeView !== 'character' && 'hidden')}>
+            <CharacterView player={gameState.player} counters={gameState.counters} rules={rules} onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />
+          </div>
+           <div className={cn("w-full h-full", activeView !== 'saves' && 'hidden')}>
+            <SavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />
+          </div>
+           <div className={cn("w-full h-full", activeView !== 'talk' && 'hidden')}>
+            <TalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective} conversationType={conversationType} conversationFlow={conversationFlow} onConversationEnd={handleEndTalk} />
+          </div>
       </main>
     </div>
   );
