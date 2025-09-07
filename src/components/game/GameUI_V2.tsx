@@ -48,6 +48,7 @@ import PlayerHistory from './PlayerHistory';
 import Link from 'next/link';
 import CountersDisplay from './CountersDisplay';
 import InventoryDisplay from './InventoryDisplay';
+import { cn } from '@/lib/utils';
 
 
 const PLAYERS_KEY = 'narrativeGame_players';
@@ -747,7 +748,7 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
         </header>
 
         {/* Main Content Area */}
-        <TabsContent value="game" className="flex-1 flex overflow-hidden mt-0">
+        <TabsContent value="game" className={cn("mt-0", activeView === 'game' && 'flex-1 flex overflow-hidden')}>
              {/* Left "Page" */}
             <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
                 <div className="relative w-full h-2/3 rounded-lg overflow-hidden shadow-lg border border-border">
@@ -824,7 +825,7 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
             </main>
         </TabsContent>
 
-        <TabsContent value="character" className="flex-1 flex overflow-hidden mt-0">
+        <TabsContent value="character" className={cn("mt-0", activeView === 'character' && 'flex-1 flex overflow-hidden')}>
              <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
                  <PlayerStatsComponent stats={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} />
                  <div className="relative w-full flex-grow rounded-lg overflow-hidden shadow-lg border border-border">
@@ -852,7 +853,7 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
             </main>
         </TabsContent>
         
-        <TabsContent value="saves" className="flex-1 overflow-y-auto mt-0">
+        <TabsContent value="saves" className={cn("mt-0", activeView === 'saves' && 'flex-1 overflow-y-auto')}>
             <div className="p-8 max-w-md mx-auto w-full text-center space-y-4">
                 <h2 className="text-4xl font-headline">Save & Load</h2>
                 <p className="text-muted-foreground">Manage your game progress here.</p>
