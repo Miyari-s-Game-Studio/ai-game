@@ -46,6 +46,8 @@ import { LatestResultModal } from './LatestResultModal';
 import PlayerStatsComponent from './PlayerStats';
 import PlayerHistory from './PlayerHistory';
 import Link from 'next/link';
+import CountersDisplay from './CountersDisplay';
+import InventoryDisplay from './InventoryDisplay';
 
 
 const PLAYERS_KEY = 'narrativeGame_players';
@@ -822,14 +824,32 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
             </main>
         </TabsContent>
 
-        <TabsContent value="character" className="flex-1 overflow-y-auto mt-0">
-            <div className="p-8 max-w-4xl mx-auto w-full space-y-8">
-                <h2 className="text-4xl font-headline text-center">Character Sheet</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <PlayerStatsComponent stats={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} />
-                    <PlayerHistory player={gameState.player} />
+        <TabsContent value="character" className="flex-1 flex overflow-hidden mt-0">
+             <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
+                 <PlayerStatsComponent stats={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} />
+                 <div className="relative w-full flex-grow rounded-lg overflow-hidden shadow-lg border border-border">
+                    <Image
+                        src="https://placehold.co/600x800/292524/a8a29e?text=Portrait"
+                        alt="Character Portrait"
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        data-ai-hint="fantasy character portrait"
+                    />
                 </div>
-            </div>
+            </aside>
+            <main className="w-1/2 flex flex-col p-8 space-y-6 overflow-y-auto">
+                 <InventoryDisplay
+                    inventory={gameState.player.inventory}
+                    equipment={gameState.player.equipment}
+                    onItemAction={handleItemAction}
+                    language={rules.language}
+                />
+                <CountersDisplay
+                    counters={gameState.counters}
+                    iconMap={rules.ui?.counterIcons}
+                    title={t.keyItemsAndInfo}
+                />
+            </main>
         </TabsContent>
         
         <TabsContent value="saves" className="flex-1 overflow-y-auto mt-0">
