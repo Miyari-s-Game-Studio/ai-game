@@ -24,7 +24,7 @@ import {
 } from '@/ai/simple/generate-conversation';
 import Image from 'next/image';
 import {useToast} from '@/hooks/use-toast';
-import {BookOpen, ChevronsRight, Loader2, LogOut, Home, User, Save, Settings, PanelLeft, Wrench, Gamepad2 } from 'lucide-react';
+import {BookOpen, ChevronsRight, Loader2, LogOut, Home, User, Save, Settings, PanelLeft, Wrench, Gamepad2, FolderOpen } from 'lucide-react';
 import ActionPanel from './ActionPanel';
 import NarrativeLog from './NarrativeLog';
 import {Skeleton} from '../ui/skeleton';
@@ -49,6 +49,7 @@ import Link from 'next/link';
 import CountersDisplay from './CountersDisplay';
 import InventoryDisplay from './InventoryDisplay';
 import { cn } from '@/lib/utils';
+import { Card } from '../ui/card';
 
 
 const PLAYERS_KEY = 'narrativeGame_players';
@@ -97,6 +98,7 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
   const [sceneDescription, setSceneDescription] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isTalkDialogOpen, setIsTalkDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
   const [isFightDialogOpen, setIsFightDialogOpen] = useState(false);
@@ -124,6 +126,8 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
   const [isGeneratingDiceCheck, setIsGeneratingDiceCheck] = useState(false);
 
   const [fightTarget, setFightTarget] = useState<PlayerStats | null>(null);
+  
+  const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
 
   const {toast} = useToast();
 
@@ -228,7 +232,60 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
         description: 'Could not save your game. The browser may be out of space.',
       });
     }
-  }
+  };
+
+  const findSaveFiles = () => {
+    const saves: SaveFile[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(SAVE_PREFIX)) {
+        try {
+          const state: GameState = JSON.parse(localStorage.getItem(key) || '{}');
+
+          const keyWithoutPrefix = key.substring(SAVE_PREFIX.length);
+
+          const lastUnderscoreIndex = keyWithoutPrefix.lastIndexOf('_');
+
+          if (lastUnderscoreIndex === -1) continue;
+
+          const ruleId = keyWithoutPrefix.substring(0, lastUnderscoreIndex);
+          const timestamp = keyWithoutPrefix.substring(lastUnderscoreIndex + 1);
+
+          // Only show saves for the current game
+          if (ruleId !== rules.id || state.player.id !== gameState.player.id) continue;
+
+          const title = rules.title;
+
+          saves.push({key, title, timestamp, state});
+        } catch {
+        }
+      }
+    }
+    setSaveFiles(saves.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+  };
+
+  const handleOpenLoadDialog = () => {
+    findSaveFiles();
+    setIsLoadDialogOpen(true);
+  };
+
+  const handleLoadGame = (saveFile: SaveFile) => {
+    setGameState(saveFile.state);
+    setIsLoadDialogOpen(false);
+    toast({
+      title: t.gameLoaded,
+      description: 'Your progress has been restored.',
+    });
+  };
+
+  const handleDeleteSave = (key: string) => {
+    localStorage.removeItem(key);
+    findSaveFiles(); // Refresh the list
+    toast({
+      title: t.saveDeleted,
+      description: 'The selected save file has been removed.',
+    });
+  };
 
   const handleTalk = async (target: string) => {
     if (!currentSituation || !sceneDescription) return;
@@ -663,6 +720,14 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
   return (
     <div className="flex h-screen bg-background text-foreground font-body flex-col">
       {/* Dialogs that can be opened from anywhere */}
+       <LoadGameDialog
+          isOpen={isLoadDialogOpen}
+          onOpenChange={setIsLoadDialogOpen}
+          saveFiles={saveFiles}
+          onLoad={handleLoadGame}
+          onDelete={handleDeleteSave}
+          language={rules.language}
+        />
       <TalkDialog
         isOpen={isTalkDialogOpen}
         onOpenChange={setIsTalkDialogOpen}
@@ -853,15 +918,21 @@ export function GameUI_V2({rules, initialStateOverride, initialPlayerStats}: Gam
             </main>
         </TabsContent>
         
-        <TabsContent value="saves" className={cn("mt-0", activeView === 'saves' && 'flex-1 overflow-y-auto')}>
-            <div className="p-8 max-w-md mx-auto w-full text-center space-y-4">
-                <h2 className="text-4xl font-headline">Save & Load</h2>
-                <p className="text-muted-foreground">Manage your game progress here.</p>
-                <Button onClick={handleSaveGame} size="lg">
-                    <Save className="mr-2" /> Quick Save
-                </Button>
-                <p className="text-sm text-muted-foreground italic">(Full load functionality would be here)</p>
-            </div>
+        <TabsContent value="saves" className={cn("mt-0 p-8", activeView === 'saves' && 'flex-1 overflow-y-auto')}>
+            <Card className="max-w-md mx-auto">
+                <div className="p-8 w-full text-center space-y-4">
+                    <h2 className="text-4xl font-headline">Save & Load</h2>
+                    <p className="text-muted-foreground">Manage your game progress here.</p>
+                    <div className="flex justify-center gap-4">
+                        <Button onClick={handleSaveGame} size="lg">
+                            <Save className="mr-2" /> Quick Save
+                        </Button>
+                        <Button onClick={handleOpenLoadDialog} size="lg" variant="outline">
+                            <FolderOpen className="mr-2" /> Load Game
+                        </Button>
+                    </div>
+                </div>
+            </Card>
         </TabsContent>
       </Tabs>
     </div>
