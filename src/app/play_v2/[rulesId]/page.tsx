@@ -589,10 +589,10 @@ export default function PlayPageV2() {
       <LatestResultModal isOpen={isLatestResultModalOpen} onOpenChange={setIsLatestResultModalOpen} latestNarrative={latestNarrative} knownTargets={knownTargets} actionRules={currentSituation.on_action} actionDetails={actionDetails} allowedActions={allowedActions} onTargetClick={(actionId, target) => { handleTargetClick(actionId, target); setIsLatestResultModalOpen(false); }} onLogTargetClick={(target) => { handleLogTargetClick(target); setIsLatestResultModalOpen(false); }} selectedAction={selectedAction} language={rules.language} />
       {fightTarget && <FightDialog isOpen={isFightDialogOpen} onOpenChange={setIsFightDialogOpen} player={gameState.player} enemy={fightTarget} onFightComplete={handleFightComplete} language={rules.language} />}
       
-      <header className="flex items-center justify-between p-2 border-b shrink-0">
-        <h1 className="text-xl font-bold font-headline pl-2">{rules.title}</h1>
-        <div>
-          <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
+       <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="flex flex-col h-full">
+        <header className="flex items-center justify-between p-2 border-b shrink-0">
+          <h1 className="text-xl font-bold font-headline pl-2">{rules.title}</h1>
+          <div>
             <TabsList>
               <TabsTrigger value="game"><Gamepad2 className="mr-2" />Game</TabsTrigger>
               <TabsTrigger value="character"><User className="mr-2" />Character</TabsTrigger>
@@ -604,28 +604,29 @@ export default function PlayPageV2() {
                 </TabsTrigger>
               )}
             </TabsList>
-          </Tabs>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" asChild><Link href="/admin/rules"><Wrench className="h-4 w-4" /></Link></Button>
-          <Button variant="ghost" asChild><Link href="/"><Home className="h-4 w-4" /></Link></Button>
-        </div>
-      </header>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" asChild><Link href="/admin/rules"><Wrench className="h-4 w-4" /></Link></Button>
+            <Button variant="ghost" asChild><Link href="/"><Home className="h-4 w-4" /></Link></Button>
+          </div>
+        </header>
 
-      <main className="flex-1 overflow-hidden">
-          <TabsContent value="game" className={cn("w-full h-full mt-0", activeView !== 'game' && 'hidden')}>
-            <GameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} isProcessing={isProcessing} t={t} handleAction={handleAction} setSelectedAction={setSelectedAction} targetForAction={targetForAction} setTargetForAction={setTargetForAction} isEnding={isEnding} />
-          </TabsContent>
-          <TabsContent value="character" className={cn("w-full h-full mt-0", activeView !== 'character' && 'hidden')}>
-            <CharacterView player={gameState.player} counters={gameState.counters} rules={rules} onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />
-          </TabsContent>
-           <TabsContent value="saves" className={cn("w-full h-full mt-0", activeView !== 'saves' && 'hidden')}>
-            <SavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />
-          </TabsContent>
-           <TabsContent value="talk" className={cn("w-full h-full mt-0", activeView !== 'talk' && 'hidden')}>
-            <TalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective} conversationType={conversationType} conversationFlow={conversationFlow} onConversationEnd={handleEndTalk} />
-          </TabsContent>
-      </main>
+        <main className="flex-1 overflow-hidden">
+            <TabsContent value="game" className="w-full h-full mt-0">
+              <GameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} isProcessing={isProcessing} t={t} handleAction={handleAction} setSelectedAction={setSelectedAction} targetForAction={targetForAction} setTargetForAction={setTargetForAction} isEnding={isEnding} />
+            </TabsContent>
+            <TabsContent value="character" className="w-full h-full mt-0">
+              <CharacterView player={gameState.player} counters={gameState.counters} rules={rules} onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />
+            </TabsContent>
+            <TabsContent value="saves" className="w-full h-full mt-0">
+              <SavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />
+            </TabsContent>
+            <TabsContent value="talk" className="w-full h-full mt-0">
+              <TalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective} conversationType={conversationType} conversationFlow={conversationFlow} onConversationEnd={handleEndTalk} />
+            </TabsContent>
+        </main>
+      </Tabs>
     </div>
   );
 }
+
