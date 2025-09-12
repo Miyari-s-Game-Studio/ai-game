@@ -69,8 +69,9 @@ export type GameState = {
   log: LogEntry[];
   route?: string;
   next_situation?: string;
-  characters?: Record<string, CharacterProfile>;
+  characters: Record<string, CharacterProfile>;
   sceneDescriptions: Record<string, string>; // Cache for generated scene descriptions
+  sceneImages: Record<string, string>; // Cache for generated scene images (URLs)
   actionChecks: Record<string, ActionCheckState>;
 };
 

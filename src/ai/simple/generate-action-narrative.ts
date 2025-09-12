@@ -10,7 +10,7 @@
 import {z} from 'genkit';
 import type {GenerateActionNarrativeInput} from '@/types/game';
 import {getTranslator} from '@/lib/i18n';
-import {API_GENERATE} from "@/ai/simple/config";
+import {API_TEXT_GENERATE} from "@/ai/simple/config";
 
 
 let GenerateActionNarrativeOutputSchema = z.object({
@@ -23,7 +23,7 @@ export async function generateActionNarrative(input: GenerateActionNarrativeInpu
 
   const promptText = t.ai.generateActionNarrative.prompt(input);
 
-  const resp = await (await fetch(API_GENERATE, {
+  const resp = await (await fetch(API_TEXT_GENERATE, {
     method: 'POST',
     body: JSON.stringify({user_prompt: promptText, preset: "gemini-2.5-flash"}),
     headers: {'Content-Type': 'application/json'}

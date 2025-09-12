@@ -25,22 +25,27 @@ import {getTranslator} from '@/lib/i18n';
 import {processAction} from '@/lib/game-engine';
 import {generateSceneDescription} from "@/ai/simple/generate-scene-description";
 import {generateActionNarrative} from "@/ai/simple/generate-action-narrative";
-import {generateCharacter, extractSecret, reachAgreement, type ConversationOutput} from '@/ai/simple/generate-conversation';
+import {
+  generateCharacter,
+  extractSecret,
+  reachAgreement,
+  type ConversationOutput
+} from '@/ai/simple/generate-conversation';
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Gamepad2, Home, Save, User, Wrench, MessageSquare } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
-import { DiceRollDialog } from '@/components/game/DiceRollDialog';
-import { InventoryDialog } from '@/components/game/InventoryDialog';
-import { LatestResultModal } from '@/components/game/LatestResultModal';
-import { FightDialog } from '@/components/game/FightDialog';
-import { TalkScreen } from '@/components/game/v2/TalkScreen';
-import { GameView } from '@/components/game/v2/GameView';
-import { CharacterView } from '@/components/game/v2/CharacterView';
-import { SavesView } from '@/components/game/v2/SavesView';
-import { cn } from '@/lib/utils';
+import {Button} from '@/components/ui/button';
+import {Gamepad2, Home, Save, User, Wrench, MessageSquare} from 'lucide-react';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {LoadGameDialog, type SaveFile} from '@/components/game/LoadGameDialog';
+import {DiceRollDialog} from '@/components/game/DiceRollDialog';
+import {InventoryDialog} from '@/components/game/InventoryDialog';
+import {LatestResultModal} from '@/components/game/LatestResultModal';
+import {FightDialog} from '@/components/game/FightDialog';
+import {TalkScreen} from '@/components/game/v2/TalkScreen';
+import {GameView} from '@/components/game/v2/GameView';
+import {CharacterView} from '@/components/game/v2/CharacterView';
+import {SavesView} from '@/components/game/v2/SavesView';
+import {cn} from '@/lib/utils';
 
 
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
@@ -67,11 +72,12 @@ export default function PlayPageV2() {
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [sceneDescription, setSceneDescription] = useState('');
+  const [sceneImage, setSceneImage] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
   const [isPending, startTransition] = useTransition();
 
   const [activeView, setActiveView] = useState<'game' | 'character' | 'saves' | 'talk'>('game');
-  
+
   // Dialogs and Modals state
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
@@ -104,17 +110,17 @@ export default function PlayPageV2() {
 
   // Save/Load State
   const [saveFiles, setSaveFiles] = useState<SaveFile[]>([]);
-  
+
   // Derived State
   const t = useMemo(() => getTranslator(rules?.language || 'en'), [rules]);
   const currentSituation: Situation | undefined = useMemo(() => rules && gameState ? rules.situations[gameState.situation] : undefined, [rules, gameState]);
   const isEnding = currentSituation?.ending === true;
 
-  const { allowedActions, actionDetails } = useMemo(() => {
-    if (!currentSituation || !rules) return { allowedActions: [], actionDetails: {} };
-    
+  const {allowedActions, actionDetails} = useMemo(() => {
+    if (!currentSituation || !rules) return {allowedActions: [], actionDetails: {}};
+
     let actionIds = currentSituation.on_action.map(rule => rule.when.actionId);
-    const newActionDetails: Record<string, ActionDetail> = { ...rules.actions };
+    const newActionDetails: Record<string, ActionDetail> = {...rules.actions};
 
     if (isEnding) {
       actionIds = ['__end_scenario__'];
@@ -124,9 +130,9 @@ export default function PlayPageV2() {
         description: t.endScenarioDescription
       };
     }
-    return { 
-      allowedActions: [...new Set(actionIds)], 
-      actionDetails: newActionDetails 
+    return {
+      allowedActions: [...new Set(actionIds)],
+      actionDetails: newActionDetails
     };
   }, [currentSituation, rules, isEnding, t]);
 
@@ -172,38 +178,38 @@ export default function PlayPageV2() {
 
     const playerStatsToLoadJson = sessionStorage.getItem(PLAYER_STATS_TO_LOAD_KEY);
     if (playerStatsToLoadJson) {
-        try {
-            const playerStatsToLoad: PlayerStats = JSON.parse(playerStatsToLoadJson);
-            setInitialPlayerStats(playerStatsToLoad);
-            sessionStorage.removeItem(PLAYER_STATS_TO_LOAD_KEY);
-        } catch (e) {
-            console.error("Failed to parse player stats from session storage", e);
-            sessionStorage.removeItem(PLAYER_STATS_TO_LOAD_KEY);
-            redirect('/');
-            return;
-        }
+      try {
+        const playerStatsToLoad: PlayerStats = JSON.parse(playerStatsToLoadJson);
+        setInitialPlayerStats(playerStatsToLoad);
+        sessionStorage.removeItem(PLAYER_STATS_TO_LOAD_KEY);
+      } catch (e) {
+        console.error("Failed to parse player stats from session storage", e);
+        sessionStorage.removeItem(PLAYER_STATS_TO_LOAD_KEY);
+        redirect('/');
+        return;
+      }
     } else {
-        const activePlayerId = localStorage.getItem(ACTIVE_PLAYER_ID_KEY);
-        const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
-        if (activePlayerId && allPlayersJson) {
-            try {
-                const allPlayers = JSON.parse(allPlayersJson);
-                const activePlayer = allPlayers.find((p: PlayerStats) => p.id === activePlayerId);
-                if (activePlayer) {
-                    setInitialPlayerStats(activePlayer);
-                } else {
-                    redirect('/');
-                    return;
-                }
-            } catch (e) {
-                console.error("Failed to parse player stats from local storage", e);
-                redirect('/');
-                return;
-            }
-        } else {
+      const activePlayerId = localStorage.getItem(ACTIVE_PLAYER_ID_KEY);
+      const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
+      if (activePlayerId && allPlayersJson) {
+        try {
+          const allPlayers = JSON.parse(allPlayersJson);
+          const activePlayer = allPlayers.find((p: PlayerStats) => p.id === activePlayerId);
+          if (activePlayer) {
+            setInitialPlayerStats(activePlayer);
+          } else {
             redirect('/');
             return;
+          }
+        } catch (e) {
+          console.error("Failed to parse player stats from local storage", e);
+          redirect('/');
+          return;
         }
+      } else {
+        redirect('/');
+        return;
+      }
     }
     setIsLoading(false);
   }, [rulesId, initializeTheme]);
@@ -212,20 +218,21 @@ export default function PlayPageV2() {
   useEffect(() => {
     if (rules && initialPlayerStats && !gameState) {
       const getInitialState = (rules: GameRules, playerStats: PlayerStats): GameState => {
-          const finalPlayerStats = produce(playerStats, draft => {
-            if (rules.initial.identity) draft.identity = rules.initial.identity;
-            if (rules.initial.inventory) draft.inventory = rules.initial.inventory;
-          });
-          return {
-            situation: rules.initial.situation,
-            counters: {...rules.initial.counters},
-            tracks: JSON.parse(JSON.stringify(rules.tracks)),
-            log: [],
-            player: finalPlayerStats,
-            characters: {},
-            sceneDescriptions: {},
-            actionChecks: {},
-          };
+        const finalPlayerStats = produce(playerStats, draft => {
+          if (rules.initial.identity) draft.identity = rules.initial.identity;
+          if (rules.initial.inventory) draft.inventory = rules.initial.inventory;
+        });
+        return {
+          situation: rules.initial.situation,
+          counters: {...rules.initial.counters},
+          tracks: JSON.parse(JSON.stringify(rules.tracks)),
+          log: [],
+          player: finalPlayerStats,
+          characters: {},
+          sceneDescriptions: {},
+          sceneImages:{},
+          actionChecks: {},
+        };
       };
       const initialState = initialStateOverride || getInitialState(rules, initialPlayerStats);
       setGameState(initialState);
@@ -238,7 +245,7 @@ export default function PlayPageV2() {
     if (gameState && currentSituation) {
       generateNewScene(gameState.situation, currentSituation);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState?.situation]);
 
 
@@ -247,13 +254,16 @@ export default function PlayPageV2() {
     const cachedDescription = gameState.sceneDescriptions[situationId];
     if (cachedDescription) {
       setSceneDescription(cachedDescription);
+      setSceneImage(gameState.sceneImages[situationId]);
       setIsGeneratingScene(false);
       return;
     }
     setIsGeneratingScene(true);
     setSceneDescription('');
+    setSceneImage('');
     if (!situation.description) {
       setSceneDescription(situation.label);
+      setSceneImage('');
       setIsGeneratingScene(false);
       return;
     }
@@ -265,9 +275,14 @@ export default function PlayPageV2() {
         knownTargets: knownTargets,
       });
       const newDescription = result.sceneDescription;
+      const newImage = result.sceneImage;
       setSceneDescription(newDescription);
+      setSceneImage(newImage);
       setGameState(produce(draft => {
-        if (draft) draft.sceneDescriptions[situationId] = newDescription;
+        if (draft) {
+          draft.sceneDescriptions[situationId] = newDescription;
+          draft.sceneImages[situationId] = newImage;
+        }
       }));
     } catch (error) {
       console.error('Failed to generate scene description:', error);
@@ -304,7 +319,8 @@ export default function PlayPageV2() {
           const timestamp = keyWithoutPrefix.substring(lastUnderscoreIndex + 1);
           if (ruleId !== rules.id || state.player.id !== gameState.player.id) continue;
           saves.push({key, title: rules.title, timestamp, state});
-        } catch {}
+        } catch {
+        }
       }
     }
     setSaveFiles(saves.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
@@ -330,31 +346,31 @@ export default function PlayPageV2() {
   const handleItemAction = (action: 'use' | 'discard' | 'equip' | 'unequip', item: Item) => {
     if (!gameState) return;
     const newStats = produce(gameState.player, draft => {
-        if (action === 'discard') {
-            draft.inventory = draft.inventory.filter(i => i.id !== item.id);
-        } else if (action === 'equip') {
-            if (item.slot) {
-                draft.equipment[item.slot] = item.name;
-            }
-        } else if (action === 'unequip') {
-            if (item.slot && draft.equipment[item.slot] === item.name) {
-                delete draft.equipment[item.slot];
-            }
-        } else if (action === 'use') {
-            console.log(`Attempted to use item: ${item.name}`);
-            alert(`Using '${item.name}' is not yet implemented.`);
-            return;
+      if (action === 'discard') {
+        draft.inventory = draft.inventory.filter(i => i.id !== item.id);
+      } else if (action === 'equip') {
+        if (item.slot) {
+          draft.equipment[item.slot] = item.name;
         }
+      } else if (action === 'unequip') {
+        if (item.slot && draft.equipment[item.slot] === item.name) {
+          delete draft.equipment[item.slot];
+        }
+      } else if (action === 'use') {
+        console.log(`Attempted to use item: ${item.name}`);
+        alert(`Using '${item.name}' is not yet implemented.`);
+        return;
+      }
     });
     setGameState(produce(draft => {
-        if (draft) draft.player = newStats;
+      if (draft) draft.player = newStats;
     }));
     try {
       const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
       if (allPlayersJson) {
-          const allPlayers = JSON.parse(allPlayersJson);
-          const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === newStats.id ? newStats : p);
-          localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
+        const allPlayers = JSON.parse(allPlayersJson);
+        const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === newStats.id ? newStats : p);
+        localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
       }
     } catch (e) {
       console.error("Failed to update player stats in storage.", e);
@@ -373,7 +389,10 @@ export default function PlayPageV2() {
           message: `Action: ${actionId}` + (target ? ` - Target: ${target}` : '') + ` - Success: ${isSuccess}`,
         };
 
-        const {newState, proceduralLogs: engineLogs} = await processAction(rules, oldState, actionId, target, isSuccess, actionRulesOverride);
+        const {
+          newState,
+          proceduralLogs: engineLogs
+        } = await processAction(rules, oldState, actionId, target, isSuccess, actionRulesOverride);
 
         const changes: LogEntryChange[] = [];
         Object.entries(newState.tracks).forEach(([trackId, newTrack]) => {
@@ -381,7 +400,13 @@ export default function PlayPageV2() {
           if (oldTrack && oldTrack.value !== newTrack.value) {
             const diff = newTrack.value - oldTrack.value;
             const style = rules.ui?.trackStyles?.[trackId];
-            changes.push({ id: trackId, name: newTrack.name, delta: diff, icon: style?.icon || 'TrendingUp', color: style?.color || 'text-primary' });
+            changes.push({
+              id: trackId,
+              name: newTrack.name,
+              delta: diff,
+              icon: style?.icon || 'TrendingUp',
+              color: style?.color || 'text-primary'
+            });
           }
         });
         Object.entries(newState.counters).forEach(([counterId, newValue]) => {
@@ -390,14 +415,32 @@ export default function PlayPageV2() {
             const formattedId = counterId.replace(/_/g, ' ');
             if (typeof newValue === 'number' && typeof oldValue === 'number') {
               const diff = newValue - oldValue;
-              if (diff !== 0) changes.push({ id: counterId, name: formattedId, delta: diff, icon: rules.ui?.counterIcons?.[counterId] || 'Star', color: 'text-primary' });
+              if (diff !== 0) changes.push({
+                id: counterId,
+                name: formattedId,
+                delta: diff,
+                icon: rules.ui?.counterIcons?.[counterId] || 'Star',
+                color: 'text-primary'
+              });
             } else if (typeof newValue === 'boolean' && newValue !== oldValue) {
-              changes.push({ id: counterId, name: formattedId, delta: newValue ? 1 : -1, icon: rules.ui?.counterIcons?.[counterId] || 'Star', color: 'text-primary' });
+              changes.push({
+                id: counterId,
+                name: formattedId,
+                delta: newValue ? 1 : -1,
+                icon: rules.ui?.counterIcons?.[counterId] || 'Star',
+                color: 'text-primary'
+              });
             }
           }
         });
         if (newState.next_situation) {
-          changes.push({ id: 'next_situation', name: 'Next Situation', delta: 1, icon: 'ChevronsRight', color: 'text-primary' });
+          changes.push({
+            id: 'next_situation',
+            name: 'Next Situation',
+            delta: 1,
+            icon: 'ChevronsRight',
+            color: 'text-primary'
+          });
         }
 
         const newSituation = rules.situations[newState.situation];
@@ -417,8 +460,8 @@ export default function PlayPageV2() {
           message: narrativeOutput.narrative,
           changes: changes.length > 0 ? changes : undefined,
         };
-        
-        setGameState({ ...newState, log: [...oldState.log, actionLog, ...engineLogs, narrativeLog] });
+
+        setGameState({...newState, log: [...oldState.log, actionLog, ...engineLogs, narrativeLog]});
         setLatestNarrative([actionLog, ...engineLogs, narrativeLog].slice(oldLogLength));
         setIsLatestResultModalOpen(true);
       } catch (error) {
@@ -434,14 +477,14 @@ export default function PlayPageV2() {
     setTargetForAction('');
 
     if (actionId === '__end_scenario__') {
-        const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
-        if (allPlayersJson) {
-            const allPlayers = JSON.parse(allPlayersJson);
-            const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === gameState.player.id ? gameState.player : p);
-            localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
-        }
-        router.push('/');
-        return;
+      const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
+      if (allPlayersJson) {
+        const allPlayers = JSON.parse(allPlayersJson);
+        const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === gameState.player.id ? gameState.player : p);
+        localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
+      }
+      router.push('/');
+      return;
     }
 
     if (actionId === 'talk') {
@@ -449,7 +492,16 @@ export default function PlayPageV2() {
       return;
     }
     if (actionId === 'fight') {
-      const enemy: PlayerStats = { id: 'enemy', name: target || "Guard", identity: "A tough-looking guard", language: 'en', attributes: {strength: 11, dexterity: 11, constitution: 12, intelligence: 9, wisdom: 10, charisma: 9}, equipment: {}, inventory: [], history: [] };
+      const enemy: PlayerStats = {
+        id: 'enemy',
+        name: target || "Guard",
+        identity: "A tough-looking guard",
+        language: 'en',
+        attributes: {strength: 11, dexterity: 11, constitution: 12, intelligence: 9, wisdom: 10, charisma: 9},
+        equipment: {},
+        inventory: [],
+        history: []
+      };
       setFightTarget(enemy);
       setIsFightDialogOpen(true);
       return;
@@ -473,8 +525,18 @@ export default function PlayPageV2() {
       try {
         let checkToUse = existingCheck;
         if (!checkToUse) {
-          const {relevantAttributes} = await generateRelevantAttributes({ language: rules.language, player: gameState.player, action: rules.actions[actionId], situation: currentSituation });
-          const {difficultyClass} = await generateDifficultyClass({ language: rules.language, action: rules.actions[actionId], situation: currentSituation, relevantAttributes });
+          const {relevantAttributes} = await generateRelevantAttributes({
+            language: rules.language,
+            player: gameState.player,
+            action: rules.actions[actionId],
+            situation: currentSituation
+          });
+          const {difficultyClass} = await generateDifficultyClass({
+            language: rules.language,
+            action: rules.actions[actionId],
+            situation: currentSituation,
+            relevantAttributes
+          });
           checkToUse = {relevantAttributes, difficultyClass, hasPassed: false};
         }
         setDiceRollActionCheck(checkToUse);
@@ -494,15 +556,29 @@ export default function PlayPageV2() {
     if (!currentSituation || !sceneDescription || !rules || !gameState) return;
 
     const talkRule = currentSituation.on_action.find(rule => rule.when.actionId === 'talk' && rule.when.targets && new RegExp(`^(${rule.when.targets})$`, 'i').test(target));
-    if (!talkRule) return toast({variant: 'destructive', title: 'Action Error', description: `No talk rule found for target: ${target}`});
+    if (!talkRule) return toast({
+      variant: 'destructive',
+      title: 'Action Error',
+      description: `No talk rule found for target: ${target}`
+    });
 
     const secretAction = talkRule.do.find(action => action.secret);
     const agreementAction = talkRule.do.find(action => action.agreement);
     let objective = "", flow: ConversationFlow | null = null, type: ConversationType = 'secret';
 
-    if (secretAction) { objective = secretAction.secret as string; flow = extractSecret as ConversationFlow; type = 'secret'; }
-    else if (agreementAction) { objective = agreementAction.agreement as string; flow = reachAgreement as ConversationFlow; type = 'agreement'; }
-    else return toast({variant: 'destructive', title: 'Action Error', description: `Talk action for ${target} has no objective.`});
+    if (secretAction) {
+      objective = secretAction.secret as string;
+      flow = extractSecret as ConversationFlow;
+      type = 'secret';
+    } else if (agreementAction) {
+      objective = agreementAction.agreement as string;
+      flow = reachAgreement as ConversationFlow;
+      type = 'agreement';
+    } else return toast({
+      variant: 'destructive',
+      title: 'Action Error',
+      description: `Talk action for ${target} has no objective.`
+    });
 
     setTalkTarget(target);
     setTalkObjective(objective);
@@ -511,12 +587,22 @@ export default function PlayPageV2() {
     setTalkFollowUpActions(talkRule.do.filter(action => !action.secret && !action.agreement));
 
     const existingProfile = gameState.characters?.[target];
-    if (existingProfile) { setCharacterProfile(existingProfile); setActiveView('talk'); return; }
+    if (existingProfile) {
+      setCharacterProfile(existingProfile);
+      setActiveView('talk');
+      return;
+    }
 
     setIsGeneratingCharacter(true);
     try {
-      const profile = await generateCharacter({ language: rules.language, situationLabel: currentSituation.label, target: target });
-      setGameState(produce(draft => { if(draft) draft.characters[target] = profile; }));
+      const profile = await generateCharacter({
+        language: rules.language,
+        situationLabel: currentSituation.label,
+        target: target
+      });
+      setGameState(produce(draft => {
+        if (draft) draft.characters[target] = profile;
+      }));
       setCharacterProfile(profile);
       setActiveView('talk');
     } catch (error) {
@@ -530,7 +616,9 @@ export default function PlayPageV2() {
   const handleDiceRollComplete = (passed: boolean) => {
     if (!diceRollActionId || !diceRollActionCheck || !currentSituation) return;
     const checkId = `${diceRollActionId}${diceRollTarget ? `_${diceRollTarget}` : ''}`;
-    setGameState(produce(draft => { if(draft) draft.actionChecks[checkId] = {...diceRollActionCheck, hasPassed: passed}; }));
+    setGameState(produce(draft => {
+      if (draft) draft.actionChecks[checkId] = {...diceRollActionCheck, hasPassed: passed};
+    }));
     setIsDiceRollDialogOpen(false);
     const actionRule = currentSituation.on_action.find(r => r.when.actionId === diceRollActionId && (!r.when.targets || (diceRollTarget && new RegExp(r.when.targets).test(diceRollTarget))));
     if (passed || (!passed && actionRule?.fail)) {
@@ -542,26 +630,40 @@ export default function PlayPageV2() {
     setDiceRollTarget(undefined);
     setDiceRollActionCheck(null);
   };
-  
+
   const handleFightComplete = (result: 'win' | 'loss') => {
     setIsFightDialogOpen(false);
-    const resultLog: LogEntry = { id: Date.now(), type: 'procedural', message: `You ${result} the fight against ${fightTarget?.name || 'the enemy'}.` };
-    setGameState(produce(draft => { if(draft) draft.log.push(resultLog); }));
+    const resultLog: LogEntry = {
+      id: Date.now(),
+      type: 'procedural',
+      message: `You ${result} the fight against ${fightTarget?.name || 'the enemy'}.`
+    };
+    setGameState(produce(draft => {
+      if (draft) draft.log.push(resultLog);
+    }));
     if (result === 'win') executeAction('fight', fightTarget?.name, true);
     setFightTarget(null);
   }
 
   const handleEndTalk = (conversationLog: LogEntry[], objectiveAchieved: boolean) => {
-    setGameState(produce(draft => { if(draft) draft.log.push(...conversationLog); }));
+    setGameState(produce(draft => {
+      if (draft) draft.log.push(...conversationLog);
+    }));
     if (objectiveAchieved) {
       executeAction('talk-objective-complete', undefined, true, talkFollowUpActions);
     } else {
       startTransition(async () => {
         const finalSummary = `Finished a conversation with ${talkTarget} without achieving the objective.`;
-        setGameState(produce(draft => { if(draft) draft.log.push({id: Date.now(), type: 'procedural', message: finalSummary}); }));
+        setGameState(produce(draft => {
+          if (draft) draft.log.push({id: Date.now(), type: 'procedural', message: finalSummary});
+        }));
       });
     }
-    setTalkTarget(''); setCharacterProfile(null); setTalkObjective(''); setConversationFlow(null); setTalkFollowUpActions([]);
+    setTalkTarget('');
+    setCharacterProfile(null);
+    setTalkObjective('');
+    setConversationFlow(null);
+    setTalkFollowUpActions([]);
     setActiveView('game');
   };
 
@@ -569,7 +671,7 @@ export default function PlayPageV2() {
     setSelectedAction(actionId);
     setTargetForAction(target);
   };
-  
+
   const handleLogTargetClick = (target: string) => {
     if (selectedAction) setTargetForAction(target);
   };
@@ -583,47 +685,74 @@ export default function PlayPageV2() {
 
   return (
     <div className="flex h-screen bg-background text-foreground font-body flex-col">
-      <LoadGameDialog isOpen={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen} saveFiles={saveFiles} onLoad={handleLoadGame} onDelete={handleDeleteSave} language={rules.language} />
-      <DiceRollDialog isOpen={isDiceRollDialogOpen} onOpenChange={setIsDiceRollDialogOpen} rules={rules} situation={currentSituation} actionId={diceRollActionId || ''} target={diceRollTarget} actionCheck={diceRollActionCheck} playerStats={gameState.player} isGenerating={isGeneratingDiceCheck} onRollComplete={handleDiceRollComplete} language={rules.language} />
-      <InventoryDialog isOpen={isInventoryOpen} onOpenChange={setIsInventoryOpen} inventory={gameState.player.inventory} equipment={gameState.player.equipment} onItemAction={handleItemAction} language={gameState.player.language} />
-      <LatestResultModal isOpen={isLatestResultModalOpen} onOpenChange={setIsLatestResultModalOpen} latestNarrative={latestNarrative} knownTargets={knownTargets} actionRules={currentSituation.on_action} actionDetails={actionDetails} allowedActions={allowedActions} onTargetClick={(actionId, target) => { handleTargetClick(actionId, target); setIsLatestResultModalOpen(false); }} onLogTargetClick={(target) => { handleLogTargetClick(target); setIsLatestResultModalOpen(false); }} selectedAction={selectedAction} language={rules.language} />
-      {fightTarget && <FightDialog isOpen={isFightDialogOpen} onOpenChange={setIsFightDialogOpen} player={gameState.player} enemy={fightTarget} onFightComplete={handleFightComplete} language={rules.language} />}
-      
-       <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="flex flex-col h-full">
+      <LoadGameDialog isOpen={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen} saveFiles={saveFiles}
+                      onLoad={handleLoadGame} onDelete={handleDeleteSave} language={rules.language}/>
+      <DiceRollDialog isOpen={isDiceRollDialogOpen} onOpenChange={setIsDiceRollDialogOpen} rules={rules}
+                      situation={currentSituation} actionId={diceRollActionId || ''} target={diceRollTarget}
+                      actionCheck={diceRollActionCheck} playerStats={gameState.player}
+                      isGenerating={isGeneratingDiceCheck} onRollComplete={handleDiceRollComplete}
+                      language={rules.language}/>
+      <InventoryDialog isOpen={isInventoryOpen} onOpenChange={setIsInventoryOpen} inventory={gameState.player.inventory}
+                       equipment={gameState.player.equipment} onItemAction={handleItemAction}
+                       language={gameState.player.language}/>
+      <LatestResultModal isOpen={isLatestResultModalOpen} onOpenChange={setIsLatestResultModalOpen}
+                         latestNarrative={latestNarrative} knownTargets={knownTargets}
+                         actionRules={currentSituation.on_action} actionDetails={actionDetails}
+                         allowedActions={allowedActions} onTargetClick={(actionId, target) => {
+        handleTargetClick(actionId, target);
+        setIsLatestResultModalOpen(false);
+      }} onLogTargetClick={(target) => {
+        handleLogTargetClick(target);
+        setIsLatestResultModalOpen(false);
+      }} selectedAction={selectedAction} language={rules.language}/>
+      {fightTarget &&
+          <FightDialog isOpen={isFightDialogOpen} onOpenChange={setIsFightDialogOpen} player={gameState.player}
+                       enemy={fightTarget} onFightComplete={handleFightComplete} language={rules.language}/>}
+
+      <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="flex flex-col h-full">
         <header className="flex items-center justify-between p-2 border-b shrink-0">
           <h1 className="text-xl font-bold font-headline pl-2">{rules.title}</h1>
           <div>
             <TabsList>
-              <TabsTrigger value="game"><Gamepad2 className="mr-2" />Game</TabsTrigger>
-              <TabsTrigger value="character"><User className="mr-2" />Character</TabsTrigger>
-              <TabsTrigger value="saves"><Save className="mr-2" />Saves</TabsTrigger>
+              <TabsTrigger value="game"><Gamepad2 className="mr-2"/>Game</TabsTrigger>
+              <TabsTrigger value="character"><User className="mr-2"/>Character</TabsTrigger>
+              <TabsTrigger value="saves"><Save className="mr-2"/>Saves</TabsTrigger>
               {activeView === 'talk' && (
                 <TabsTrigger value="talk">
-                  <MessageSquare className="mr-2" />
+                  <MessageSquare className="mr-2"/>
                   {characterProfile?.name || 'Talk'}
                 </TabsTrigger>
               )}
             </TabsList>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild><Link href="/admin/rules"><Wrench className="h-4 w-4" /></Link></Button>
-            <Button variant="ghost" asChild><Link href="/"><Home className="h-4 w-4" /></Link></Button>
+            <Button variant="ghost" asChild><Link href="/admin/rules"><Wrench className="h-4 w-4"/></Link></Button>
+            <Button variant="ghost" asChild><Link href="/"><Home className="h-4 w-4"/></Link></Button>
           </div>
         </header>
 
         <main className="flex-1 overflow-hidden">
-            <TabsContent value="game" className="w-full h-full mt-0">
-              <GameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} isProcessing={isProcessing} t={t} handleAction={handleAction} setSelectedAction={setSelectedAction} targetForAction={targetForAction} setTargetForAction={setTargetForAction} isEnding={isEnding} />
-            </TabsContent>
-            <TabsContent value="character" className="w-full h-full mt-0">
-              <CharacterView player={gameState.player} counters={gameState.counters} rules={rules} onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />
-            </TabsContent>
-            <TabsContent value="saves" className="w-full h-full mt-0">
-              <SavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />
-            </TabsContent>
-            <TabsContent value="talk" className="w-full h-full mt-0">
-              <TalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective} conversationType={conversationType} conversationFlow={conversationFlow} onConversationEnd={handleEndTalk} />
-            </TabsContent>
+          <TabsContent value="game" className="w-full h-full mt-0">
+            <GameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} sceneImage={sceneImage}
+                      isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails}
+                      allowedActions={allowedActions} handleTargetClick={handleTargetClick}
+                      handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction}
+                      isProcessing={isProcessing} t={t} handleAction={handleAction}
+                      setSelectedAction={setSelectedAction} targetForAction={targetForAction}
+                      setTargetForAction={setTargetForAction} isEnding={isEnding}/>
+          </TabsContent>
+          <TabsContent value="character" className="w-full h-full mt-0">
+            <CharacterView player={gameState.player} counters={gameState.counters} rules={rules}
+                           onItemAction={handleItemAction} onOpenInventory={() => setIsInventoryOpen(true)} t={t}/>
+          </TabsContent>
+          <TabsContent value="saves" className="w-full h-full mt-0">
+            <SavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog}/>
+          </TabsContent>
+          <TabsContent value="talk" className="w-full h-full mt-0">
+            <TalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective}
+                        conversationType={conversationType} conversationFlow={conversationFlow}
+                        onConversationEnd={handleEndTalk}/>
+          </TabsContent>
         </main>
       </Tabs>
     </div>

@@ -10,7 +10,7 @@
 
 import {z} from 'genkit';
 import {getTranslator} from '@/lib/i18n';
-import {API_GENERATE} from "@/ai/simple/config";
+import {API_TEXT_GENERATE} from "@/ai/simple/config";
 import type {ValidateSecretInput} from "@/types/game";
 
 const ValidateSecretOutputSchema = z.object({
@@ -30,7 +30,7 @@ export async function validateSecret(input: ValidateSecretInput): Promise<Valida
   let retryCount = 3;
   while (retryCount > 0) {
     try {
-      const resp = await (await fetch(API_GENERATE, {
+      const resp = await (await fetch(API_TEXT_GENERATE, {
         method: 'POST',
         body: JSON.stringify({user_prompt: userPrompt, preset: "gemini-2.5-flash"}),
         headers: {'Content-Type': 'application/json'}

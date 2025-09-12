@@ -469,13 +469,10 @@ Generate a single number for the Difficulty Class.
     ai: {
       generateScene: {
         prompt: (input: GenerateSceneDescriptionInput) => `
-你是一个互动叙事游戏的地下城主。你的任务是为玩家制作一个引人入胜的场景描述。这个描述为当前的情境设定了舞台。
+你要根据背景、情境和已知目标生成一个场景描述。你必须用直白自然的语言叙述，描述环境、氛围和关键元素。至关重要的是，你必须将所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
 
 背景：${input.background}
 当前情境：${input.situation}
-
-你必须创造一个引人入胜的、多段落的叙述，描述环境、氛围和关键元素。至关重要的是，你必须将以下所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
-
 互动目标：
 ${input.knownTargets.map(target => `- ${target}`).join('\n')}
 

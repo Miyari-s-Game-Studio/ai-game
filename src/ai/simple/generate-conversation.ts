@@ -11,7 +11,7 @@
 import {z} from 'genkit';
 import type {ExtractSecretInput, GenerateCharacterInput, ReachAgreementInput} from '@/types/game';
 import {getTranslator} from '@/lib/i18n';
-import {API_GENERATE} from "@/ai/simple/config";
+import {API_TEXT_GENERATE} from "@/ai/simple/config";
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // 1. Flow for Generating a Character Persona
@@ -39,7 +39,7 @@ export async function generateCharacter(input: GenerateCharacterInput): Promise<
   let retryCount = 3;
   while (retryCount > 0) {
     try {
-      const resp = await (await fetch(API_GENERATE, {
+      const resp = await (await fetch(API_TEXT_GENERATE, {
         method: 'POST',
         body: JSON.stringify({user_prompt: userPrompt, preset: "gemini-2.5-flash"}),
         headers: {'Content-Type': 'application/json'}
@@ -73,7 +73,7 @@ export async function extractSecret(input: ExtractSecretInput): Promise<Conversa
   const t = getTranslator(input.language);
 
   const systemPrompt = t.ai.extractSecret.systemPrompt(input);
-  const resp = await (await fetch(API_GENERATE, {
+  const resp = await (await fetch(API_TEXT_GENERATE, {
     method: 'POST',
     body: JSON.stringify({
       system_prompt: systemPrompt,
@@ -95,7 +95,7 @@ export async function reachAgreement(input: ReachAgreementInput): Promise<Conver
   const t = getTranslator(input.language);
 
   const systemPrompt = t.ai.reachAgreement.systemPrompt(input);
-  const resp = await (await fetch(API_GENERATE, {
+  const resp = await (await fetch(API_TEXT_GENERATE, {
     method: 'POST',
     body: JSON.stringify({
       system_prompt: systemPrompt,

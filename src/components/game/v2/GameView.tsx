@@ -13,6 +13,7 @@ interface GameViewProps {
   rules: GameRules;
   gameState: GameState;
   sceneDescription: string;
+  sceneImage: string;
   isGeneratingScene: boolean;
   knownTargets: string[];
   actionDetails: Record<string, ActionDetail>;
@@ -33,6 +34,7 @@ export function GameView({
   rules,
   gameState,
   sceneDescription,
+  sceneImage,
   isGeneratingScene,
   knownTargets,
   actionDetails,
@@ -58,7 +60,7 @@ export function GameView({
         <aside className="w-1/2 flex flex-col p-8 border-r bg-muted/30 border-border gap-8">
             <div className="relative w-full h-2/3 rounded-lg overflow-hidden shadow-lg border border-border">
             <Image
-                src="https://placehold.co/600x800/221e2c/a89fbe?text=Scene"
+                src={ sceneImage ||"https://placehold.co/600x800/221e2c/a89fbe?text=Scene"}
                 alt="Scene illustration"
                 fill
                 style={{ objectFit: 'cover' }}

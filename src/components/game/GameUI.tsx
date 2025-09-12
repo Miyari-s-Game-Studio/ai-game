@@ -1,4 +1,3 @@
-
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
 import type {
@@ -77,6 +76,7 @@ const getInitialState = (rules: GameRules, playerStats: PlayerStats): GameState 
     player: finalPlayerStats,
     characters: {},
     sceneDescriptions: {},
+    sceneImages:{},
     actionChecks: {},
   };
 };
@@ -94,6 +94,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     return getInitialState(rules, initialPlayerStats);
   });
   const [sceneDescription, setSceneDescription] = useState('');
+  const [sceneImage, setSceneImage] = useState('');
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
@@ -137,11 +138,11 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   const currentSituation: Situation | undefined = rules.situations[gameState.situation];
   const isEnding = currentSituation?.ending === true;
 
-  const { allowedActions, actionDetails } = useMemo(() => {
-    if (!currentSituation) return { allowedActions: [], actionDetails: {} };
+  const {allowedActions, actionDetails} = useMemo(() => {
+    if (!currentSituation) return {allowedActions: [], actionDetails: {}};
 
     let actionIds = currentSituation.on_action.map(rule => rule.when.actionId);
-    const newActionDetails: Record<string, ActionDetail> = { ...rules.actions };
+    const newActionDetails: Record<string, ActionDetail> = {...rules.actions};
 
     if (isEnding) {
       actionIds = ['__end_scenario__'];
@@ -150,7 +151,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         label: t.endScenario,
         description: t.endScenarioDescription
       };
-      }
+    }
     return {
       allowedActions: [...new Set(actionIds)],
       actionDetails: newActionDetails
@@ -202,11 +203,13 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         knownTargets: knownTargets,
       });
       const newDescription = result.sceneDescription;
+      const newImage = result.sceneImage;
       setSceneDescription(newDescription);
-
+      setSceneImage(newImage);
       // Save to cache in game state
       setGameState(produce(draft => {
         draft.sceneDescriptions[situationId] = newDescription;
+        draft.sceneImages[situationId] = newImage;
       }));
 
     } catch (error) {
@@ -402,48 +405,48 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
   };
 
   const handleItemAction = (action: 'use' | 'discard' | 'equip' | 'unequip', item: Item) => {
-      if (!gameState.player) return;
+    if (!gameState.player) return;
 
-      const newStats = produce(gameState.player, draft => {
-          if (action === 'discard') {
-              draft.inventory = draft.inventory.filter(i => i.id !== item.id);
-          } else if (action === 'equip') {
-              if (item.slot) {
-                  // Unequip any existing item in the same slot
-                  const currentItemInSlot = draft.inventory.find(i => i.slot === item.slot && draft.equipment[item.slot!] === i.name);
-                  if (currentItemInSlot) {
-                      // No action needed on item itself, just update equipment
-                  }
-                  draft.equipment[item.slot] = item.name;
-              }
-          } else if (action === 'unequip') {
-              if (item.slot && draft.equipment[item.slot] === item.name) {
-                  delete draft.equipment[item.slot];
-              }
-          } else if (action === 'use') {
-              // Placeholder for using items.
-              console.log(`Attempted to use item: ${item.name}`);
-              alert(`Using '${item.name}' is not yet implemented.`);
-              return; // Don't update state if action is not implemented
+    const newStats = produce(gameState.player, draft => {
+      if (action === 'discard') {
+        draft.inventory = draft.inventory.filter(i => i.id !== item.id);
+      } else if (action === 'equip') {
+        if (item.slot) {
+          // Unequip any existing item in the same slot
+          const currentItemInSlot = draft.inventory.find(i => i.slot === item.slot && draft.equipment[item.slot!] === i.name);
+          if (currentItemInSlot) {
+            // No action needed on item itself, just update equipment
           }
-      });
-
-      // This is a complex state update. We need to update player stats inside gameState
-      // AND persist the new player stats to local storage.
-      setGameState(produce(draft => {
-          draft.player = newStats;
-      }));
-      try {
-        // Also save the updated player stats to the master record.
-        const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
-        if (allPlayersJson) {
-            const allPlayers = JSON.parse(allPlayersJson);
-            const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === newStats.id ? newStats : p);
-            localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
+          draft.equipment[item.slot] = item.name;
         }
-      } catch (e) {
-        console.error("Failed to update player stats in storage.", e);
+      } else if (action === 'unequip') {
+        if (item.slot && draft.equipment[item.slot] === item.name) {
+          delete draft.equipment[item.slot];
+        }
+      } else if (action === 'use') {
+        // Placeholder for using items.
+        console.log(`Attempted to use item: ${item.name}`);
+        alert(`Using '${item.name}' is not yet implemented.`);
+        return; // Don't update state if action is not implemented
       }
+    });
+
+    // This is a complex state update. We need to update player stats inside gameState
+    // AND persist the new player stats to local storage.
+    setGameState(produce(draft => {
+      draft.player = newStats;
+    }));
+    try {
+      // Also save the updated player stats to the master record.
+      const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
+      if (allPlayersJson) {
+        const allPlayers = JSON.parse(allPlayersJson);
+        const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === newStats.id ? newStats : p);
+        localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
+      }
+    } catch (e) {
+      console.error("Failed to update player stats in storage.", e);
+    }
   };
 
 
@@ -468,14 +471,14 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
     // Handle special end-game action
     if (actionId === '__end_scenario__') {
-        const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
-        if (allPlayersJson) {
-            const allPlayers = JSON.parse(allPlayersJson);
-            const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === gameState.player.id ? gameState.player : p);
-            localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
-        }
-        router.push('/');
-        return;
+      const allPlayersJson = localStorage.getItem(PLAYERS_KEY);
+      if (allPlayersJson) {
+        const allPlayers = JSON.parse(allPlayersJson);
+        const updatedPlayers = allPlayers.map((p: PlayerStats) => p.id === gameState.player.id ? gameState.player : p);
+        localStorage.setItem(PLAYERS_KEY, JSON.stringify(updatedPlayers));
+      }
+      router.push('/');
+      return;
     }
 
     // Talk has its own handler
@@ -722,7 +725,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
         };
 
         const finalLog = [...oldState.log, actionLog, ...engineLogs, narrativeLog];
-        setGameState({ ...newState, log: finalLog });
+        setGameState({...newState, log: finalLog});
         setLatestNarrative(finalLog.slice(oldLogLength));
         setIsLatestResultModalOpen(true);
 
@@ -746,7 +749,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
 
   const handleLogTargetClick = (target: string) => {
     if (selectedAction) {
-        setTargetForAction(target);
+      setTargetForAction(target);
     }
   };
 
@@ -800,31 +803,31 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           language={rules.language}
         />
         <InventoryDialog
-            isOpen={isInventoryOpen}
-            onOpenChange={setIsInventoryOpen}
-            inventory={gameState.player.inventory}
-            equipment={gameState.player.equipment}
-            onItemAction={handleItemAction}
-            language={gameState.player.language}
+          isOpen={isInventoryOpen}
+          onOpenChange={setIsInventoryOpen}
+          inventory={gameState.player.inventory}
+          equipment={gameState.player.equipment}
+          onItemAction={handleItemAction}
+          language={gameState.player.language}
         />
-         <LatestResultModal
-            isOpen={isLatestResultModalOpen}
-            onOpenChange={setIsLatestResultModalOpen}
-            latestNarrative={latestNarrative}
-            knownTargets={knownTargets}
-            actionRules={currentSituation.on_action}
-            actionDetails={actionDetails}
-            allowedActions={allowedActions}
-            onTargetClick={(actionId, target) => {
-                handleTargetClick(actionId, target);
-                setIsLatestResultModalOpen(false);
-            }}
-            onLogTargetClick={(target) => {
-                handleLogTargetClick(target);
-                setIsLatestResultModalOpen(false);
-            }}
-            selectedAction={selectedAction}
-            language={rules.language}
+        <LatestResultModal
+          isOpen={isLatestResultModalOpen}
+          onOpenChange={setIsLatestResultModalOpen}
+          latestNarrative={latestNarrative}
+          knownTargets={knownTargets}
+          actionRules={currentSituation.on_action}
+          actionDetails={actionDetails}
+          allowedActions={allowedActions}
+          onTargetClick={(actionId, target) => {
+            handleTargetClick(actionId, target);
+            setIsLatestResultModalOpen(false);
+          }}
+          onLogTargetClick={(target) => {
+            handleLogTargetClick(target);
+            setIsLatestResultModalOpen(false);
+          }}
+          selectedAction={selectedAction}
+          language={rules.language}
         />
         {fightTarget && (
           <FightDialog
@@ -910,18 +913,18 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
               <CardTitle className="text-xl font-headline">{t.fullActionLog}</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow overflow-y-auto">
-                <NarrativeLog
-                    log={gameState.log}
-                    knownTargets={knownTargets}
-                    actionRules={currentSituation.on_action}
-                    actionDetails={actionDetails}
-                    allowedActions={allowedActions}
-                    onTargetClick={handleTargetClick}
-                    onLogTargetClick={handleLogTargetClick}
-                    selectedAction={selectedAction}
-                    isScrollable={true}
-                    language={rules.language}
-                />
+              <NarrativeLog
+                log={gameState.log}
+                knownTargets={knownTargets}
+                actionRules={currentSituation.on_action}
+                actionDetails={actionDetails}
+                allowedActions={allowedActions}
+                onTargetClick={handleTargetClick}
+                onLogTargetClick={handleLogTargetClick}
+                selectedAction={selectedAction}
+                isScrollable={true}
+                language={rules.language}
+              />
             </CardContent>
           </Card>
         </div>

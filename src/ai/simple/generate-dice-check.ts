@@ -8,7 +8,7 @@
 
 import {z} from 'genkit';
 import {getTranslator} from '@/lib/i18n';
-import {API_GENERATE} from "@/ai/simple/config";
+import {API_TEXT_GENERATE} from "@/ai/simple/config";
 import type {
     GenerateRelevantAttributesInput,
     GenerateDifficultyClassInput,
@@ -38,7 +38,7 @@ export async function generateRelevantAttributes(input: GenerateRelevantAttribut
   let retryCount = 3;
   while (retryCount > 0) {
     try {
-      const resp = await (await fetch(API_GENERATE, {
+      const resp = await (await fetch(API_TEXT_GENERATE, {
         method: 'POST',
         body: JSON.stringify({user_prompt: userPrompt, preset: "gemini-2.5-flash"}),
         headers: {'Content-Type': 'application/json'}
@@ -78,7 +78,7 @@ export async function generateDifficultyClass(input: GenerateDifficultyClassInpu
   let retryCount = 3;
   while (retryCount > 0) {
     try {
-      const resp = await (await fetch(API_GENERATE, {
+      const resp = await (await fetch(API_TEXT_GENERATE, {
         method: 'POST',
         body: JSON.stringify({user_prompt: userPrompt, preset: "gemini-2.5-flash"}),
         headers: {'Content-Type': 'application/json'}
