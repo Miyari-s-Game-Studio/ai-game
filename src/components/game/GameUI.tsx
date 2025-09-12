@@ -198,7 +198,7 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     try {
       const result = await generateSceneDescription({
         language: rules.language,
-        background: rules.description,
+        background: rules.background,
         situation: situation.description,
         knownTargets: knownTargets,
       });

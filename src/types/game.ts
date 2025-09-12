@@ -163,7 +163,7 @@ export type GameRules = {
   version: number;
   id: string;
   title: string;
-  description: string;
+  background: string;
   language: 'en' | 'zh';
   theme?: 'theme-default' | 'theme-pixel' | 'theme-scifi' | 'theme-darksouls';
   actions: Record<string, ActionDetail>;

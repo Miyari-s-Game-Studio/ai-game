@@ -4,7 +4,7 @@
   "title": "龙影下的逃生（新手引导）",
   "language": "zh",
   "theme": "theme-default",
-  "description": "被押往边境小镇的你在处决广场上迎来一场天崩地裂。在混乱与抉择中，快速体验交谈、检定、战斗与结局。",
+  "background": "《上古卷轴：天际》",
   "actions": {
     "observe": {
       "icon": "Eye",

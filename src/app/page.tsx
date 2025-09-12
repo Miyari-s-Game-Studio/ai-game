@@ -50,7 +50,7 @@ export default function GameSelectionPage() {
   const [playerToDelete, setPlayerToDelete] = useState<PlayerStats | null>(null);
 
   const [view, setView] = useState<'character_select' | 'character_creator' | 'character_hub' | 'scenario_select'>('character_select');
-  
+
   // State for character creator/editor
   const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
   const [playerName, setPlayerName] = useState('');
@@ -69,7 +69,7 @@ export default function GameSelectionPage() {
     try {
         const savedPlayersJson = localStorage.getItem(PLAYERS_KEY);
         const players: PlayerStats[] = savedPlayersJson ? JSON.parse(savedPlayersJson) : [];
-        
+
         // Data migration for old structure
         players.forEach(p => {
             if (!p.id) p.id = uuidv4();
@@ -99,7 +99,7 @@ export default function GameSelectionPage() {
     if (activePlayer) {
         const allRulesIds = getAllRulesetIds();
         const loadedRules = allRulesIds.map(id => getRuleset(id)).filter(Boolean) as GameRules[];
-        
+
         const completedRuleIds = new Set(activePlayer.history?.map(h => h.rulesId) || []);
         const filteredRules = loadedRules.filter(rules => {
             if (rules.language !== activePlayer.language) return false;
@@ -203,10 +203,10 @@ export default function GameSelectionPage() {
       alert('Please enter a name and identity.');
       return;
     }
-    
+
     let updatedPlayers: PlayerStats[];
     if (editingPlayer) { // Editing existing player
-        const updatedPlayer = { 
+        const updatedPlayer = {
             ...editingPlayer,
             name: playerName,
             identity: playerIdentity,
@@ -262,13 +262,13 @@ export default function GameSelectionPage() {
 
     const updatedPlayers = allPlayers.filter(p => p.id !== playerToDelete.id);
     savePlayers(updatedPlayers);
-    
+
     if (activePlayer?.id === playerToDelete.id) {
         setActivePlayer(null);
         localStorage.removeItem(ACTIVE_PLAYER_ID_KEY);
         setView('character_select');
     }
-    
+
     setIsDeleteDialogOpen(false);
     setPlayerToDelete(null);
   }
@@ -437,7 +437,7 @@ export default function GameSelectionPage() {
           <Card key={rules.id} className="flex flex-col">
             <CardHeader>
               <CardTitle className="font-headline text-2xl">{rules.title}</CardTitle>
-              <CardDescription>{rules.description}</CardDescription>
+              <CardDescription>{rules.background}</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
                 <p className="text-sm text-muted-foreground">{t.version}: {rules.version}</p>

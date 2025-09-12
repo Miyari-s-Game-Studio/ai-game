@@ -53,7 +53,7 @@ const createBoilerplateRules = (id: string, language: 'en' | 'zh'): GameRules =>
             title: `新剧本: ${id}`,
             language: language,
             theme: 'theme-default',
-            description: "一个新的冒险开始了。",
+            background: "一个新的冒险开始了。",
             actions: {
                 observe: { icon: "Eye", label: "观察" },
                 reflect: { icon: "Archive", label: "反思" }
@@ -86,7 +86,7 @@ const createBoilerplateRules = (id: string, language: 'en' | 'zh'): GameRules =>
         title: `New Scenario: ${id}`,
         language: language,
         theme: 'theme-default',
-        description: "A new adventure begins.",
+        background: "A new adventure begins.",
         actions: {
             observe: { icon: "Eye", label: "Observe" },
             reflect: { icon: "Archive", label: "Reflect" }
@@ -181,7 +181,7 @@ function AdminRulesPage() {
     setAllRulesetIds(updatedIds);
     setSelectedRulesId(finalId);
     toast({ title: 'Success', description: `New ruleset "${finalId}" created locally.` });
-    
+
     // Close dialog and reset input
     setIsCreateDialogOpen(false);
     setNewRulesetId('');
@@ -193,16 +193,16 @@ function AdminRulesPage() {
       toast({ variant: 'destructive', title: 'Error', description: 'Only custom rulesets can be deleted.' });
       return;
     }
-    
+
     deleteCustomRuleset(selectedRulesId);
-    
+
     const updatedIds = getAllRulesetIds();
     setAllRulesetIds(updatedIds);
     setSelectedRulesId(updatedIds.length > 0 ? updatedIds[0] : null);
-    
+
     toast({ title: 'Success', description: `Custom ruleset "${selectedRulesId}" has been deleted.` });
   };
-  
+
   const selectedIsCustom = useMemo(() => selectedRulesId ? isCustomRuleset(selectedRulesId) : false, [selectedRulesId]);
 
 
@@ -233,7 +233,7 @@ function AdminRulesPage() {
               ))}
             </SelectContent>
           </Select>
-          
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -253,8 +253,8 @@ function AdminRulesPage() {
                       <Label htmlFor="ruleset-id" className="text-right">
                           ID
                       </Label>
-                      <Input 
-                          id="ruleset-id" 
+                      <Input
+                          id="ruleset-id"
                           value={newRulesetId}
                           onChange={(e) => setNewRulesetId(e.target.value)}
                           className="col-span-3"

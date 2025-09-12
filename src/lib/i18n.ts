@@ -469,7 +469,7 @@ Generate a single number for the Difficulty Class.
     ai: {
       generateScene: {
         prompt: (input: GenerateSceneDescriptionInput) => `
-你要根据背景、情境和已知目标生成一个场景描述。你必须用直白自然的语言叙述，描述环境、氛围和关键元素。至关重要的是，你必须将所有互动目标自然地编织到你的描述中，以确保玩家知道他们可以与什么互动。
+你要结合背景、情境，为互动目标生成一个简短合理的场景描述，并且你必须确保所有互动目标一字不差的出现在你的描述中。
 
 背景：${input.background}
 当前情境：${input.situation}

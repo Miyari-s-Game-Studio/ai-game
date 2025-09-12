@@ -270,7 +270,7 @@ export default function PlayPageV2() {
     try {
       const result = await generateSceneDescription({
         language: rules.language,
-        background: rules.description,
+        background: rules.background,
         situation: situation.description,
         knownTargets: knownTargets,
       });
