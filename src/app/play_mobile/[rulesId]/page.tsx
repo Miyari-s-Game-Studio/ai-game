@@ -32,7 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Gamepad2, Home, Save, User, BarChart, Settings } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
-import { DiceRollDialog } from '@/components/game/DiceRollDialog';
+import { MobileDiceRollDialog } from '@/components/game/mobile/MobileDiceRollDialog';
 import { InventoryDialog } from '@/components/game/InventoryDialog';
 import { LatestResultModal } from '@/components/game/LatestResultModal';
 import { FightDialog } from '@/components/game/FightDialog';
@@ -600,7 +600,7 @@ export default function PlayMobilePage() {
   return (
     <div className="flex h-screen bg-background text-foreground font-body flex-col">
       <LoadGameDialog isOpen={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen} saveFiles={saveFiles} onLoad={handleLoadGame} onDelete={handleDeleteSave} language={rules.language} />
-      <DiceRollDialog isOpen={isDiceRollDialogOpen} onOpenChange={setIsDiceRollDialogOpen} rules={rules} situation={currentSituation} actionId={diceRollActionId || ''} target={diceRollTarget} actionCheck={diceRollActionCheck} playerStats={gameState.player} isGenerating={isGeneratingDiceCheck} onRollComplete={handleDiceRollComplete} language={rules.language} />
+      <MobileDiceRollDialog isOpen={isDiceRollDialogOpen} onOpenChange={setIsDiceRollDialogOpen} rules={rules} situation={currentSituation} actionId={diceRollActionId || ''} target={diceRollTarget} actionCheck={diceRollActionCheck} playerStats={gameState.player} isGenerating={isGeneratingDiceCheck} onRollComplete={handleDiceRollComplete} language={rules.language} />
       <InventoryDialog isOpen={isInventoryOpen} onOpenChange={setIsInventoryOpen} inventory={gameState.player.inventory} equipment={gameState.player.equipment} onItemAction={handleItemAction} language={gameState.player.language} />
       <LatestResultModal isOpen={isLatestResultModalOpen} onOpenChange={setIsLatestResultModalOpen} latestNarrative={latestNarrative} knownTargets={knownTargets} actionRules={currentSituation.on_action} actionDetails={actionDetails} allowedActions={allowedActions} onTargetClick={(actionId, target) => { handleTargetClick(actionId, target); setIsLatestResultModalOpen(false); }} onLogTargetClick={(target) => { handleLogTargetClick(target); setIsLatestResultModalOpen(false); }} selectedAction={selectedAction} language={rules.language} />
       {fightTarget && <FightDialog isOpen={isFightDialogOpen} onOpenChange={setIsFightDialogOpen} player={gameState.player} enemy={fightTarget} onFightComplete={handleFightComplete} language={rules.language} />}
