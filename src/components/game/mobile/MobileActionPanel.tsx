@@ -22,8 +22,9 @@ const getDynamicIcon = (iconName: string): React.ElementType => {
 };
 
 export const MobileActionPanel: React.FC<MobileActionPanelProps> = ({
-  actionRules,
+  allowedActions,
   actionDetails,
+  actionRules,
   onAction,
   disabled,
   t,
@@ -31,48 +32,42 @@ export const MobileActionPanel: React.FC<MobileActionPanelProps> = ({
 
   const flattenedActions = useMemo(() => {
     const actions: { actionId: string, target?: string, label: string, icon: string }[] = [];
+    
+    allowedActions.forEach(actionId => {
+        const details = actionDetails[actionId];
+        if (!details) return;
 
-    actionRules.forEach(rule => {
-      const details = actionDetails[rule.when.actionId];
-      if (!details) return;
-
-      if (rule.when.targets) {
-        rule.when.targets.split('|').forEach(target => {
-          actions.push({
-            actionId: rule.when.actionId,
-            target: target.trim(),
-            label: `${details.label} ${target.trim()}`,
-            icon: details.icon,
-          });
+        // Find all rules for this action to get targets
+        const rulesForAction = actionRules.filter(rule => rule.when.actionId === actionId);
+        const hasTargetlessRule = rulesForAction.some(rule => !rule.when.targets);
+        const allTargets = new Set<string>();
+        rulesForAction.forEach(rule => {
+            if (rule.when.targets) {
+                rule.when.targets.split('|').forEach(target => allTargets.add(target.trim()));
+            }
         });
-      } else {
-        // Add action only if it's not already added as a target-less action.
-        if (!actions.some(a => a.actionId === rule.when.actionId && !a.target)) {
-           actions.push({
-            actionId: rule.when.actionId,
-            label: details.label,
-            icon: details.icon,
-          });
-        }
-      }
-    });
 
-    // Special handling for ending
-     const endRule = actionRules.find(r => r.when.actionId === '__end_scenario__');
-     if (endRule) {
-        const details = actionDetails['__end_scenario__'];
-        if (details) {
+        if (allTargets.size > 0) {
+            allTargets.forEach(target => {
+                actions.push({
+                    actionId: actionId,
+                    target: target,
+                    label: `${details.label} ${target}`,
+                    icon: details.icon,
+                });
+            });
+        } else if (hasTargetlessRule || actionId === '__end_scenario__') {
+             // Add action if it's target-less or the special end action
             actions.push({
-                actionId: '__end_scenario__',
+                actionId: actionId,
                 label: details.label,
-                icon: details.icon
+                icon: details.icon,
             });
         }
-     }
-
+    });
 
     return actions;
-  }, [actionRules, actionDetails]);
+  }, [actionRules, actionDetails, allowedActions]);
 
 
   return (
