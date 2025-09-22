@@ -620,7 +620,6 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
     startTransition(async () => {
       try {
         const oldState = gameState;
-        const oldLogLength = oldState.log.length;
 
         const actionLog: LogEntry = {
           id: Date.now(),
@@ -721,9 +720,9 @@ export function GameUI({rules, initialStateOverride, initialPlayerStats}: GameUI
           changes: changes.length > 0 ? changes : undefined,
         };
         
-        const finalLog = [...oldState.log, actionLog, ...engineLogs, narrativeLog];
-        setGameState({ ...newState, log: finalLog });
-        setLatestNarrative(finalLog.slice(oldLogLength));
+        const newLogs = [actionLog, ...engineLogs, narrativeLog];
+        setGameState({ ...newState, log: [...oldState.log, ...newLogs] });
+        setLatestNarrative(newLogs);
         setIsLatestResultModalOpen(true);
 
 

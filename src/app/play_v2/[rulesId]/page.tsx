@@ -1,3 +1,4 @@
+
 // src/app/play_v2/[rulesId]/page.tsx
 'use client';
 import React, {useEffect, useMemo, useState, useTransition} from 'react';
@@ -366,7 +367,6 @@ export default function PlayPageV2() {
     startTransition(async () => {
       try {
         const oldState = gameState;
-        const oldLogLength = oldState.log.length;
         const actionLog: LogEntry = {
           id: Date.now(),
           type: 'action',
@@ -418,8 +418,9 @@ export default function PlayPageV2() {
           changes: changes.length > 0 ? changes : undefined,
         };
         
-        setGameState({ ...newState, log: [...oldState.log, actionLog, ...engineLogs, narrativeLog] });
-        setLatestNarrative([actionLog, ...engineLogs, narrativeLog].slice(oldLogLength));
+        const newLogs = [actionLog, ...engineLogs, narrativeLog];
+        setGameState({ ...newState, log: [...oldState.log, ...newLogs] });
+        setLatestNarrative(newLogs);
         setIsLatestResultModalOpen(true);
       } catch (error) {
         console.error('Error processing action:', error);
