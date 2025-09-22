@@ -1,21 +1,22 @@
-// src/components/game/FightDialog.tsx
+// src/components/game/mobile/MobileFightDialog.tsx
 'use client';
-import React, {useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useReducer, useState} from 'react';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,} from '@/components/ui/dialog';
 import {Button} from '@/components/ui/button';
 import {getTranslator} from '@/lib/i18n';
-import {BookOpen, Bot, ChevronsUp, Dices, Eye, Footprints, Heart, Smile, Swords, User} from 'lucide-react';
+import {BookOpen, Bot, ChevronsUp, Dices, Eye, Footprints, Heart, Smile, Swords, User, XCircle} from 'lucide-react';
 import type {FightState, PlayerAttributes, PlayerStats} from '@/types/game';
 import {Separator} from "@/components/ui/separator";
 import {Badge} from "@/components/ui/badge";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip"
 import {Dice} from "@/components/ui/dice";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-interface FightDialogProps {
+interface MobileFightDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   player: PlayerStats;
-  enemy: PlayerStats; // Assuming enemy has the same stat structure
+  enemy: PlayerStats; 
   onFightComplete: (result: 'win' | 'loss') => void;
   language: 'en' | 'zh';
 }
@@ -199,7 +200,6 @@ const fightReducer = (state: FightState, action: FightAction): FightState => {
           break;
         case 'charisma': // Pressure, handled in component
           logMessage = 'Player uses Pressure, forcing the enemy to press!';
-          // The actual forcing happens in the component logic
           break;
       }
 
@@ -268,11 +268,10 @@ const SkillButton: React.FC<{
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button onClick={onClick} disabled={disabled || remaining <= 0} variant="outline" size="sm"
-                  className="relative">
-            <details.icon className="mr-2"/>
-            {details.name}
-            <Badge className="absolute -top-2 -right-2">{remaining}</Badge>
+          <Button onClick={onClick} disabled={disabled || remaining <= 0} variant="outline" size="sm" className="relative h-auto py-2 flex flex-col">
+            <details.icon />
+            <span className="text-xs mt-1">{details.name}</span>
+            <Badge className="absolute -top-2 -right-2 px-1.5">{remaining}</Badge>
           </Button>
         </TooltipTrigger>
         <TooltipContent>
@@ -284,14 +283,12 @@ const SkillButton: React.FC<{
   )
 }
 
-
-export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplete, language}: FightDialogProps) {
+export function MobileFightDialog({isOpen, onOpenChange, player, enemy, onFightComplete, language}: MobileFightDialogProps) {
   const t = useMemo(() => getTranslator(language), [language]);
   const [state, dispatch] = useReducer(fightReducer, createInitialFightState(player, enemy));
 
   const [showPeek, setShowPeek] = useState(false);
 
-  // Derived state for easier access
   const {currentRound, winner} = state;
   const playerMod = {
     str: getMod(player.attributes.strength),
@@ -301,13 +298,9 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
     wis: getMod(player.attributes.wisdom),
     cha: getMod(player.attributes.charisma),
   };
-  const enemyMod = {
-    con: getMod(enemy.attributes.constitution),
-    cha: getMod(enemy.attributes.charisma),
-  };
-
+  
   const playerBustThreshold = 12 + playerMod.con;
-  const enemyBustThreshold = 12 + enemyMod.con;
+  const enemyBustThreshold = 12 + getMod(enemy.attributes.constitution);
   const didPlayerBust = currentRound.playerSum > playerBustThreshold;
   const didEnemyBust = currentRound.enemySum > enemyBustThreshold;
 
@@ -324,7 +317,6 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
   useEffect(() => {
     if (isOpen) {
       dispatch({type: 'START_FIGHT'});
-      // Use timeout to allow state to reset before starting round
       setTimeout(() => dispatch({type: 'START_ROUND'}), 100);
     }
   }, [isOpen]);
@@ -350,13 +342,8 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
 
         if (pFinal > eFinal) roundWinner = 'player';
         else if (pFinal < eFinal) roundWinner = 'enemy';
-        else {
-          if (player.attributes.dexterity > enemy.attributes.dexterity) roundWinner = 'player';
-          else if (enemy.attributes.dexterity > player.attributes.dexterity) roundWinner = 'enemy';
-          else {
-            roundWinner = rollD6() > 3 ? 'player' : 'enemy';
-          }
-        }
+        else roundWinner = rollD6() > 3 ? 'player' : 'enemy';
+        
         dispatch({type: 'LOG', message: `Comparing scores: Player(${pFinal}) vs Enemy(${eFinal})`});
       }
 
@@ -369,10 +356,7 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
   }, [currentRound.playerStand, currentRound.enemyStand, didPlayerBust, didEnemyBust, winner, currentRound.playerSum, currentRound.enemySum, currentRound.playerBonus, currentRound.enemyBonus, playerBustThreshold, enemyBustThreshold, player.attributes.dexterity, enemy.attributes.dexterity, playerMod.dex, currentRound.usedPlayerSkills.dexterity]);
 
 
-  const handlePlayerPress = () => {
-    dispatch({type: 'PLAYER_PRESS'});
-  };
-
+  const handlePlayerPress = () => dispatch({type: 'PLAYER_PRESS'});
   const handlePlayerStand = () => {
     if (currentRound.playerSum <= 10 && (currentRound.usedPlayerSkills.wisdom || 0) < playerMod.wis) {
       if (confirm("Use Poise to add +2 to your comparison total?")) {
@@ -383,16 +367,11 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
   }
 
   const handleClose = () => {
-    if (winner) {
-      onFightComplete(winner === 'player' ? 'win' : 'loss');
-    }
+    if (winner) onFightComplete(winner === 'player' ? 'win' : 'loss');
     onOpenChange(false);
   }
 
-  const handleSidestep = () => {
-    dispatch({type: 'USE_SKILL', skill: 'dexterity', target: 'player'});
-  }
-
+  const handleSidestep = () => dispatch({type: 'USE_SKILL', skill: 'dexterity', target: 'player'});
   const handlePeek = () => {
     dispatch({type: 'USE_SKILL', skill: 'intelligence', target: 'player'});
     setShowPeek(true);
@@ -422,9 +401,9 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl font-headline justify-center">
+      <DialogContent className="max-w-md p-0">
+        <DialogHeader className="p-4 border-b">
+          <DialogTitle className="flex items-center gap-2 text-xl font-headline justify-center">
             <Swords/>
             {t.fightTitle(state.round)}
           </DialogTitle>
@@ -433,32 +412,63 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-6 items-stretch">
-          {/* Enemy Side */}
-          <div className="flex flex-col space-y-4 p-4 border rounded-lg bg-muted/50">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold flex items-center gap-2"><Bot/> {enemy.name}</h3>
-              <Badge variant={didEnemyBust ? "destructive" : "secondary"}>
-                Sum: {currentRound.enemySum} / {enemyBustThreshold}
-              </Badge>
+        <div className="p-4 space-y-4">
+            {/* Enemy */}
+            <div className="space-y-2 p-3 border rounded-lg bg-muted/30">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold flex items-center gap-2"><Bot/> {enemy.name}</h3>
+                    <Badge variant={didEnemyBust ? "destructive" : "secondary"}>
+                        {currentRound.enemySum} / {enemyBustThreshold}
+                    </Badge>
+                </div>
+                {renderDice(currentRound.enemyDice)}
             </div>
-            {renderDice(currentRound.enemyDice)}
-            <Separator/>
-            <div className="flex-grow">
-              {/* Placeholder for enemy info */}
+            
+            {/* Score & Log */}
+            <div className="flex flex-col items-center space-y-2">
+                <div className="text-3xl font-bold text-center">
+                    {state.playerRoundsWon} - {state.enemyRoundsWon}
+                </div>
+                <ScrollArea className="w-full h-24 bg-background border rounded-lg p-2 text-xs">
+                    {currentRound.log.map((l, i) => <p key={i} className="font-mono">&gt; {l}</p>)}
+                </ScrollArea>
             </div>
-          </div>
-
-          {/* Center Column: Score & Logs */}
-          <div className="flex flex-col space-y-4">
-            <div className="text-4xl font-bold text-center">
-              {state.playerRoundsWon} - {state.enemyRoundsWon}
+            
+             {/* Player */}
+            <div className="space-y-3 p-3 border rounded-lg">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold flex items-center gap-2"><User/> {player.name}</h3>
+                    <Badge variant={didPlayerBust ? "destructive" : "secondary"}>
+                        {currentRound.playerSum} / {playerBustThreshold}
+                    </Badge>
+                </div>
+                {renderDice(currentRound.playerDice, showPeek, currentRound.peekResult)}
+                <Separator />
+                 <div className="flex gap-2">
+                    <Button onClick={handlePlayerPress} className="flex-1"
+                            disabled={!currentRound.isPlayerTurn || didPlayerBust || currentRound.playerStand || !!winner}>{t.pressAction}</Button>
+                    <Button onClick={handlePlayerStand} className="flex-1"
+                            disabled={!currentRound.isPlayerTurn || didPlayerBust || currentRound.playerStand || !!winner}
+                            variant="secondary">{t.standAction}</Button>
+                </div>
+                <p className="font-semibold text-sm">{t.skills}</p>
+                <div className="grid grid-cols-3 gap-2">
+                    <SkillButton skill="strength" player={player} usedCount={currentRound.usedPlayerSkills.strength || 0}
+                                onClick={() => dispatch({type: 'USE_SKILL', skill: 'strength', target: 'player'})}
+                                disabled={!currentRound.playerStand || !!winner} skillDetails={skillDetails}/>
+                    <SkillButton skill="dexterity" player={player} usedCount={currentRound.usedPlayerSkills.dexterity || 0}
+                                onClick={handleSidestep} disabled={!didPlayerBust || !!winner} skillDetails={skillDetails}/>
+                    <SkillButton skill="intelligence" player={player}
+                                usedCount={currentRound.usedPlayerSkills.intelligence || 0} onClick={handlePeek}
+                                disabled={!currentRound.isPlayerTurn || currentRound.playerStand || !!winner}
+                                skillDetails={skillDetails}/>
+                </div>
             </div>
-            <div className="w-full flex-grow bg-background border rounded-lg p-2 overflow-y-auto text-sm">
-              {currentRound.log.map((l, i) => <p key={i} className="font-mono">&gt; {l}</p>)}
-            </div>
+        </div>
+        
+        <div className="p-4 border-t space-y-2">
             {winner && (
-              <div className="text-center font-bold text-3xl p-4 text-primary animate-in fade-in-50">
+              <div className="text-center font-bold text-2xl p-2 text-primary animate-in fade-in-50">
                 {winner === 'player' ? t.fightWin : t.fightLoss}
               </div>
             )}
@@ -472,51 +482,11 @@ export function FightDialog({isOpen, onOpenChange, player, enemy, onFightComplet
                 {t.fightLeave}
               </Button>
             )}
-          </div>
-
-          {/* Player Side */}
-          <div className="space-y-4 p-4 border rounded-lg">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold flex items-center gap-2"><User/> {player.name}</h3>
-              <Badge variant={didPlayerBust ? "destructive" : "secondary"}>
-                Sum: {currentRound.playerSum} / {playerBustThreshold}
-              </Badge>
-            </div>
-            {renderDice(currentRound.playerDice, showPeek, currentRound.peekResult)}
-            <Separator/>
-            <div className="space-y-2">
-              <p className="font-semibold">{t.actions}</p>
-              <div className="flex gap-2">
-                <Button onClick={handlePlayerPress}
-                        disabled={!currentRound.isPlayerTurn || didPlayerBust || currentRound.playerStand || !!winner}>{t.pressAction}</Button>
-                <Button onClick={handlePlayerStand}
-                        disabled={!currentRound.isPlayerTurn || didPlayerBust || currentRound.playerStand || !!winner}
-                        variant="secondary">{t.standAction}</Button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <p className="font-semibold">{t.skills}</p>
-              <div className="grid grid-cols-2 gap-2">
-                <SkillButton skill="strength" player={player} usedCount={currentRound.usedPlayerSkills.strength || 0}
-                             onClick={() => dispatch({type: 'USE_SKILL', skill: 'strength', target: 'player'})}
-                             disabled={!currentRound.playerStand || !!winner} skillDetails={skillDetails}/>
-                <SkillButton skill="dexterity" player={player} usedCount={currentRound.usedPlayerSkills.dexterity || 0}
-                             onClick={handleSidestep} disabled={!didPlayerBust || !!winner} skillDetails={skillDetails}/>
-                <SkillButton skill="intelligence" player={player}
-                             usedCount={currentRound.usedPlayerSkills.intelligence || 0} onClick={handlePeek}
-                             disabled={!currentRound.isPlayerTurn || currentRound.playerStand || !!winner}
-                             skillDetails={skillDetails}/>
-                <SkillButton skill="wisdom" player={player} usedCount={currentRound.usedPlayerSkills.wisdom || 0}
-                             onClick={() => {
-                             }} disabled={true}
-                             skillDetails={skillDetails}/>
-                <SkillButton skill="charisma" player={player} usedCount={currentRound.usedPlayerSkills.charisma || 0}
-                             onClick={() => {
-                             }} disabled={true}
-                             skillDetails={skillDetails}/>
-              </div>
-            </div>
-          </div>
+             {!winner && !isRoundOver && (
+                 <Button onClick={handleClose} variant="outline" className="w-full">
+                    <XCircle className="mr-2"/> {t.cancel}
+                 </Button>
+            )}
         </div>
       </DialogContent>
     </Dialog>
