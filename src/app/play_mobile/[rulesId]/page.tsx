@@ -42,6 +42,8 @@ import { MobileSavesView } from '@/components/game/mobile/MobileSavesView';
 import { MobileTalkScreen } from '@/components/game/mobile/MobileTalkScreen';
 import TrackDisplay from '@/components/game/TrackDisplay';
 import CountersDisplay from '@/components/game/CountersDisplay';
+import NarrativeLog from '@/components/game/NarrativeLog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
@@ -590,7 +592,7 @@ export default function PlayMobilePage() {
         return <MobileCharacterView player={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />;
       case 'status':
         return (
-            <div className="p-4 space-y-6">
+            <div className="p-4 space-y-6 h-full flex flex-col">
                 <div className="space-y-4">
                     {Object.entries(gameState.tracks).map(([id, track]) => (
                         <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
@@ -601,6 +603,25 @@ export default function PlayMobilePage() {
                     iconMap={rules.ui?.counterIcons}
                     title={t.keyItemsAndInfo}
                 />
+                <Card className="flex-1 flex flex-col min-h-0">
+                  <CardHeader>
+                    <CardTitle>{t.fullActionLog}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-grow overflow-hidden">
+                    <NarrativeLog
+                      log={gameState.log}
+                      knownTargets={knownTargets}
+                      actionRules={currentSituation.on_action}
+                      actionDetails={actionDetails}
+                      allowedActions={allowedActions}
+                      onTargetClick={handleTargetClick}
+                      onLogTargetClick={handleLogTargetClick}
+                      selectedAction={selectedAction}
+                      isScrollable={true}
+                      language={rules.language}
+                    />
+                  </CardContent>
+                </Card>
             </div>
         );
       case 'talk':
