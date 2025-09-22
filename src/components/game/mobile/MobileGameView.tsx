@@ -55,22 +55,16 @@ export function MobileGameView({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="relative w-full h-1/3 shrink-0">
-        <Image
-            src="https://placehold.co/600x400/221e2c/a89fbe?text=Scene"
-            alt="Scene illustration"
-            fill
-            style={{ objectFit: 'cover' }}
-            data-ai-hint="fantasy landscape"
-        />
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background to-transparent">
-            <h2 className="text-2xl font-headline font-bold text-white shadow-lg">
-                {isEnding ? t.scenarioComplete : currentSituation.label}
-            </h2>
-        </div>
-      </div>
-      
       <ScrollArea className="flex-grow">
+         <div className="relative w-full h-48 sm:h-64 md:h-80">
+            <Image
+                src="https://placehold.co/600x400/221e2c/a89fbe?text=Scene"
+                alt="Scene illustration"
+                fill
+                style={{ objectFit: 'cover' }}
+                data-ai-hint="fantasy landscape"
+            />
+        </div>
         <div className="p-4">
              {isGeneratingScene ? (
                 <div className="space-y-2">
