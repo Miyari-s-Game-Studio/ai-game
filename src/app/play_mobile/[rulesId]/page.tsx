@@ -28,7 +28,7 @@ import {generateCharacter, extractSecret, reachAgreement, type ConversationOutpu
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Home, Save, User, Wrench, MessageSquare } from 'lucide-react';
+import { Gamepad2, Home, Save, User, BarChart, Settings } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
 import { DiceRollDialog } from '@/components/game/DiceRollDialog';
@@ -40,6 +40,8 @@ import { MobileGameView } from '@/components/game/mobile/MobileGameView';
 import { MobileCharacterView } from '@/components/game/mobile/MobileCharacterView';
 import { MobileSavesView } from '@/components/game/mobile/MobileSavesView';
 import { MobileTalkScreen } from '@/components/game/mobile/MobileTalkScreen';
+import TrackDisplay from '@/components/game/TrackDisplay';
+import CountersDisplay from '@/components/game/CountersDisplay';
 
 
 const STATE_TO_LOAD_KEY = 'narrativeGameStateToLoad';
@@ -69,7 +71,7 @@ export default function PlayMobilePage() {
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
   const [isPending, startTransition] = useTransition();
 
-  const [activeView, setActiveView] = useState<'game' | 'character' | 'saves' | 'talk'>('game');
+  const [activeView, setActiveView] = useState<'game' | 'character' | 'status' | 'talk'>('game');
   
   // Dialogs and Modals state
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
@@ -586,8 +588,21 @@ export default function PlayMobilePage() {
         return <MobileGameView rules={rules} gameState={gameState} sceneDescription={sceneDescription} isGeneratingScene={isGeneratingScene} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} isProcessing={isProcessing} t={t} handleAction={handleAction} setSelectedAction={setSelectedAction} targetForAction={targetForAction} setTargetForAction={setTargetForAction} isEnding={isEnding} />;
       case 'character':
         return <MobileCharacterView player={gameState.player} onOpenInventory={() => setIsInventoryOpen(true)} t={t} />;
-      case 'saves':
-        return <MobileSavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />;
+      case 'status':
+        return (
+            <div className="p-4 space-y-6">
+                <div className="space-y-4">
+                    {Object.entries(gameState.tracks).map(([id, track]) => (
+                        <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
+                    ))}
+                </div>
+                <CountersDisplay
+                    counters={gameState.counters}
+                    iconMap={rules.ui?.counterIcons}
+                    title={t.keyItemsAndInfo}
+                />
+            </div>
+        );
       case 'talk':
         return <MobileTalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective} conversationType={conversationType} conversationFlow={conversationFlow} onConversationEnd={handleEndTalk} />;
       default:
@@ -606,7 +621,7 @@ export default function PlayMobilePage() {
       <header className="p-2 border-b shrink-0 flex justify-between items-center">
         <Button variant="ghost" size="icon" asChild><Link href="/"><Home className="h-5 w-5" /></Link></Button>
         <h1 className="text-lg font-bold font-headline">{rules.title}</h1>
-        <Button variant="ghost" size="icon" asChild><Link href="/admin/rules"><Wrench className="h-5 w-5" /></Link></Button>
+        <MobileSavesView handleSaveGame={handleSaveGame} handleOpenLoadDialog={handleOpenLoadDialog} />
       </header>
 
       <main className="flex-1 overflow-y-auto">
@@ -619,7 +634,7 @@ export default function PlayMobilePage() {
                 <TabsList className="grid w-full grid-cols-3 h-16 rounded-none">
                     <TabsTrigger value="game" className="h-full text-base"><Gamepad2 className="mr-2" />Game</TabsTrigger>
                     <TabsTrigger value="character" className="h-full text-base"><User className="mr-2" />Character</TabsTrigger>
-                    <TabsTrigger value="saves" className="h-full text-base"><Save className="mr-2" />Saves</TabsTrigger>
+                    <TabsTrigger value="status" className="h-full text-base"><BarChart className="mr-2" />Status</TabsTrigger>
                 </TabsList>
             </Tabs>
         </footer>

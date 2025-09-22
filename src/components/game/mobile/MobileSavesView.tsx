@@ -4,6 +4,12 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { FolderOpen, Save } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
 
 interface MobileSavesViewProps {
     handleSaveGame: () => void;
@@ -12,21 +18,22 @@ interface MobileSavesViewProps {
 
 export function MobileSavesView({ handleSaveGame, handleOpenLoadDialog }: MobileSavesViewProps) {
   return (
-    <div className="p-4">
-        <Card className="w-full">
-            <CardHeader>
-                <CardTitle>Save & Load</CardTitle>
-                <CardDescription>Manage your game progress.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-                <Button onClick={handleSaveGame} size="lg" className="w-full">
-                    <Save className="mr-2" /> Quick Save
-                </Button>
-                <Button onClick={handleOpenLoadDialog} size="lg" variant="outline" className="w-full">
-                    <FolderOpen className="mr-2" /> Load Game
-                </Button>
-            </CardContent>
-        </Card>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Save className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleSaveGame}>
+          <Save className="mr-2 h-4 w-4" />
+          <span>Quick Save</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleOpenLoadDialog}>
+          <FolderOpen className="mr-2 h-4 w-4" />
+          <span>Load Game</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

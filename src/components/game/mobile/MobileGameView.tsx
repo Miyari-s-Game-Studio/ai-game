@@ -73,10 +73,9 @@ export function MobileGameView({
       </div>
 
       <Tabs defaultValue="narrative" className="flex-grow flex flex-col overflow-hidden">
-        <TabsList className="grid w-full grid-cols-3 shrink-0">
+        <TabsList className="grid w-full grid-cols-2 shrink-0">
           <TabsTrigger value="narrative">Narrative</TabsTrigger>
           <TabsTrigger value="actions">Actions</TabsTrigger>
-          <TabsTrigger value="status">Status</TabsTrigger>
         </TabsList>
         <TabsContent value="narrative" className="flex-grow overflow-y-auto p-4">
             {isGeneratingScene ? (
@@ -121,18 +120,6 @@ export function MobileGameView({
                 onTargetChange={setTargetForAction}
             />
             )}
-        </TabsContent>
-        <TabsContent value="status" className="flex-grow overflow-y-auto p-4 space-y-6">
-            <div className="space-y-4">
-                {Object.entries(gameState.tracks).map(([id, track]) => (
-                    <TrackDisplay key={id} trackId={id} track={track} style={rules.ui?.trackStyles?.[id]} />
-                ))}
-            </div>
-             <CountersDisplay
-                counters={gameState.counters}
-                iconMap={rules.ui?.counterIcons}
-                title={t.keyItemsAndInfo}
-            />
         </TabsContent>
       </Tabs>
     </div>
