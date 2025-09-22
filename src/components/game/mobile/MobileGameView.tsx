@@ -3,14 +3,12 @@
 import React from 'react';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
-import TrackDisplay from '@/components/game/TrackDisplay';
 import NarrativeLog from '@/components/game/NarrativeLog';
-import ActionPanel from '@/components/game/ActionPanel';
-import CountersDisplay from '@/components/game/CountersDisplay';
 import { Loader2 } from 'lucide-react';
 import type { GameState, GameRules, ActionDetail } from '@/types/game';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MobileActionPanel } from './MobileActionPanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 interface MobileGameViewProps {
   rules: GameRules;
@@ -71,14 +69,10 @@ export function MobileGameView({
             </h2>
         </div>
       </div>
-
-      <Tabs defaultValue="narrative" className="flex-grow flex flex-col overflow-hidden">
-        <TabsList className="grid w-full grid-cols-2 shrink-0">
-          <TabsTrigger value="narrative">Narrative</TabsTrigger>
-          <TabsTrigger value="actions">Actions</TabsTrigger>
-        </TabsList>
-        <TabsContent value="narrative" className="flex-grow overflow-y-auto p-4">
-            {isGeneratingScene ? (
+      
+      <ScrollArea className="flex-grow">
+        <div className="p-4">
+             {isGeneratingScene ? (
                 <div className="space-y-2">
                     <Skeleton className="h-5 w-full"/>
                     <Skeleton className="h-5 w-full"/>
@@ -97,31 +91,26 @@ export function MobileGameView({
                     language={rules.language}
                 />
             )}
-        </TabsContent>
-        <TabsContent value="actions" className="flex-grow p-4">
-            {isProcessing && !isEnding ? (
-            <div className="flex flex-col items-center justify-center h-full">
-                <Loader2 className="h-8 w-8 animate-spin text-primary"/>
-                <p className="ml-4 text-lg mt-4">
-                    {isGeneratingScene ? t.loadingScene : t.aiCraftingStory}
-                </p>
-            </div>
-            ) : (
-            <ActionPanel
-                rules={rules}
-                allowedActions={allowedActions}
-                actionDetails={actionDetails}
+        </div>
+
+        {isProcessing && !isEnding ? (
+        <div className="flex flex-col items-center justify-center h-full p-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+            <p className="ml-4 text-lg mt-4">
+                {isGeneratingScene ? t.loadingScene : t.aiCraftingStory}
+            </p>
+        </div>
+        ) : (
+            <MobileActionPanel
                 actionRules={currentSituation.on_action}
+                actionDetails={actionDetails}
+                allowedActions={allowedActions}
                 onAction={handleAction}
                 disabled={isProcessing}
-                selectedAction={selectedAction}
-                onSelectedActionChange={setSelectedAction}
-                target={targetForAction}
-                onTargetChange={setTargetForAction}
+                t={t}
             />
-            )}
-        </TabsContent>
-      </Tabs>
+        )}
+      </ScrollArea>
     </div>
   );
 }
