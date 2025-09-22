@@ -29,13 +29,13 @@ import {generateCharacter, extractSecret, reachAgreement, type ConversationOutpu
 import {generateDifficultyClass, generateRelevantAttributes} from "@/ai/simple/generate-dice-check";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Home, Save, User, BarChart, Settings } from 'lucide-react';
+import { Gamepad2, Home, Save, User, BarChart, Settings, Swords } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadGameDialog, type SaveFile } from '@/components/game/LoadGameDialog';
 import { MobileDiceRollDialog } from '@/components/game/mobile/MobileDiceRollDialog';
 import { InventoryDialog } from '@/components/game/InventoryDialog';
 import { LatestResultModal } from '@/components/game/LatestResultModal';
-import { MobileFightDialog } from '@/components/game/mobile/MobileFightDialog';
+import { MobileFightScreen } from '@/components/game/mobile/MobileFightScreen';
 import { cn } from '@/lib/utils';
 import { MobileGameView } from '@/components/game/mobile/MobileGameView';
 import { MobileCharacterView } from '@/components/game/mobile/MobileCharacterView';
@@ -71,12 +71,11 @@ export default function PlayMobilePage() {
   const [isGeneratingScene, setIsGeneratingScene] = useState(true);
   const [isPending, startTransition] = useTransition();
 
-  const [activeView, setActiveView] = useState<'game' | 'character' | 'status' | 'talk'>('game');
+  const [activeView, setActiveView] = useState<'game' | 'character' | 'status' | 'talk' | 'fight'>('game');
   
   // Dialogs and Modals state
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [isDiceRollDialogOpen, setIsDiceRollDialogOpen] = useState(false);
-  const [isFightDialogOpen, setIsFightDialogOpen] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [isLatestResultModalOpen, setIsLatestResultModalOpen] = useState(false);
   const [latestNarrative, setLatestNarrative] = useState<LogEntry[]>([]);
@@ -452,7 +451,7 @@ export default function PlayMobilePage() {
     if (actionId === 'fight') {
       const enemy: PlayerStats = { id: 'enemy', name: target || "Guard", identity: "A tough-looking guard", language: 'en', attributes: {strength: 11, dexterity: 11, constitution: 12, intelligence: 9, wisdom: 10, charisma: 9}, equipment: {}, inventory: [], history: [] };
       setFightTarget(enemy);
-      setIsFightDialogOpen(true);
+      setActiveView('fight');
       return;
     }
 
@@ -545,7 +544,7 @@ export default function PlayMobilePage() {
   };
   
   const handleFightComplete = (result: 'win' | 'loss') => {
-    setIsFightDialogOpen(false);
+    setActiveView('game');
     const resultLog: LogEntry = { id: Date.now(), type: 'procedural', message: `You ${result} the fight against ${fightTarget?.name || 'the enemy'}.` };
     setGameState(produce(draft => { if(draft) draft.log.push(resultLog); }));
     if (result === 'win') executeAction('fight', fightTarget?.name, true);
@@ -592,6 +591,8 @@ export default function PlayMobilePage() {
         return <MobileStatusView rules={rules} gameState={gameState} currentSituation={currentSituation} t={t} knownTargets={knownTargets} actionDetails={actionDetails} allowedActions={allowedActions} handleTargetClick={handleTargetClick} handleLogTargetClick={handleLogTargetClick} selectedAction={selectedAction} />;
       case 'talk':
         return <MobileTalkScreen gameState={gameState} characterProfile={characterProfile} objective={talkObjective} conversationType={conversationType} conversationFlow={conversationFlow} onConversationEnd={handleEndTalk} />;
+      case 'fight':
+        return fightTarget ? <MobileFightScreen player={gameState.player} enemy={fightTarget} onFightComplete={handleFightComplete} language={rules.language} /> : null;
       default:
         return null;
     }
@@ -603,7 +604,6 @@ export default function PlayMobilePage() {
       <MobileDiceRollDialog isOpen={isDiceRollDialogOpen} onOpenChange={setIsDiceRollDialogOpen} rules={rules} situation={currentSituation} actionId={diceRollActionId || ''} target={diceRollTarget} actionCheck={diceRollActionCheck} playerStats={gameState.player} isGenerating={isGeneratingDiceCheck} onRollComplete={handleDiceRollComplete} language={rules.language} />
       <InventoryDialog isOpen={isInventoryOpen} onOpenChange={setIsInventoryOpen} inventory={gameState.player.inventory} equipment={gameState.player.equipment} onItemAction={handleItemAction} language={gameState.player.language} />
       <LatestResultModal isOpen={isLatestResultModalOpen} onOpenChange={setIsLatestResultModalOpen} latestNarrative={latestNarrative} knownTargets={knownTargets} actionRules={currentSituation.on_action} actionDetails={actionDetails} allowedActions={allowedActions} onTargetClick={(actionId, target) => { handleTargetClick(actionId, target); setIsLatestResultModalOpen(false); }} onLogTargetClick={(target) => { handleLogTargetClick(target); setIsLatestResultModalOpen(false); }} selectedAction={selectedAction} language={rules.language} />
-      {fightTarget && <MobileFightDialog isOpen={isFightDialogOpen} onOpenChange={setIsFightDialogOpen} player={gameState.player} enemy={fightTarget} onFightComplete={handleFightComplete} language={rules.language} />}
       
       <header className="p-2 border-b shrink-0 flex justify-between items-center">
         <Button variant="ghost" size="icon" asChild><Link href="/"><Home className="h-5 w-5" /></Link></Button>
@@ -615,7 +615,7 @@ export default function PlayMobilePage() {
         {renderContent()}
       </main>
 
-      {activeView !== 'talk' && (
+      {activeView !== 'talk' && activeView !== 'fight' && (
         <footer className="shrink-0 border-t">
             <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 h-16 rounded-none">
